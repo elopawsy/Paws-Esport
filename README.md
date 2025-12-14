@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🎮 CS2 Transfer Simulator
 
-## Getting Started
+Simule des transferts de joueurs CS2 entre équipes professionnelles !
 
-First, run the development server:
+![CS2 Transfer Simulator](https://img.shields.io/badge/CS2-Transfer%20Simulator-orange)
+![Next.js](https://img.shields.io/badge/Next.js-16-black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-4-blue)
+![PandaScore](https://img.shields.io/badge/PandaScore-API-green)
+
+## ✨ Fonctionnalités
+
+- 🏆 **Équipes CS2 en temps réel** via PandaScore API
+- 🔄 **Drag & drop** pour simuler les transferts
+- 💾 **Persistance** automatique dans le navigateur
+- ↩️ **Annulation** des transferts
+- 🔍 **Recherche** d'équipes
+- 📱 **Responsive** design
+
+## 🚀 Démarrage rapide
+
+### 1. Installation
+
+```bash
+npm install
+```
+
+### 2. Configuration PandaScore (REQUIS)
+
+1. Créez un compte gratuit sur [pandascore.co](https://pandascore.co/)
+2. Récupérez votre clé API (gratuit : **1000 requêtes/heure**)
+3. Créez un fichier `.env.local` :
+
+```env
+PANDASCORE_API_KEY=votre_cle_api_ici
+```
+
+### 3. Lancement
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Ouvrez [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📁 Structure du projet
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+cs-transfer-simulator/
+├── src/
+│   ├── app/
+│   │   ├── api/teams/          # API routes (PandaScore)
+│   │   ├── teams/[id]/         # Page équipe
+│   │   ├── simulator/          # Simulateur de transferts
+│   │   └── page.tsx            # Accueil
+│   ├── components/ui/          # Composants React
+│   ├── hooks/                  # Custom hooks
+│   └── lib/
+│       ├── pandascore.ts       # Client API PandaScore
+│       └── types.ts            # Types TypeScript
+```
 
-## Learn More
+## 🛠️ Stack technique
 
-To learn more about Next.js, take a look at the following resources:
+- **Next.js 16** - Framework React
+- **Tailwind CSS 4** - Styling
+- **@dnd-kit** - Drag and drop
+- **PandaScore API** - Données esports en temps réel
+- **TypeScript** - Typage strict
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📊 PandaScore API
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+| Fonctionnalité | Description |
+|----------------|-------------|
+| **Tier gratuit** | 1000 requêtes/heure |
+| **Équipes** | Toutes les équipes CS2 actives |
+| **Joueurs** | 17,000+ joueurs avec stats |
+| **Mise à jour** | Quotidienne |
 
-## Deploy on Vercel
+➡️ [Créer un compte PandaScore](https://pandascore.co/)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🎨 Design
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Thème dark inspiré de HLTV
+- Couleurs : Orange (#ff6600), Navy (#0d1117), Cyan (#00d4ff)
+- Animations fluides et micro-interactions
+
+## 📝 License
+
+MIT
