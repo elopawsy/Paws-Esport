@@ -113,6 +113,78 @@ const TeamCard = memo(function TeamCard({
     );
 });
 
+// Draggable vacant player
+const DraggableVacantPlayer = memo(function DraggableVacantPlayer({
+    player,
+}: {
+    player: Player;
+}) {
+    const { attributes, listeners, setNodeRef, transform, isDragging } =
+        useDraggable({
+            id: `vacant-${player.id}`,
+            data: { player, isVacant: true },
+        });
+
+    const style = transform
+        ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+        : undefined;
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            className={`flex items-center gap-2 p-1.5 rounded bg-black/50 cursor-grab active:cursor-grabbing ${isDragging ? "opacity-50" : ""}`}
+        >
+            <span className="text-xs text-neutral-400">{player.ign}</span>
+        </div>
+    );
+});
+
+// Vacant zone - for temporarily removing players to free up spots
+const VacantZone = memo(function VacantZone({
+    vacantPlayers,
+}: {
+    vacantPlayers: Player[];
+}) {
+    const { isOver, setNodeRef } = useDroppable({
+        id: "vacant-zone",
+        data: { isVacant: true },
+    });
+
+    return (
+        <div
+            ref={setNodeRef}
+            className={`bg-neutral-900 border rounded-lg p-3 ${isOver ? "border-yellow-500 bg-yellow-900/20" : "border-neutral-800"}`}
+        >
+            <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">⏸️</span>
+                <div>
+                    <h3 className="font-semibold text-white text-sm">Vacant</h3>
+                    <p className="text-xs text-neutral-500">{vacantPlayers.length} joueurs</p>
+                </div>
+            </div>
+
+            {isOver && (
+                <div className="mb-2 py-1.5 rounded border border-dashed border-yellow-500 text-center text-yellow-400 text-xs">
+                    Mettre en vacant
+                </div>
+            )}
+
+            {vacantPlayers.length === 0 ? (
+                <p className="py-2 text-center text-neutral-600 text-xs">Glisse un joueur ici</p>
+            ) : (
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {vacantPlayers.map((p) => (
+                        <DraggableVacantPlayer key={p.id} player={p} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+});
+
 // Retirement zone
 const RetirementZone = memo(function RetirementZone({
     retiredPlayers,
@@ -171,9 +243,11 @@ const TransferItem = memo(function TransferItem({
             ? "FA"
             : transfer.fromTeam.id === -1
                 ? "🏖️"
-                : transfer.fromTeam.name.slice(0, 3);
+                : transfer.fromTeam.id === -2
+                    ? "⏸️"
+                    : transfer.fromTeam.name.slice(0, 3);
     const toLabel =
-        transfer.toTeam.id === -1 ? "🏖️" : transfer.toTeam.name.slice(0, 3);
+        transfer.toTeam.id === -1 ? "🏖️" : transfer.toTeam.id === -2 ? "⏸️" : transfer.toTeam.name.slice(0, 3);
 
     return (
         <div className="flex items-center gap-2 p-2 bg-neutral-900 rounded group">
@@ -197,6 +271,7 @@ export default function SimulatorPage() {
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [freeAgents, setFreeAgents] = useState<FreeAgentPlayer[]>([]);
     const [retiredPlayers, setRetiredPlayers] = useState<Player[]>([]);
+    const [vacantPlayers, setVacantPlayers] = useState<Player[]>([]);
     const [activePlayer, setActivePlayer] = useState<Player | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
@@ -217,11 +292,12 @@ export default function SimulatorPage() {
         const stored = localStorage.getItem("cs-sim-v4");
         if (stored) {
             try {
-                const { modifiedTeams: mt, transfers: tr, freeAgents: fa, retiredPlayers: rp } = JSON.parse(stored);
+                const { modifiedTeams: mt, transfers: tr, freeAgents: fa, retiredPlayers: rp, vacantPlayers: vp } = JSON.parse(stored);
                 if (mt) setModifiedTeams(mt);
                 if (tr) setTransfers(tr);
                 if (fa) setFreeAgents(fa);
                 if (rp) setRetiredPlayers(rp);
+                if (vp) setVacantPlayers(vp);
             } catch { }
         }
     }, []);
@@ -229,10 +305,10 @@ export default function SimulatorPage() {
     useEffect(() => {
         if (loading) return;
         const timer = setTimeout(() => {
-            localStorage.setItem("cs-sim-v4", JSON.stringify({ modifiedTeams, transfers, freeAgents, retiredPlayers }));
+            localStorage.setItem("cs-sim-v4", JSON.stringify({ modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers }));
         }, 500);
         return () => clearTimeout(timer);
-    }, [modifiedTeams, transfers, freeAgents, retiredPlayers, loading]);
+    }, [modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, loading]);
 
     const getDisplayTeam = useCallback(
         (team: TeamFull) => modifiedTeams[team.id] || team,
@@ -258,13 +334,30 @@ export default function SimulatorPage() {
         const { active, over } = event;
         if (!over) return;
 
-        const { player, teamId: sourceTeamId, isFreeAgent } = active.data.current as any;
+        const { player, teamId: sourceTeamId, isFreeAgent, isVacant: isFromVacant } = active.data.current as any;
         const overData = over.data.current as any;
+
+        // Handle vacant - no history entry
+        if (overData.isVacant) {
+            if (isFreeAgent) {
+                setFreeAgents((prev) => prev.filter((p) => p.id !== player.id));
+            } else if (!isFromVacant) {
+                const sourceTeam = getDisplayTeam(allTeams.find((t) => t.id === sourceTeamId)!);
+                setModifiedTeams((prev) => ({
+                    ...prev,
+                    [sourceTeam.id]: { ...sourceTeam, players: sourceTeam.players.filter((p) => p.id !== player.id) },
+                }));
+                setVacantPlayers((prev) => [...prev, player]);
+            }
+            return;
+        }
 
         // Handle retirement
         if (overData.isRetirement) {
             if (isFreeAgent) {
                 setFreeAgents((prev) => prev.filter((p) => p.id !== player.id));
+            } else if (isFromVacant) {
+                setVacantPlayers((prev) => prev.filter((p) => p.id !== player.id));
             } else {
                 const sourceTeam = getDisplayTeam(allTeams.find((t) => t.id === sourceTeamId)!);
                 setModifiedTeams((prev) => ({
@@ -280,7 +373,9 @@ export default function SimulatorPage() {
                     player,
                     fromTeam: isFreeAgent
                         ? { id: 0, name: "Free Agent", logo: "" }
-                        : { id: sourceTeamId, name: allTeams.find((t) => t.id === sourceTeamId)?.name || "", logo: "" },
+                        : isFromVacant
+                            ? { id: -2, name: "Vacant", logo: "" }
+                            : { id: sourceTeamId, name: allTeams.find((t) => t.id === sourceTeamId)?.name || "", logo: "" },
                     toTeam: { id: -1, name: "Retraite", logo: "" },
                     timestamp: Date.now(),
                 },
@@ -290,6 +385,16 @@ export default function SimulatorPage() {
 
         if (!overData.team) return;
         const targetTeam = getDisplayTeam(overData.team);
+
+        // Handle from vacant to team - no history entry
+        if (isFromVacant) {
+            setModifiedTeams((prev) => ({
+                ...prev,
+                [targetTeam.id]: { ...targetTeam, players: [...targetTeam.players, player] },
+            }));
+            setVacantPlayers((prev) => prev.filter((p) => p.id !== player.id));
+            return;
+        }
 
         if (isFreeAgent) {
             setModifiedTeams((prev) => ({
@@ -341,6 +446,9 @@ export default function SimulatorPage() {
             setRetiredPlayers((prev) => prev.filter((p) => p.id !== transfer.player.id));
             if (transfer.fromTeam.id === 0) {
                 setFreeAgents((prev) => [...prev, transfer.player as FreeAgentPlayer]);
+            } else if (transfer.fromTeam.id === -2) {
+                // Was from vacant - put back to vacant
+                setVacantPlayers((prev) => [...prev, transfer.player]);
             } else {
                 const fromTeam = getDisplayTeam(allTeams.find((t) => t.id === transfer.fromTeam.id)!);
                 setModifiedTeams((prev) => ({
@@ -376,6 +484,7 @@ export default function SimulatorPage() {
         setTransfers([]);
         setFreeAgents([]);
         setRetiredPlayers([]);
+        setVacantPlayers([]);
         localStorage.removeItem("cs-sim-v4");
     }
 
@@ -413,7 +522,7 @@ export default function SimulatorPage() {
                             <span className="text-lg font-bold text-orange-500">{transfers.length}</span>
                             <span className="text-xs text-neutral-500 ml-1">transferts</span>
                         </div>
-                        {(transfers.length > 0 || freeAgents.length > 0 || retiredPlayers.length > 0) && (
+                        {(transfers.length > 0 || freeAgents.length > 0 || retiredPlayers.length > 0 || vacantPlayers.length > 0) && (
                             <button
                                 onClick={resetAll}
                                 className="px-3 py-1.5 bg-red-900/30 text-red-400 rounded text-sm hover:bg-red-900/50"
@@ -445,6 +554,9 @@ export default function SimulatorPage() {
                         </div>
 
                         <div className="w-64 flex-shrink-0 hidden xl:block space-y-4">
+                            {/* Vacant Zone */}
+                            <VacantZone vacantPlayers={vacantPlayers} />
+
                             {/* Retirement Zone */}
                             <RetirementZone retiredPlayers={retiredPlayers} />
 
