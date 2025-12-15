@@ -1,8 +1,8 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import MatchCard from "@/components/ui/MatchCard"; // Assuming we can reuse this
+import { useEffect, useState, Suspense } from "react";
+import MatchCard from "@/components/ui/MatchCard";
 import Link from "next/link";
 
 interface SearchResults {
@@ -10,7 +10,7 @@ interface SearchResults {
     tournaments: any[];
 }
 
-export default function SearchPage() {
+function SearchContent() {
     const searchParams = useSearchParams();
     const query = searchParams.get("q");
     const [results, setResults] = useState<SearchResults>({ matches: [], tournaments: [] });
@@ -109,5 +109,13 @@ export default function SearchPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function SearchPage() {
+    return (
+        <Suspense fallback={<div className="container-custom py-16 text-center text-muted">Loading search...</div>}>
+            <SearchContent />
+        </Suspense>
     );
 }
