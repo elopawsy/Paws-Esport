@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useCallback, useMemo, memo } from "react";
+import { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
+import { domToPng } from "modern-screenshot";
 import {
     DndContext,
     DragEndEvent,
@@ -17,6 +18,10 @@ import PlayerSearchSidebar from "@/components/ui/PlayerSearchSidebar";
 
 interface FreeAgentPlayer extends Player {
     currentTeam: { id: number; name: string; logo: string } | null;
+}
+
+interface VacantPlayer extends Player {
+    originalTeam: { id: number; name: string; logo: string };
 }
 
 // Memoized Player card
@@ -59,9 +64,11 @@ const DraggablePlayer = memo(function DraggablePlayer({
 const TeamCard = memo(function TeamCard({
     team,
     isHighlighted,
+    onRemove,
 }: {
     team: TeamFull;
     isHighlighted: boolean;
+    onRemove?: () => void;
 }) {
     const { isOver, setNodeRef } = useDroppable({
         id: `team-${team.id}`,
@@ -71,8 +78,16 @@ const TeamCard = memo(function TeamCard({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-neutral-900 border rounded-lg p-3 ${isOver ? "border-cyan-600" : isHighlighted ? "border-orange-500" : "border-neutral-800"}`}
+            className={`bg-neutral-900 border rounded-lg p-3 relative group ${isOver ? "border-cyan-600" : isHighlighted ? "border-orange-500" : "border-neutral-800"}`}
         >
+            {onRemove && (
+                <button
+                    onClick={onRemove}
+                    className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-600 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center z-10 hover:bg-red-500"
+                >
+                    ✕
+                </button>
+            )}
             <div className="flex items-center gap-2 mb-3">
                 <div className="w-8 h-8 rounded bg-neutral-800 flex items-center justify-center overflow-hidden">
                     <img
@@ -90,7 +105,7 @@ const TeamCard = memo(function TeamCard({
                 <div className="flex-1 min-w-0">
                     <h3 className="font-semibold text-white text-sm truncate">{team.name}</h3>
                     <p className="text-xs text-neutral-500">
-                        #{team.rank} • {team.players.length} joueurs
+                        {(team.rank ?? 0) > 0 ? `#${team.rank} • ` : ""}{team.players.length} joueurs
                     </p>
                 </div>
             </div>
@@ -117,12 +132,12 @@ const TeamCard = memo(function TeamCard({
 const DraggableVacantPlayer = memo(function DraggableVacantPlayer({
     player,
 }: {
-    player: Player;
+    player: VacantPlayer;
 }) {
     const { attributes, listeners, setNodeRef, transform, isDragging } =
         useDraggable({
             id: `vacant-${player.id}`,
-            data: { player, isVacant: true },
+            data: { player, isVacant: true, originalTeam: player.originalTeam },
         });
 
     const style = transform
@@ -138,6 +153,7 @@ const DraggableVacantPlayer = memo(function DraggableVacantPlayer({
             className={`flex items-center gap-2 p-1.5 rounded bg-black/50 cursor-grab active:cursor-grabbing ${isDragging ? "opacity-50" : ""}`}
         >
             <span className="text-xs text-neutral-400">{player.ign}</span>
+            <span className="text-xs text-neutral-600">({player.originalTeam.name.slice(0, 3)})</span>
         </div>
     );
 });
@@ -146,7 +162,7 @@ const DraggableVacantPlayer = memo(function DraggableVacantPlayer({
 const VacantZone = memo(function VacantZone({
     vacantPlayers,
 }: {
-    vacantPlayers: Player[];
+    vacantPlayers: VacantPlayer[];
 }) {
     const { isOver, setNodeRef } = useDroppable({
         id: "vacant-zone",
@@ -267,14 +283,22 @@ const TransferItem = memo(function TransferItem({
 
 export default function SimulatorPage() {
     const [allTeams, setAllTeams] = useState<TeamFull[]>([]);
+    const [customTeams, setCustomTeams] = useState<TeamFull[]>([]);
     const [modifiedTeams, setModifiedTeams] = useState<Record<number, TeamFull>>({});
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [freeAgents, setFreeAgents] = useState<FreeAgentPlayer[]>([]);
     const [retiredPlayers, setRetiredPlayers] = useState<Player[]>([]);
-    const [vacantPlayers, setVacantPlayers] = useState<Player[]>([]);
+    const [vacantPlayers, setVacantPlayers] = useState<VacantPlayer[]>([]);
     const [activePlayer, setActivePlayer] = useState<Player | null>(null);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState("");
+
+    // Team search state
+    const [teamSearchQuery, setTeamSearchQuery] = useState("");
+    const [teamSearchResults, setTeamSearchResults] = useState<TeamFull[]>([]);
+    const [teamSearching, setTeamSearching] = useState(false);
+    const [teamSearchOpen, setTeamSearchOpen] = useState(false);
+    const [hiddenTeams, setHiddenTeams] = useState<Set<number>>(new Set());
 
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
@@ -292,12 +316,14 @@ export default function SimulatorPage() {
         const stored = localStorage.getItem("cs-sim-v4");
         if (stored) {
             try {
-                const { modifiedTeams: mt, transfers: tr, freeAgents: fa, retiredPlayers: rp, vacantPlayers: vp } = JSON.parse(stored);
+                const { modifiedTeams: mt, transfers: tr, freeAgents: fa, retiredPlayers: rp, vacantPlayers: vp, customTeams: ct, hiddenTeams: ht } = JSON.parse(stored);
                 if (mt) setModifiedTeams(mt);
                 if (tr) setTransfers(tr);
                 if (fa) setFreeAgents(fa);
                 if (rp) setRetiredPlayers(rp);
                 if (vp) setVacantPlayers(vp);
+                if (ct) setCustomTeams(ct);
+                if (ht) setHiddenTeams(new Set(ht));
             } catch { }
         }
     }, []);
@@ -305,19 +331,54 @@ export default function SimulatorPage() {
     useEffect(() => {
         if (loading) return;
         const timer = setTimeout(() => {
-            localStorage.setItem("cs-sim-v4", JSON.stringify({ modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers }));
+            localStorage.setItem("cs-sim-v4", JSON.stringify({
+                modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, customTeams,
+                hiddenTeams: Array.from(hiddenTeams)
+            }));
         }, 500);
         return () => clearTimeout(timer);
-    }, [modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, loading]);
+    }, [modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, customTeams, hiddenTeams, loading]);
+
+    // Debounced team search
+    useEffect(() => {
+        if (teamSearchQuery.length < 2) {
+            setTeamSearchResults([]);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            setTeamSearching(true);
+            try {
+                const res = await fetch(`/api/teams/search?q=${encodeURIComponent(teamSearchQuery)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    // Filter out teams already in list
+                    const existingIds = new Set([...allTeams.map(t => t.id), ...customTeams.map(t => t.id)]);
+                    setTeamSearchResults(data.filter((t: TeamFull) => !existingIds.has(t.id)));
+                }
+            } catch { }
+            setTeamSearching(false);
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [teamSearchQuery, allTeams, customTeams]);
 
     const getDisplayTeam = useCallback(
         (team: TeamFull) => modifiedTeams[team.id] || team,
         [modifiedTeams]
     );
 
+    // Combine base teams + custom teams
+    const combinedTeams = useMemo(
+        () => [...allTeams, ...customTeams],
+        [allTeams, customTeams]
+    );
+
     const filteredTeams = useMemo(
-        () => allTeams.filter((t) => t.name.toLowerCase().includes(searchTerm.toLowerCase())),
-        [allTeams, searchTerm]
+        () => combinedTeams
+            .filter((t) => !hiddenTeams.has(t.id))
+            .filter((t) => t.name.toLowerCase().includes(searchTerm.toLowerCase())),
+        [combinedTeams, hiddenTeams, searchTerm]
     );
 
     const displayTeams = useMemo(
@@ -334,20 +395,30 @@ export default function SimulatorPage() {
         const { active, over } = event;
         if (!over) return;
 
-        const { player, teamId: sourceTeamId, isFreeAgent, isVacant: isFromVacant } = active.data.current as any;
+        const { player, teamId: sourceTeamId, isFreeAgent, isVacant: isFromVacant, originalTeam } = active.data.current as any;
         const overData = over.data.current as any;
 
         // Handle vacant - no history entry
         if (overData.isVacant) {
             if (isFreeAgent) {
+                // Free agents going to vacant - store their current team or "FA"
+                const vacantPlayer: VacantPlayer = {
+                    ...player,
+                    originalTeam: player.currentTeam || { id: 0, name: "Free Agent", logo: "" },
+                };
                 setFreeAgents((prev) => prev.filter((p) => p.id !== player.id));
+                setVacantPlayers((prev) => [...prev, vacantPlayer]);
             } else if (!isFromVacant) {
-                const sourceTeam = getDisplayTeam(allTeams.find((t) => t.id === sourceTeamId)!);
+                const sourceTeam = getDisplayTeam(combinedTeams.find((t) => t.id === sourceTeamId)!);
+                const vacantPlayer: VacantPlayer = {
+                    ...player,
+                    originalTeam: { id: sourceTeam.id, name: sourceTeam.name, logo: sourceTeam.logo },
+                };
                 setModifiedTeams((prev) => ({
                     ...prev,
                     [sourceTeam.id]: { ...sourceTeam, players: sourceTeam.players.filter((p) => p.id !== player.id) },
                 }));
-                setVacantPlayers((prev) => [...prev, player]);
+                setVacantPlayers((prev) => [...prev, vacantPlayer]);
             }
             return;
         }
@@ -359,7 +430,7 @@ export default function SimulatorPage() {
             } else if (isFromVacant) {
                 setVacantPlayers((prev) => prev.filter((p) => p.id !== player.id));
             } else {
-                const sourceTeam = getDisplayTeam(allTeams.find((t) => t.id === sourceTeamId)!);
+                const sourceTeam = getDisplayTeam(combinedTeams.find((t) => t.id === sourceTeamId)!);
                 setModifiedTeams((prev) => ({
                     ...prev,
                     [sourceTeam.id]: { ...sourceTeam, players: sourceTeam.players.filter((p) => p.id !== player.id) },
@@ -374,8 +445,8 @@ export default function SimulatorPage() {
                     fromTeam: isFreeAgent
                         ? { id: 0, name: "Free Agent", logo: "" }
                         : isFromVacant
-                            ? { id: -2, name: "Vacant", logo: "" }
-                            : { id: sourceTeamId, name: allTeams.find((t) => t.id === sourceTeamId)?.name || "", logo: "" },
+                            ? originalTeam
+                            : { id: sourceTeamId, name: combinedTeams.find((t) => t.id === sourceTeamId)?.name || "", logo: "" },
                     toTeam: { id: -1, name: "Retraite", logo: "" },
                     timestamp: Date.now(),
                 },
@@ -386,13 +457,23 @@ export default function SimulatorPage() {
         if (!overData.team) return;
         const targetTeam = getDisplayTeam(overData.team);
 
-        // Handle from vacant to team - no history entry
+        // Handle from vacant to team - create history entry with original team
         if (isFromVacant) {
             setModifiedTeams((prev) => ({
                 ...prev,
                 [targetTeam.id]: { ...targetTeam, players: [...targetTeam.players, player] },
             }));
             setVacantPlayers((prev) => prev.filter((p) => p.id !== player.id));
+            setTransfers((prev) => [
+                ...prev,
+                {
+                    id: `${Date.now()}-${player.id}`,
+                    player,
+                    fromTeam: originalTeam,
+                    toTeam: { id: targetTeam.id, name: targetTeam.name, logo: targetTeam.logo },
+                    timestamp: Date.now(),
+                },
+            ]);
             return;
         }
 
@@ -417,7 +498,7 @@ export default function SimulatorPage() {
 
         if (sourceTeamId === targetTeam.id) return;
 
-        const sourceTeam = getDisplayTeam(allTeams.find((t) => t.id === sourceTeamId)!);
+        const sourceTeam = getDisplayTeam(combinedTeams.find((t) => t.id === sourceTeamId)!);
 
         setModifiedTeams((prev) => ({
             ...prev,
@@ -446,11 +527,8 @@ export default function SimulatorPage() {
             setRetiredPlayers((prev) => prev.filter((p) => p.id !== transfer.player.id));
             if (transfer.fromTeam.id === 0) {
                 setFreeAgents((prev) => [...prev, transfer.player as FreeAgentPlayer]);
-            } else if (transfer.fromTeam.id === -2) {
-                // Was from vacant - put back to vacant
-                setVacantPlayers((prev) => [...prev, transfer.player]);
             } else {
-                const fromTeam = getDisplayTeam(allTeams.find((t) => t.id === transfer.fromTeam.id)!);
+                const fromTeam = getDisplayTeam(combinedTeams.find((t) => t.id === transfer.fromTeam.id)!);
                 setModifiedTeams((prev) => ({
                     ...prev,
                     [fromTeam.id]: { ...fromTeam, players: [...fromTeam.players, transfer.player] },
@@ -461,15 +539,15 @@ export default function SimulatorPage() {
         }
 
         if (transfer.fromTeam.id === 0) {
-            const toTeam = getDisplayTeam(allTeams.find((t) => t.id === transfer.toTeam.id)!);
+            const toTeam = getDisplayTeam(combinedTeams.find((t) => t.id === transfer.toTeam.id)!);
             setModifiedTeams((prev) => ({
                 ...prev,
                 [toTeam.id]: { ...toTeam, players: toTeam.players.filter((p) => p.id !== transfer.player.id) },
             }));
             setFreeAgents((prev) => [...prev, transfer.player as FreeAgentPlayer]);
         } else {
-            const fromTeam = getDisplayTeam(allTeams.find((t) => t.id === transfer.fromTeam.id)!);
-            const toTeam = getDisplayTeam(allTeams.find((t) => t.id === transfer.toTeam.id)!);
+            const fromTeam = getDisplayTeam(combinedTeams.find((t) => t.id === transfer.fromTeam.id)!);
+            const toTeam = getDisplayTeam(combinedTeams.find((t) => t.id === transfer.toTeam.id)!);
             setModifiedTeams((prev) => ({
                 ...prev,
                 [fromTeam.id]: { ...fromTeam, players: [...fromTeam.players, transfer.player] },
@@ -485,7 +563,54 @@ export default function SimulatorPage() {
         setFreeAgents([]);
         setRetiredPlayers([]);
         setVacantPlayers([]);
+        setCustomTeams([]);
+        setHiddenTeams(new Set());
         localStorage.removeItem("cs-sim-v4");
+    }
+
+    function addCustomTeam(team: TeamFull) {
+        if (!customTeams.some((t) => t.id === team.id) && !allTeams.some((t) => t.id === team.id)) {
+            setCustomTeams((prev) => [...prev, team]);
+        }
+        // Also unhide the team if it was hidden
+        setHiddenTeams((prev) => {
+            const next = new Set(prev);
+            next.delete(team.id);
+            return next;
+        });
+        setTeamSearchQuery("");
+        setTeamSearchResults([]);
+    }
+
+    function removeTeam(teamId: number) {
+        // For custom teams, remove them entirely
+        if (customTeams.some((t) => t.id === teamId)) {
+            setCustomTeams((prev) => prev.filter((t) => t.id !== teamId));
+        } else {
+            // For base teams, just hide them
+            setHiddenTeams((prev) => new Set([...prev, teamId]));
+        }
+    }
+
+    const teamsGridRef = useRef<HTMLDivElement>(null);
+
+    async function exportAsImage() {
+        if (!teamsGridRef.current) return;
+
+        try {
+            const dataUrl = await domToPng(teamsGridRef.current, {
+                scale: 2,
+                backgroundColor: '#000000',
+            });
+
+            const link = document.createElement('a');
+            link.download = `cs2-transfers-${new Date().toISOString().split('T')[0]}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error('Error exporting image:', error);
+            alert('Erreur lors de l\'export. Veuillez réessayer.');
+        }
     }
 
     if (loading) {
@@ -513,16 +638,85 @@ export default function SimulatorPage() {
                         </div>
                         <input
                             type="text"
-                            placeholder="Rechercher..."
+                            placeholder="Filtrer équipes..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-48 px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded text-sm text-white placeholder-neutral-600 focus:outline-none"
+                            className="w-40 px-3 py-1.5 bg-neutral-900 border border-neutral-800 rounded text-sm text-white placeholder-neutral-600 focus:outline-none"
                         />
+
+                        {/* Team search */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setTeamSearchOpen(!teamSearchOpen)}
+                                className={`px-3 py-1.5 rounded text-sm ${teamSearchOpen ? "bg-blue-900/30 text-blue-400" : "bg-neutral-800 text-neutral-400"}`}
+                            >
+                                {teamSearchOpen ? "✕" : "+ Équipe"}
+                            </button>
+
+                            {teamSearchOpen && (
+                                <div className="absolute top-full mt-2 right-0 w-72 bg-neutral-900 border border-neutral-800 rounded-lg p-3 z-50 shadow-xl">
+                                    <input
+                                        type="text"
+                                        placeholder="Rechercher une équipe..."
+                                        value={teamSearchQuery}
+                                        onChange={(e) => setTeamSearchQuery(e.target.value)}
+                                        className="w-full px-2 py-1.5 bg-black border border-neutral-700 rounded text-sm text-white placeholder-neutral-600 focus:outline-none mb-2"
+                                        autoFocus
+                                    />
+
+                                    {teamSearching && <p className="text-center text-neutral-500 text-xs">Recherche...</p>}
+
+                                    {teamSearchResults.length > 0 && (
+                                        <div className="max-h-48 overflow-y-auto space-y-1">
+                                            {teamSearchResults.slice(0, 10).map((team) => (
+                                                <div key={team.id} className="flex items-center gap-2 p-2 rounded bg-black hover:bg-neutral-800">
+                                                    <div className="w-6 h-6 rounded bg-neutral-700 flex items-center justify-center overflow-hidden">
+                                                        <img src={team.logo} alt="" className="w-5 h-5 object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                                    </div>
+                                                    <span className="flex-1 text-sm text-white truncate">{team.name}</span>
+                                                    <span className="text-xs text-neutral-500">{team.players.length}j</span>
+                                                    <button
+                                                        onClick={() => addCustomTeam(team)}
+                                                        className="px-2 py-0.5 bg-blue-900/30 text-blue-400 rounded text-xs"
+                                                    >
+                                                        +
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {teamSearchQuery.length >= 2 && !teamSearching && teamSearchResults.length === 0 && (
+                                        <p className="text-center text-neutral-600 text-xs">Aucun résultat</p>
+                                    )}
+
+                                    {customTeams.length > 0 && (
+                                        <div className="mt-2 pt-2 border-t border-neutral-800">
+                                            <p className="text-xs text-neutral-500 mb-1">Équipes ajoutées ({customTeams.length})</p>
+                                            <div className="flex flex-wrap gap-1">
+                                                {customTeams.map((t) => (
+                                                    <span key={t.id} className="text-xs bg-blue-900/20 text-blue-400 px-1.5 py-0.5 rounded flex items-center gap-1">
+                                                        {t.name}
+                                                        <button
+                                                            onClick={() => setCustomTeams((prev) => prev.filter((team) => team.id !== t.id))}
+                                                            className="hover:text-red-400"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
                         <div className="text-center">
                             <span className="text-lg font-bold text-orange-500">{transfers.length}</span>
                             <span className="text-xs text-neutral-500 ml-1">transferts</span>
                         </div>
-                        {(transfers.length > 0 || freeAgents.length > 0 || retiredPlayers.length > 0 || vacantPlayers.length > 0) && (
+                        {(transfers.length > 0 || freeAgents.length > 0 || retiredPlayers.length > 0 || vacantPlayers.length > 0 || customTeams.length > 0 || hiddenTeams.size > 0) && (
                             <button
                                 onClick={resetAll}
                                 className="px-3 py-1.5 bg-red-900/30 text-red-400 rounded text-sm hover:bg-red-900/50"
@@ -542,14 +736,25 @@ export default function SimulatorPage() {
                         />
 
                         <div className="flex-1">
-                            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                            <div ref={teamsGridRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 p-2 bg-black">
                                 {displayTeams.map((team) => (
                                     <TeamCard
                                         key={team.id}
                                         team={team}
                                         isHighlighted={transfers.some((t) => t.fromTeam.id === team.id || t.toTeam.id === team.id)}
+                                        onRemove={() => removeTeam(team.id)}
                                     />
                                 ))}
+                            </div>
+
+                            {/* Export Button */}
+                            <div className="mt-4 flex justify-center">
+                                <button
+                                    onClick={exportAsImage}
+                                    className="px-4 py-2 bg-green-900/30 text-green-400 rounded-lg text-sm hover:bg-green-900/50 flex items-center gap-2"
+                                >
+                                    📷 Exporter en image
+                                </button>
                             </div>
                         </div>
 
