@@ -321,7 +321,15 @@ export default function SimulatorPage() {
                 if (tr) setTransfers(tr);
                 if (fa) setFreeAgents(fa);
                 if (rp) setRetiredPlayers(rp);
-                if (vp) setVacantPlayers(vp);
+                if (rp) setRetiredPlayers(rp);
+                if (vp) {
+                    // Migration script for old vacant players without originalTeam
+                    const migratedVp = vp.map((p: any) => ({
+                        ...p,
+                        originalTeam: p.originalTeam || { id: 0, name: "Inconnu", logo: "" }
+                    }));
+                    setVacantPlayers(migratedVp);
+                }
                 if (ct) setCustomTeams(ct);
                 if (ht) setHiddenTeams(new Set(ht));
             } catch { }
