@@ -19,17 +19,35 @@ export default function Navbar() {
                     NEXUS
                 </Link>
 
-                {/* Navigation Links */}
+                {/* Navigation Links and Search */}
                 <div className="flex items-center gap-8">
+                    {/* Search Bar */}
+                    <form onSubmit={(e) => {
+                        e.preventDefault();
+                        const form = e.currentTarget;
+                        const input = form.querySelector('input') as HTMLInputElement;
+                        if (input.value.trim()) {
+                            window.location.href = `/search?q=${encodeURIComponent(input.value)}`;
+                        }
+                    }} className="relative hidden md:block">
+                        <input
+                            type="text"
+                            placeholder="Search matches, events..."
+                            className="bg-card/50 border border-card-border rounded-full py-1.5 px-4 text-sm text-foreground focus:outline-none focus:border-primary w-64 transition-all"
+                        />
+                        <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-white">
+                            🔍
+                        </button>
+                    </form>
+
                     {links.map((link) => {
                         const isActive = pathname === link.href;
                         return (
                             <Link
                                 key={link.href}
                                 href={link.href}
-                                className={`text-sm font-medium tracking-wide transition-colors ${
-                                    isActive ? "text-white" : "text-muted hover:text-white"
-                                }`}
+                                className={`text-sm font-medium tracking-wide transition-colors ${isActive ? "text-white" : "text-muted hover:text-white"
+                                    }`}
                             >
                                 {link.label}
                             </Link>
