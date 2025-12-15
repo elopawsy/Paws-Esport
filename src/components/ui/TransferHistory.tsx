@@ -42,7 +42,7 @@ export default function TransferHistory({ transfers, onUndo, onReset }: Transfer
                 <h3 className="font-bold text-white flex items-center gap-2">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-hltv-orange"
+                        className="h-5 w-5 text-primary"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"

@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchCS2Teams, isApiKeyConfigured, PandaScorePlayer } from "@/lib/pandascore";
+import { getCountryCode } from "@/lib/pandascore";
 
 const PANDASCORE_BASE_URL = "https://api.pandascore.co";
 
-export async function GET(request: NextRequest) {
-    if (!isApiKeyConfigured()) {
-        return NextResponse.json(
-            { error: "PANDASCORE_API_KEY not configured" },
-            { status: 503 }
-        );
-    }
+// MOCK RESULTS for development without API Key
+const MOCK_PLAYERS = [
+    { id: 101, slug: "s1mple", name: "s1mple", first_name: "Oleksandr", last_name: "Kostyliev", nationality: "UA", image_url: null, role: "Sniper", currentTeam: null },
+    { id: 102, slug: "niko", name: "NiKo", first_name: "Nikola", last_name: "Kovac", nationality: "BA", image_url: null, role: "Rifler", currentTeam: { id: 3210, name: "G2", image_url: null } },
+    { id: 103, slug: "m0nesy", name: "m0NESY", first_name: "Ilya", last_name: "Osipov", nationality: "RU", image_url: null, role: "Sniper", currentTeam: { id: 3210, name: "G2", image_url: null } },
+    { id: 104, slug: "dev1ce", name: "device", first_name: "Nicolai", last_name: "Reedtz", nationality: "DK", image_url: null, role: "Sniper", currentTeam: { id: 3213, name: "Astralis", image_url: null } },
+    { id: 105, slug: "zywoo", name: "ZywOo", first_name: "Mathieu", last_name: "Herbaut", nationality: "FR", image_url: null, role: "Sniper", currentTeam: { id: 3455, name: "Vitality", image_url: null } },
+];
 
+export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get("q");
 
@@ -21,9 +23,20 @@ export async function GET(request: NextRequest) {
         );
     }
 
-    try {
-        const apiKey = process.env.PANDASCORE_API_KEY!;
+    const apiKey = process.env.PANDASCORE_API_KEY;
 
+    if (!apiKey) {
+        // Return mock data filtered by query
+        const lowerQuery = query.toLowerCase();
+        const results = MOCK_PLAYERS.filter(p => 
+            p.name.toLowerCase().includes(lowerQuery) || 
+            (p.first_name && p.first_name.toLowerCase().includes(lowerQuery)) ||
+            (p.last_name && p.last_name.toLowerCase().includes(lowerQuery))
+        );
+        return NextResponse.json(results);
+    }
+
+    try {
         // Search players via PandaScore
         const url = new URL(`${PANDASCORE_BASE_URL}/csgo/players`);
         url.searchParams.append("search[name]", query);
@@ -46,17 +59,17 @@ export async function GET(request: NextRequest) {
         // Transform to our format
         const results = players.map((player: any) => ({
             id: player.id,
-            name: `${player.first_name || ""} ${player.last_name || ""}`.trim() || player.name,
-            ign: player.name,
-            image: player.image_url || "/player-placeholder.svg",
-            country: {
-                name: player.nationality || "Unknown",
-                code: getCountryCode(player.nationality),
-            },
+            slug: player.slug,
+            name: player.name, // IGN
+            first_name: player.first_name,
+            last_name: player.last_name,
+            nationality: getCountryCode(player.nationality),
+            image_url: player.image_url,
+            role: player.role,
             currentTeam: player.current_team ? {
                 id: player.current_team.id,
                 name: player.current_team.name,
-                logo: player.current_team.image_url || "/team-placeholder.svg",
+                image_url: player.current_team.image_url,
             } : null,
         }));
 
@@ -68,30 +81,4 @@ export async function GET(request: NextRequest) {
             { status: 500 }
         );
     }
-}
-
-function getCountryCode(country: string | null): string {
-    if (!country) return "XX";
-    if (country.length === 2) return country.toUpperCase();
-
-    const countryMap: Record<string, string> = {
-        Russia: "RU", Russian: "RU",
-        Ukraine: "UA", Ukrainian: "UA",
-        France: "FR", French: "FR",
-        Germany: "DE", German: "DE",
-        Denmark: "DK", Danish: "DK",
-        Sweden: "SE", Swedish: "SE",
-        Poland: "PL", Polish: "PL",
-        Brazil: "BR", Brazilian: "BR",
-        "United States": "US", American: "US",
-        Canada: "CA", Canadian: "CA",
-        Finland: "FI", Finnish: "FI",
-        Norway: "NO", Norwegian: "NO",
-        Latvia: "LV", Estonia: "EE",
-        Turkey: "TR", Turkish: "TR",
-        Kazakhstan: "KZ", Mongolia: "MN",
-        Portugal: "PT", Israel: "IL",
-    };
-
-    return countryMap[country] || country.slice(0, 2).toUpperCase();
 }

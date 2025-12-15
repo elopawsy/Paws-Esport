@@ -1,23 +1,22 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Oswald, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const oswald = Oswald({
+  variable: "--font-oswald",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "CS2 Transfer Simulator | Simule tes transferts de rêve",
-  description:
-    "Simule les transferts de joueurs CS2 entre équipes professionnelles. Powered by HLTV data.",
-  keywords: ["CS2", "Counter-Strike", "transfer", "esports", "HLTV", "simulator"],
+  title: "NEXUS | Transfer Market",
+  description: "Professional Esport Transfer Simulator",
 };
 
 export default function RootLayout({
@@ -26,12 +25,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" className="dark">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${oswald.variable} ${inter.variable} antialiased bg-background text-foreground font-sans`}
       >
         <Navbar />
-        <main className="pt-16 min-h-screen">{children}</main>
+        <main className="pt-20 min-h-screen">{children}</main>
       </body>
     </html>
   );

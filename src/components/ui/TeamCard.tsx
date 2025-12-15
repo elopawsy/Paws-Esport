@@ -1,67 +1,47 @@
 "use client";
 
 import Link from "next/link";
-import { TeamRanking } from "@/lib/types";
+import { Team } from "@/lib/types";
 
 interface TeamCardProps {
-    team: TeamRanking;
+    team: Team;
 }
 
 export default function TeamCard({ team }: TeamCardProps) {
-    const rankChangeColor =
-        team.rankChange > 0
-            ? "text-green-400"
-            : team.rankChange < 0
-                ? "text-red-400"
-                : "text-gray-500";
-
-    const rankChangeIcon =
-        team.rankChange > 0 ? "↑" : team.rankChange < 0 ? "↓" : "•";
-
     return (
         <Link href={`/teams/${team.id}`}>
-            <div className="group relative bg-navy-800/50 backdrop-blur-sm border border-navy-700 rounded-xl p-4 hover:border-hltv-orange/50 hover:bg-navy-800 transition-all duration-300 cursor-pointer overflow-hidden">
-                {/* Rank Badge */}
-                <div className="absolute top-3 left-3 w-8 h-8 rounded-lg bg-gradient-to-br from-hltv-orange to-orange-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                    {team.rank}
-                </div>
-
-                {/* Rank Change */}
-                <div className={`absolute top-3 right-3 text-sm font-medium ${rankChangeColor}`}>
-                    {rankChangeIcon} {Math.abs(team.rankChange) || ""}
-                </div>
+            <div className="group h-full bg-card border border-card-border p-6 hover:border-primary/50 hover:bg-secondary/80 transition-all duration-200 flex flex-col items-center justify-between rounded-md relative overflow-hidden">
+                
+                {/* Subtle colored glow on hover */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-12 translate-x-12 group-hover:bg-primary/10 transition-colors" />
 
                 {/* Team Logo */}
-                <div className="flex justify-center mt-6 mb-4">
-                    <div className="relative w-20 h-20 group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+                <div className="w-20 h-20 mb-6 flex items-center justify-center transition-transform duration-300 group-hover:scale-105 z-10">
+                    {team.image_url ? (
                         <img
-                            src={team.logo}
+                            src={team.image_url}
                             alt={team.name}
-                            className="w-16 h-16 object-contain drop-shadow-lg"
+                            className="w-full h-full object-contain drop-shadow-md"
                             loading="lazy"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = "none";
-                                target.parentElement!.innerHTML = `<span class="text-3xl font-bold text-orange-500">${team.name.charAt(0)}</span>`;
-                            }}
                         />
-                    </div>
+                    ) : (
+                        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center">
+                             <span className="text-xl font-display text-muted">{team.name.charAt(0)}</span>
+                        </div>
+                    )}
                 </div>
 
-                {/* Team Name */}
-                <h3 className="text-center font-bold text-white text-lg mb-1 group-hover:text-hltv-orange transition-colors">
-                    {team.name}
-                </h3>
-
-                {/* Points */}
-                <p className="text-center text-gray-400 text-sm">
-                    {team.points} points
-                </p>
-
-                {/* Hover Glow */}
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-hltv-orange/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                {/* Info */}
+                <div className="text-center w-full z-10">
+                    <h3 className="font-display font-bold text-xl tracking-wide truncate group-hover:text-primary transition-colors">
+                        {team.name}
+                    </h3>
+                    <div className="mt-2 flex items-center justify-center gap-2 text-xs font-medium text-muted uppercase tracking-wider">
+                         <span className="bg-background/50 px-2 py-1 rounded">{team.acronym || "TEAM"}</span>
+                         {team.location && <span>{team.location}</span>}
+                    </div>
+                </div>
             </div>
         </Link>
     );
 }
-

@@ -4,14 +4,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import PlayerCard from "@/components/ui/PlayerCard";
-import { TeamFull } from "@/lib/types";
+import { Team } from "@/lib/types";
 import { DndContext } from "@dnd-kit/core";
 
 export default function TeamPage() {
     const params = useParams();
     const teamId = params.id as string;
 
-    const [team, setTeam] = useState<TeamFull | null>(null);
+    const [team, setTeam] = useState<Team | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,7 +23,7 @@ export default function TeamPage() {
                 const data = await res.json();
                 setTeam(data);
             } catch (err) {
-                setError(err instanceof Error ? err.message : "Une erreur est survenue");
+                setError(err instanceof Error ? err.message : "Error loading team");
             } finally {
                 setLoading(false);
             }
@@ -33,18 +33,12 @@ export default function TeamPage() {
 
     if (loading) {
         return (
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="animate-pulse">
-                    <div className="flex items-center gap-6 mb-8">
-                        <div className="w-24 h-24 bg-navy-700 rounded-xl" />
-                        <div>
-                            <div className="h-8 w-48 bg-navy-700 rounded mb-2" />
-                            <div className="h-4 w-32 bg-navy-700 rounded" />
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+            <div className="container-custom py-16">
+                <div className="animate-pulse space-y-12">
+                    <div className="h-40 bg-card rounded-md w-full max-w-2xl" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                         {[...Array(5)].map((_, i) => (
-                            <div key={i} className="bg-navy-800/50 border border-navy-700 rounded-xl p-4 h-52" />
+                            <div key={i} className="bg-card h-80 rounded-md" />
                         ))}
                     </div>
                 </div>
@@ -54,109 +48,74 @@ export default function TeamPage() {
 
     if (error || !team) {
         return (
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="text-center py-12">
-                    <h3 className="text-xl font-bold text-white mb-2">Équipe non trouvée</h3>
-                    <p className="text-gray-400 mb-4">{error}</p>
-                    <Link
-                        href="/"
-                        className="px-4 py-2 bg-navy-700 hover:bg-navy-600 text-white rounded-lg transition-colors"
-                    >
-                        Retour aux équipes
-                    </Link>
-                </div>
+            <div className="container-custom py-20 text-center">
+                <h3 className="text-2xl font-display uppercase mb-4">Team Not Found</h3>
+                <Link
+                    href="/"
+                    className="text-sm border-b border-white pb-1 hover:text-muted transition-colors"
+                >
+                    Return to Index
+                </Link>
             </div>
         );
     }
 
     return (
         <DndContext onDragEnd={() => { }}>
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="container-custom py-12">
                 {/* Back Link */}
                 <Link
                     href="/"
-                    className="inline-flex items-center gap-2 text-gray-400 hover:text-white mb-6 transition-colors"
+                    className="inline-flex items-center gap-2 text-muted hover:text-white mb-12 text-xs font-medium uppercase tracking-widest transition-colors"
                 >
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                    >
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                        />
-                    </svg>
-                    Retour aux équipes
+                    ← Back to Database
                 </Link>
 
                 {/* Team Header */}
-                <header className="flex flex-col sm:flex-row items-center gap-6 mb-10 p-6 bg-navy-800/50 backdrop-blur-sm border border-navy-700 rounded-2xl">
-                    <div className="relative w-28 h-28 flex-shrink-0 flex items-center justify-center bg-navy-800 rounded-xl">
-                        <img
-                            src={team.logo}
-                            alt={team.name}
-                            className="w-20 h-20 object-contain drop-shadow-2xl"
-                            loading="lazy"
-                            onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = "none";
-                                target.parentElement!.innerHTML = `<span class="text-4xl font-bold text-orange-500">${team.name.charAt(0)}</span>`;
-                            }}
-                        />
+                <header className="flex flex-col md:flex-row items-start md:items-end gap-8 mb-20 border-b border-card-border pb-10">
+                    <div className="w-32 h-32 flex-shrink-0 flex items-center justify-center bg-card rounded-lg border border-card-border">
+                        {team.image_url ? (
+                            <img
+                                src={team.image_url}
+                                alt={team.name}
+                                className="w-24 h-24 object-contain"
+                                loading="lazy"
+                            />
+                        ) : (
+                            <span className="text-4xl font-display text-muted">{team.name.charAt(0)}</span>
+                        )}
                     </div>
-                    <div className="text-center sm:text-left">
-                        <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{team.name}</h1>
-                        <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-gray-400">
-                            <span className="flex items-center gap-1">
-                                <span className="text-xl">{getFlagEmoji(team.country?.code?.toLowerCase())}</span>
-                                {team.country?.name}
-                            </span>
-                            {team.rank && (
-                                <>
-                                    <span className="text-navy-600">•</span>
-                                    <span className="px-2 py-1 bg-hltv-orange/20 text-hltv-orange font-bold rounded-lg text-sm">
-                                        #{team.rank} Mondial
-                                    </span>
-                                </>
+                    
+                    <div className="flex-1">
+                        <h1 className="text-6xl font-display font-bold uppercase tracking-tight leading-none mb-4">{team.name}</h1>
+                        <div className="flex items-center gap-4 text-sm font-medium text-muted uppercase tracking-wider">
+                            {team.location && (
+                                <span>{team.location}</span>
                             )}
+                            <span className="text-card-border">|</span>
+                             <span>ID: {team.slug}</span>
                         </div>
                     </div>
-                    <div className="sm:ml-auto">
+                    
+                    <div>
                         <Link
                             href={`/simulator?team=${team.id}`}
-                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white font-bold rounded-xl shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 hover:scale-105 transition-all"
+                            className="inline-block px-6 py-3 bg-white text-black font-medium text-xs uppercase tracking-widest hover:bg-gray-200 transition-colors rounded-sm"
                         >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                                />
-                            </svg>
-                            Ajouter au simulateur
+                            Add to Simulator
                         </Link>
                     </div>
                 </header>
 
                 {/* Players Section */}
                 <section>
-                    <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                        <span className="w-2 h-6 bg-cyan-500 rounded-full" />
-                        Roster ({team.players.length} joueurs)
-                    </h2>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-xl font-display font-medium uppercase tracking-wide">
+                            Active Roster <span className="text-muted ml-2">[{team.players.length}]</span>
+                        </h2>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                         {team.players.map((player) => (
                             <PlayerCard
                                 key={player.id}
@@ -167,35 +126,7 @@ export default function TeamPage() {
                         ))}
                     </div>
                 </section>
-
-                {/* Coach Section */}
-                {team.coach && (
-                    <section className="mt-8">
-                        <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-3">
-                            <span className="w-2 h-6 bg-gray-500 rounded-full" />
-                            Coach
-                        </h2>
-                        <div className="max-w-xs">
-                            <PlayerCard
-                                player={team.coach}
-                                teamId={team.id}
-                                isDraggable={false}
-                            />
-                        </div>
-                    </section>
-                )}
             </div>
         </DndContext>
     );
-}
-
-function getFlagEmoji(countryCode: string | undefined): string {
-    if (!countryCode || countryCode === "xx") return "🏳️";
-
-    const codePoints = countryCode
-        .toUpperCase()
-        .split("")
-        .map((char) => 0x1f1e6 + char.charCodeAt(0) - 65);
-
-    return String.fromCodePoint(...codePoints);
 }

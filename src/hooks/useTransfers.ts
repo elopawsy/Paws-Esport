@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Transfer, TeamFull, Player } from "@/lib/types";
+import { Transfer, Team, Player } from "@/lib/types";
 
-const STORAGE_KEY = "cs-transfer-simulator-state";
+const STORAGE_KEY = "nexus-transfer-sim-state-v1";
 
 interface TransferState {
-    modifiedTeams: Record<number, TeamFull>;
+    modifiedTeams: Record<number, Team>;
     transfers: Transfer[];
 }
 
@@ -39,27 +39,19 @@ export function useTransfers() {
     }, [state, isLoaded]);
 
     const getModifiedTeam = useCallback(
-        (team: TeamFull): TeamFull => {
+        (team: Team): Team => {
             return state.modifiedTeams[team.id] || team;
         },
         [state.modifiedTeams]
     );
 
     const transferPlayer = useCallback(
-        (player: Player, fromTeam: TeamFull, toTeam: TeamFull) => {
+        (player: Player, fromTeam: Team, toTeam: Team) => {
             const transfer: Transfer = {
                 id: `${Date.now()}-${player.id}`,
                 player,
-                fromTeam: {
-                    id: fromTeam.id,
-                    name: fromTeam.name,
-                    logo: fromTeam.logo,
-                },
-                toTeam: {
-                    id: toTeam.id,
-                    name: toTeam.name,
-                    logo: toTeam.logo,
-                },
+                fromTeam,
+                toTeam,
                 timestamp: Date.now(),
             };
 
@@ -69,13 +61,13 @@ export function useTransfers() {
                 const currentToTeam = prev.modifiedTeams[toTeam.id] || toTeam;
 
                 // Remove player from source team
-                const updatedFromTeam: TeamFull = {
+                const updatedFromTeam: Team = {
                     ...currentFromTeam,
                     players: currentFromTeam.players.filter((p) => p.id !== player.id),
                 };
 
                 // Add player to destination team
-                const updatedToTeam: TeamFull = {
+                const updatedToTeam: Team = {
                     ...currentToTeam,
                     players: [...currentToTeam.players, player],
                 };
@@ -104,12 +96,12 @@ export function useTransfers() {
             if (!fromTeam || !toTeam) return prev;
 
             // Move player back
-            const updatedFromTeam: TeamFull = {
+            const updatedFromTeam: Team = {
                 ...fromTeam,
                 players: [...fromTeam.players, transfer.player],
             };
 
-            const updatedToTeam: TeamFull = {
+            const updatedToTeam: Team = {
                 ...toTeam,
                 players: toTeam.players.filter((p) => p.id !== transfer.player.id),
             };

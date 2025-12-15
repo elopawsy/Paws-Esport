@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getHLTVTeamById } from "@/lib/hltv-teams";
+import { getCS2TeamById } from "@/lib/pandascore";
 
 export async function GET(
     request: NextRequest,
@@ -13,7 +13,7 @@ export async function GET(
             return NextResponse.json({ error: "Invalid team ID" }, { status: 400 });
         }
 
-        const team = getHLTVTeamById(teamId);
+        const team = await getCS2TeamById(teamId);
 
         if (!team) {
             return NextResponse.json({ error: "Team not found" }, { status: 404 });

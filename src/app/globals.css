@@ -1,47 +1,67 @@
 @import "tailwindcss";
 
 @theme {
-  /* Ultra Dark theme - optimized for performance */
-  --color-navy-900: #0a0a0a;
-  --color-navy-800: #111111;
-  --color-navy-700: #1a1a1a;
-  --color-hltv-orange: #ff6600;
-  --color-cyan-500: #00b8d4;
-  --color-green-500: #22c55e;
+  --font-sans: var(--font-inter), sans-serif;
+  --font-display: var(--font-oswald), sans-serif;
+
+  --color-background: #0f172a; /* Slate 950 - Richer dark blue-grey */
+  --color-foreground: #f8fafc; /* Slate 50 */
+  
+  --color-primary: #3b82f6; /* Blue 500 - Professional Sport Blue */
+  --color-primary-foreground: #ffffff;
+  
+  --color-secondary: #1e293b; /* Slate 800 */
+  --color-secondary-foreground: #f8fafc;
+  
+  --color-muted: #94a3b8; /* Slate 400 */
+  
+  --color-card: #1e293b; /* Slate 800 */
+  --color-card-border: #334155; /* Slate 700 */
+  
+  --color-accent: #3b82f6;
+  
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 }
 
-/* Base styles - minimal */
-html {
-  background-color: #0a0a0a;
-  color: #e5e5e5;
+/* Base styles */
+@layer base {
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
 }
 
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
+/* Utilities */
+@utility container-custom {
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
 }
 
-/* Custom scrollbar - simple */
 ::-webkit-scrollbar {
   width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #111;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--color-card-border); 
   border-radius: 3px;
 }
 
-/* Disable expensive animations globally */
-@media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary); 
 }

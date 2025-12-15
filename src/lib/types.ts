@@ -1,78 +1,32 @@
-// Types for HLTV data
-
-export interface TeamRanking {
-    id: number;
-    name: string;
-    logo: string;
-    rank: number;
-    rankChange: number;
-    points: number;
-}
+import { StaticImport } from "next/dist/shared/lib/get-img-props";
 
 export interface Player {
-    id: number;
-    name: string;
     ign: string;
-    image: string;
-    country: {
-        name: string;
-        code: string;
-    };
-    type?: string;
+    id: number;
+    slug: string;
+    name: string; // IGN
+    first_name: string | null;
+    last_name: string | null;
+    nationality: string | null;
+    image_url: string | null;
+    role: string | null;
 }
 
-export interface TeamFull {
+export interface Team {
+    logo: string | StaticImport;
     id: number;
+    slug: string;
     name: string;
-    logo: string;
-    country: {
-        name: string;
-        code: string;
-    };
-    rank?: number;
+    acronym: string | null;
+    image_url: string | null;
+    location: string | null;
     players: Player[];
-    coach?: Player;
-}
-
-export interface PlayerFull {
-    id: number;
-    name: string;
-    ign: string;
-    image: string;
-    age?: number;
-    country: {
-        name: string;
-        code: string;
-    };
-    team?: {
-        id: number;
-        name: string;
-    };
-    statistics?: {
-        rating?: number;
-        killsPerRound?: number;
-        headshots?: number;
-        mapsPlayed?: number;
-    };
 }
 
 export interface Transfer {
     id: string;
     player: Player;
-    fromTeam: {
-        id: number;
-        name: string;
-        logo: string;
-    };
-    toTeam: {
-        id: number;
-        name: string;
-        logo: string;
-    };
+    fromTeam: Team;
+    toTeam: Team;
     timestamp: number;
-}
-
-export interface SimulatorState {
-    teams: Map<number, TeamFull>;
-    transfers: Transfer[];
 }

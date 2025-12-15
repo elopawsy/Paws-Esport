@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { getHLTVTeams } from "@/lib/hltv-teams";
+import { getTopCS2Teams } from "@/lib/pandascore";
 
 export async function GET() {
     try {
-        const teams = getHLTVTeams();
+        const teams = await getTopCS2Teams();
         return NextResponse.json(teams);
     } catch (error) {
         console.error("Error fetching teams:", error);

@@ -33,7 +33,7 @@ export default function PlayerCard({
         }
         : undefined;
 
-    const countryCode = player.country?.code?.toLowerCase() || "xx";
+    const imageUrl = player.image_url || "/player-placeholder.svg";
 
     if (isCompact) {
         return (
@@ -43,55 +43,34 @@ export default function PlayerCard({
                 {...listeners}
                 {...attributes}
                 className={`
-          flex items-center gap-3 p-2 rounded-lg bg-navy-800/50 border border-navy-700
+          flex items-center gap-3 p-3 bg-card border border-transparent hover:border-primary/30 rounded-md transition-all
           ${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}
-          ${isDragging ? "opacity-50 shadow-2xl shadow-cyan-500/20" : ""}
-          hover:border-cyan-500/50 transition-all
+          ${isDragging ? "opacity-50 ring-2 ring-primary" : ""}
         `}
             >
                 {/* Player Image */}
-                <div className="relative w-10 h-10 rounded-full overflow-hidden bg-navy-700 flex-shrink-0">
+                <div className="relative w-8 h-8 rounded-full overflow-hidden bg-background flex-shrink-0 border border-card-border">
                     <Image
-                        src={player.image}
-                        alt={player.ign || player.name}
+                        src={imageUrl}
+                        alt={player.name}
                         fill
-                        sizes="40px"
+                        sizes="32px"
                         className="object-cover object-top"
                         onError={(e) => {
                             const target = e.target as HTMLImageElement;
-                            target.src = "https://static.hltv.org/images/playerprofile/bodyshot/unknown.png";
+                            target.style.display = 'none';
+                            target.parentElement!.classList.add('flex', 'items-center', 'justify-center');
+                            target.parentElement!.innerHTML = `<span class="text-xs font-bold text-muted">${player.name.charAt(0)}</span>`;
                         }}
                     />
                 </div>
 
-                {/* Player Info */}
                 <div className="flex-1 min-w-0">
-                    <p className="font-bold text-white text-sm truncate">{player.ign || player.name}</p>
-                    <div className="flex items-center gap-1">
-                        <span className="text-xs">{getFlagEmoji(countryCode)}</span>
-                        <span className="text-xs text-gray-400 truncate">{player.country?.name}</span>
-                    </div>
+                    <p className="font-display font-medium text-foreground text-base leading-none tracking-wide group-hover:text-primary transition-colors">{player.name}</p>
+                    <p className="text-xs text-muted truncate mt-0.5">
+                        {player.first_name} {player.last_name}
+                    </p>
                 </div>
-
-                {/* Drag Indicator */}
-                {isDraggable && (
-                    <div className="text-gray-500 hover:text-cyan-400 transition-colors">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-5 w-5"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M4 8h16M4 16h16"
-                            />
-                        </svg>
-                    </div>
-                )}
             </div>
         );
     }
@@ -103,65 +82,42 @@ export default function PlayerCard({
             {...listeners}
             {...attributes}
             className={`
-        group relative bg-navy-800/50 backdrop-blur-sm border border-navy-700 rounded-xl p-4
+        group relative bg-card border border-card-border p-5 flex flex-col items-center rounded-lg transition-all
         ${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}
-        ${isDragging ? "opacity-50 shadow-2xl shadow-cyan-500/20" : ""}
-        hover:border-cyan-500/50 hover:bg-navy-800 transition-all duration-300
+        ${isDragging ? "opacity-50 ring-2 ring-primary" : ""}
+        hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5
       `}
         >
-            {/* Country Flag */}
-            <div className="absolute top-3 right-3 text-xl">
-                {getFlagEmoji(countryCode)}
-            </div>
-
             {/* Player Image */}
-            <div className="relative w-24 h-28 mx-auto mb-3 rounded-lg overflow-hidden bg-gradient-to-b from-navy-700 to-navy-800">
+            <div className="relative w-20 h-20 mb-4 rounded-full overflow-hidden bg-background border-2 border-card-border group-hover:border-primary transition-colors duration-300">
                 <Image
-                    src={player.image}
-                    alt={player.ign || player.name}
+                    src={imageUrl}
+                    alt={player.name}
                     fill
-                    sizes="96px"
-                    className="object-cover object-top group-hover:scale-105 transition-transform duration-300"
+                    sizes="80px"
+                    className="object-cover object-top"
                     onError={(e) => {
                         const target = e.target as HTMLImageElement;
-                        target.src = "https://static.hltv.org/images/playerprofile/bodyshot/unknown.png";
+                        target.style.display = 'none';
+                        target.parentElement!.classList.add('flex', 'items-center', 'justify-center');
+                        target.parentElement!.innerHTML = `<span class="text-2xl font-display text-muted">${player.name.charAt(0)}</span>`;
                     }}
                 />
             </div>
 
-            {/* Player IGN */}
-            <h4 className="text-center font-bold text-white text-lg group-hover:text-cyan-400 transition-colors">
-                {player.ign || player.name}
+            <h4 className="font-display font-bold text-xl tracking-wide text-foreground group-hover:text-primary transition-colors">
+                {player.name}
             </h4>
 
-            {/* Real Name */}
-            <p className="text-center text-gray-400 text-sm truncate">
-                {player.name}
+            <p className="text-xs text-muted uppercase tracking-wider mt-1 mb-3">
+                {player.first_name} {player.last_name}
             </p>
 
-            {/* Role Badge */}
-            {player.type && (
-                <div className="mt-2 flex justify-center">
-                    <span className="px-2 py-1 text-xs font-medium bg-navy-700 rounded-full text-gray-300 capitalize">
-                        {player.type}
-                    </span>
-                </div>
+            {player.role && (
+                <span className="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 rounded uppercase tracking-widest border border-primary/20">
+                    {player.role}
+                </span>
             )}
-
-            {/* Hover Glow */}
-            <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-cyan-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
         </div>
     );
-}
-
-// Helper to get flag emoji from country code
-function getFlagEmoji(countryCode: string): string {
-    if (!countryCode || countryCode === "xx") return "🏳️";
-
-    const codePoints = countryCode
-        .toUpperCase()
-        .split("")
-        .map((char) => 0x1f1e6 + char.charCodeAt(0) - 65);
-
-    return String.fromCodePoint(...codePoints);
 }
