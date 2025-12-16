@@ -1,0 +1,107 @@
+/**
+ * Custom PandaScore API Client
+ * 
+ * Direct fetch implementation to bypass SDK limitations and support all games.
+ */
+import { env } from './../config/env';
+import { getApiSlug } from './gameSlugMapper';
+import type { VideoGameSlug } from './gameSlugMapper';
+
+export class ApiClient {
+  private baseUrl = 'https://api.pandascore.co';
+  private apiKey: string;
+
+  constructor() {
+    this.apiKey = env.PANDASCORE_API_KEY || '';
+  }
+
+  private async fetch<T>(path: string, params: Record<string, any> = {}): Promise<{ data: T }> {
+    if (!this.apiKey) {
+      throw new Error('PandaScore API Key not configured');
+    }
+
+    // Filter out undefined/null params
+    const cleanParams: Record<string, string> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        cleanParams[key] = String(value);
+      }
+    });
+
+    const searchParams = new URLSearchParams(cleanParams);
+    const queryString = searchParams.toString();
+    const url = `${this.baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
+
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Accept': 'application/json',
+      },
+      next: { revalidate: 60 } // Default revalidation
+    });
+
+    if (!response.ok) {
+      throw new Error(`PandaScore API Error: ${response.status} ${response.statusText} - ${url}`);
+    }
+
+    const data = await response.json();
+    return { data };
+  }
+
+  /**
+   * Get teams for a specific video game
+   */
+  async getTeams(videogame: VideoGameSlug, params: any = {}) {
+    const slug = getApiSlug(videogame);
+    // Endpoint: /<game>/teams
+    return this.fetch<any[]>(`/${slug}/teams`, params);
+  }
+
+  async getTeamById(id: number) {
+    return this.fetch<any>(`/teams/${id}`);
+  }
+
+  /**
+   * Get players
+   */
+  async getPlayers(videogame: VideoGameSlug, params: any = {}) {
+     const slug = getApiSlug(videogame);
+     return this.fetch<any[]>(`/${slug}/players`, params);
+  }
+
+  async getGlobalPlayers(params: any = {}) {
+      return this.fetch<any[]>('/players', params);
+  }
+
+  async getPlayerById(id: number) {
+      return this.fetch<any>(`/players/${id}`);
+  }
+
+  /**
+   * Matches
+   */
+  async getMatches(videogame: VideoGameSlug, params: any = {}) {
+     const slug = getApiSlug(videogame);
+     return this.fetch<any[]>(`/${slug}/matches`, params);
+  }
+
+  /**
+   * Tournaments
+   */
+  async getTournaments(videogame: VideoGameSlug, params: any = {}) {
+     const slug = getApiSlug(videogame);
+     return this.fetch<any>(`/${slug}/tournaments`, params);
+  }
+  
+  async getTournamentById(id: number) {
+      return this.fetch<any>(`/tournaments/${id}`);
+  }
+
+  async getTournamentMatches(id: number, params: any = {}) {
+      return this.fetch<any>(`/tournaments/${id}/matches`, params);
+  }
+  
+
+}
+
+export const apiClient = new ApiClient();

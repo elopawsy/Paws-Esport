@@ -5,7 +5,10 @@
  * Some games use different identifiers in the API than in our app.
  */
 
+
 import type { VideoGameSlug } from './constants';
+export type { VideoGameSlug };
+
 
 /**
  * PandaScore videogame data from API.
@@ -23,12 +26,12 @@ export interface PandaScoreGame {
  * IDs fetched from: GET /videogames
  */
 export const PANDASCORE_GAMES: Record<VideoGameSlug, PandaScoreGame> = {
-  'cs-2': { id: 3, slug: 'cs-go', name: 'Counter-Strike' },
+  'cs-2': { id: 3, slug: 'csgo', name: 'Counter-Strike' },
   valorant: { id: 26, slug: 'valorant', name: 'Valorant' },
-  lol: { id: 1, slug: 'league-of-legends', name: 'LoL' },
-  dota2: { id: 4, slug: 'dota-2', name: 'Dota 2' },
-  codmw: { id: 23, slug: 'cod-mw', name: 'Call of Duty' },
-  r6siege: { id: 24, slug: 'r6-siege', name: 'Rainbow 6 Siege' },
+  lol: { id: 1, slug: 'lol', name: 'LoL' },
+  dota2: { id: 4, slug: 'dota2', name: 'Dota 2' },
+  codmw: { id: 23, slug: 'codmw', name: 'Call of Duty' },
+  r6siege: { id: 24, slug: 'r6siege', name: 'Rainbow 6 Siege' },
 };
 
 /**

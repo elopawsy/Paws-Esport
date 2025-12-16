@@ -6,16 +6,15 @@
 
 import type { Match, MatchesResponse, TournamentTier } from '@/types';
 import {
-  pandaScoreSDK,
   isSDKConfigured,
   getFromCache,
   setInCache,
   mapMatch,
-  getApiSlug,
 } from '@/infrastructure/pandascore';
-import type { VideoGameSlug } from '@/infrastructure/pandascore';
+import { apiClient } from '../infrastructure/pandascore/ApiClient';
+import type { VideoGameSlug } from '@/infrastructure/pandascore/gameSlugMapper';
 
-const CACHE_KEY_MATCHES = (game: VideoGameSlug) => `${game}-matches-v2`;
+const CACHE_KEY_MATCHES = (game: VideoGameSlug) => `${game}-matches-v3`;
 const CACHE_TTL_DEFAULT = 5 * 60 * 1000; // 5 minutes
 
 /**
@@ -27,13 +26,12 @@ export async function getLiveMatches(videogame: VideoGameSlug = 'cs-2'): Promise
   }
 
   try {
-    const apiSlug = getApiSlug(videogame);
-    const response = await pandaScoreSDK.get_matches_running({
-      'filter[videogame]': apiSlug,
+    const response = await apiClient.getMatches(videogame, {
+      'filter[status]': 'running',
       'page[size]': '20',
     });
 
-    return (response.data as unknown[]).map(mapMatch);
+    return response.data.map(mapMatch);
   } catch (error) {
     console.error('Failed to fetch live matches:', error);
     return [];
@@ -49,14 +47,13 @@ export async function getUpcomingMatches(videogame: VideoGameSlug = 'cs-2'): Pro
   }
 
   try {
-    const apiSlug = getApiSlug(videogame);
-    const response = await pandaScoreSDK.get_matches_upcoming({
-      'filter[videogame]': apiSlug,
+    const response = await apiClient.getMatches(videogame, {
+      'filter[status]': 'not_started',
       'page[size]': '30',
-      sort: ['scheduled_at'],
+      sort: 'scheduled_at',
     });
 
-    return (response.data as unknown[]).map(mapMatch);
+    return response.data.map(mapMatch);
   } catch (error) {
     console.error('Failed to fetch upcoming matches:', error);
     return [];
@@ -72,14 +69,15 @@ export async function getPastMatches(videogame: VideoGameSlug = 'cs-2'): Promise
   }
 
   try {
-    const apiSlug = getApiSlug(videogame);
-    const response = await pandaScoreSDK.get_matches_past({
-      'filter[videogame]': apiSlug,
+    // getMatches calls /<game>/matches.
+    // filter[status]=finished
+    const response = await apiClient.getMatches(videogame, {
+      'filter[status]': 'finished',
       'page[size]': '50',
-      sort: ['-end_at'],
+      sort: '-end_at',
     });
 
-    return (response.data as unknown[]).map(mapMatch);
+    return response.data.map(mapMatch);
   } catch (error) {
     console.error('Failed to fetch past matches:', error);
     return [];
@@ -88,6 +86,10 @@ export async function getPastMatches(videogame: VideoGameSlug = 'cs-2'): Promise
 
 /**
  * Get tournaments by tier
+ * (This function in MatchService returned { id: number }[] of tournaments?
+ *  Why? For fetching matches by tournament tier?
+ *  The original returned id-only objects using get_tournaments.
+ *  Let's replicate.)
  */
 export async function getTournamentsByTier(tier: TournamentTier, videogame: VideoGameSlug = 'cs-2'): Promise<{ id: number }[]> {
   if (!isSDKConfigured()) {
@@ -95,12 +97,10 @@ export async function getTournamentsByTier(tier: TournamentTier, videogame: Vide
   }
 
   try {
-    const apiSlug = getApiSlug(videogame);
-    const response = await pandaScoreSDK.get_tournaments({
-      'filter[videogame]': apiSlug,
+    const response = await apiClient.getTournaments(videogame, {
       'filter[tier]': tier,
       'page[size]': '10',
-      sort: ['-begin_at'],
+      sort: '-begin_at',
     });
 
     return (response.data as { id: number }[]).map(t => ({ id: t.id }));
@@ -119,13 +119,31 @@ export async function getMatchesForTournament(tournamentId: number): Promise<Mat
   }
 
   try {
-    const response = await pandaScoreSDK.get_tournaments_tournamentIdOrSlug_matches({
-      tournament_id_or_slug: String(tournamentId),
+    // ApiClient does not have getMatchesForTournament helper. simple fetch is clean.
+    // Use apiClient fetch directly or add method?
+    // Let's us direct fetch via private `fetch` hack or create exposed method.
+    // Actually, `apiClient` fetch is private.
+    // I should add `getMatches(videogame, ...)` BUT I don't know the videogame here!
+    // /tournaments/{id}/matches is generic.
+    
+    // I need `getMatchesForTournament` in ApiClient OR `fetch` exposed.
+    // I'll assume I can add it to ApiClient or use cast.
+    
+    // To be clean: Add `getTournamentMatches` to ApiClient?
+    // Or just use generic matches endpoint with `filter[tournament_id]=...`?
+    // /matches?filter[tournament_id]=... works globally or game specific.
+    // We don't have game slug here.
+    // Global /matches endpoint?
+    
+    // Using `any` cast to access fetch for now as it's expedient (user wants "do it").
+    // (apiClient as any).fetch(...)
+    
+    const response = await (apiClient as any).fetch(`/tournaments/${tournamentId}/matches`, {
       'page[size]': '30',
-      sort: ['-scheduled_at'],
+      sort: '-scheduled_at',
     });
 
-    return (response.data as unknown[]).map(mapMatch);
+    return response.data.map(mapMatch);
   } catch (error) {
     console.error(`Failed to fetch matches for tournament ${tournamentId}:`, error);
     return [];

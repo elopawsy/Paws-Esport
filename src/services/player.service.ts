@@ -6,25 +6,23 @@
 
 import type { Player } from '@/types';
 import {
-  pandaScoreSDK,
   isSDKConfigured,
   getFromCache,
   setInCache,
   mapPlayer,
-  getApiSlug,
   getApiId,
 } from '@/infrastructure/pandascore';
-import type { VideoGameSlug } from '@/infrastructure/pandascore';
+import { apiClient } from '../infrastructure/pandascore/ApiClient';
+import type { VideoGameSlug } from '@/infrastructure/pandascore/gameSlugMapper';
 import { getTopTeams } from './team.service';
 
 const CACHE_KEY_PLAYER = (id: number) => `player-${id}`;
-const CACHE_KEY_SEARCH = (game: string, query: string) => `player-search-${game}-${query.toLowerCase()}-v4`;
+const CACHE_KEY_SEARCH = (game: string, query: string) => `player-search-${game}-${query.toLowerCase()}-v6`;
 
 /**
  * Get player by ID
  */
 export async function getPlayerById(playerId: number): Promise<Player | null> {
-  // Check cache first
   const cached = getFromCache<Player>(CACHE_KEY_PLAYER(playerId));
   if (cached) return cached;
 
@@ -33,11 +31,11 @@ export async function getPlayerById(playerId: number): Promise<Player | null> {
   }
 
   try {
-    const response = await pandaScoreSDK.get_players_playerIdOrSlug({
-      player_id_or_slug: String(playerId),
-    });
-
-    const player = mapPlayer(response.data);
+    const response = await apiClient.getPlayerById(playerId);
+    // Handle single object vs array
+    const playerRaw = Array.isArray(response.data) ? response.data[0] : response.data;
+    
+    const player = mapPlayer(playerRaw);
     setInCache(CACHE_KEY_PLAYER(playerId), player);
     return player;
   } catch (error) {
@@ -60,20 +58,13 @@ export async function searchPlayers(query: string, videogame: VideoGameSlug = 'c
   }
 
   try {
-    const apiId = getApiId(videogame);
-    
-    // Search globally first
-    const response = await pandaScoreSDK.get_players({
+    // Use game-specific endpoint
+    const response = await apiClient.getPlayers(videogame, {
       'search[name]': query,
-      'page[size]': '50',
+      'page[size]': 50,
     });
 
-    // Client-side filter by videogame ID (strict)
-    const validPlayers = (response.data as unknown[]).filter((p: any) => {
-       if (!p.current_videogame || p.current_videogame.id !== apiId) return false;
-       return p.name.toLowerCase().includes(query.toLowerCase());
-    });
-
+    const validPlayers = response.data;
     const mappedPlayers: (Player & { currentTeam?: any })[] = validPlayers.map((p: any) => ({
       ...mapPlayer(p),
         currentTeam: p.current_team ? {
@@ -84,7 +75,6 @@ export async function searchPlayers(query: string, videogame: VideoGameSlug = 'c
     }));
 
     // HYBRID SEARCH FALLBACK
-    // If API search returns fewer than 3 results, try to find the player in the rosters of Top Teams.
     if (mappedPlayers.length < 3) {
       try {
         const topTeams = await getTopTeams(videogame);
@@ -95,16 +85,15 @@ export async function searchPlayers(query: string, videogame: VideoGameSlug = 'c
         
         const fallbackMatches = teamPlayers.filter(p => p.name.toLowerCase().includes(query.toLowerCase()));
         
-        // Dedupe
         const existingIds = new Set(mappedPlayers.map(p => p.id));
         for (const p of fallbackMatches) {
-            if (!existingIds.has(p.id)) {
-                mappedPlayers.push(p);
-                existingIds.add(p.id);
-            }
+          if (!existingIds.has(p.id)) {
+            mappedPlayers.push(p);
+            existingIds.add(p.id);
+          }
         }
-      } catch (e) {
-        console.warn('Hybrid player search fallback failed:', e);
+      } catch (err) {
+        // Ignore fallback errors
       }
     }
 
@@ -115,6 +104,7 @@ export async function searchPlayers(query: string, videogame: VideoGameSlug = 'c
     return [];
   }
 }
+
 
 
 /**

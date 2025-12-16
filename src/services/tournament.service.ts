@@ -6,20 +6,19 @@
 
 import type { TournamentFull, Match, TournamentTier } from '@/types';
 import {
-  pandaScoreSDK,
   isSDKConfigured,
   getFromCache,
   setInCache,
   mapMatch,
-  getApiSlug,
-  getApiId,
 } from '@/infrastructure/pandascore';
-import type { VideoGameSlug } from '@/infrastructure/pandascore';
+import { apiClient } from '../infrastructure/pandascore/ApiClient';
+import type { VideoGameSlug } from '@/infrastructure/pandascore/gameSlugMapper';
 
-const CACHE_KEY_TOURNAMENTS = (game: VideoGameSlug, status: string) => `${game}-tournaments-${status}-v1`;
+const CACHE_KEY_TOURNAMENTS = (game: VideoGameSlug, status: string) => `${game}-tournaments-${status}-v2`;
 const CACHE_KEY_TOURNAMENT = (id: number) => `tournament-${id}`;
 const CACHE_KEY_TOURNAMENT_MATCHES = (id: number) => `tournament-${id}-matches`;
 
+// Local mapper to avoid circular imports or missing exports
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapTournament(t: any): TournamentFull {
   return {
@@ -37,22 +36,6 @@ function mapTournament(t: any): TournamentFull {
 }
 
 /**
- * Get tournaments for a specific videogame.
- * Uses /videogames/{id}/tournaments endpoint which properly filters by game.
- */
-async function getTournamentsForGame(videogame: VideoGameSlug): Promise<TournamentFull[]> {
-  const apiId = getApiId(videogame);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const response = await pandaScoreSDK.get_videogames_videogameIdOrSlug_tournaments({
-    videogame_id_or_slug: apiId as any, // SDK types are too strict, API accepts numeric ID
-    'page[size]': '50',
-    sort: ['-begin_at'],
-  });
-  return (response.data as unknown[]).map(mapTournament);
-}
-
-
-/**
  * Get running tournaments for a game
  */
 export async function getRunningTournaments(videogame: VideoGameSlug = 'cs-2'): Promise<TournamentFull[]> {
@@ -62,15 +45,18 @@ export async function getRunningTournaments(videogame: VideoGameSlug = 'cs-2'): 
   if (!isSDKConfigured()) return [];
 
   try {
-    const allTournaments = await getTournamentsForGame(videogame);
-    const now = new Date();
+    const response = await apiClient.getTournaments(videogame, {
+      'page[size]': 50,
+      sort: '-begin_at',
+    });
     
-    // Filter running: begin_at <= now AND (end_at >= now OR end_at is null)
-    const running = allTournaments.filter(t => {
-      if (!t.begin_at) return false;
-      const begin = new Date(t.begin_at);
-      const end = t.end_at ? new Date(t.end_at) : null;
-      return begin <= now && (!end || end >= now);
+    const now = new Date();
+    const all = response.data.map(mapTournament);
+    const running = all.filter((t: TournamentFull) => {
+       if (!t.begin_at) return false;
+       const begin = new Date(t.begin_at);
+       const end = t.end_at ? new Date(t.end_at) : null;
+       return begin <= now && (!end || end >= now);
     });
 
     setInCache(CACHE_KEY_TOURNAMENTS(videogame, 'running'), running);
@@ -91,13 +77,18 @@ export async function getUpcomingTournaments(videogame: VideoGameSlug = 'cs-2'):
   if (!isSDKConfigured()) return [];
 
   try {
-    const allTournaments = await getTournamentsForGame(videogame);
-    const now = new Date();
+    // Fetch upcoming by sorting by begin_at (ascending)
+    const response = await apiClient.getTournaments(videogame, {
+      'page[size]': 50,
+      sort: 'begin_at', 
+      'range[begin_at]': `${new Date().toISOString()},`
+    });
     
-    // Filter upcoming: begin_at > now
-    const upcoming = allTournaments
-      .filter(t => t.begin_at && new Date(t.begin_at) > now)
-      .sort((a, b) => new Date(a.begin_at!).getTime() - new Date(b.begin_at!).getTime());
+    const now = new Date();
+    const all = response.data.map(mapTournament);
+    const upcoming = all
+      .filter((t: TournamentFull) => t.begin_at && new Date(t.begin_at) > now)
+      .sort((a: TournamentFull, b: TournamentFull) => new Date(a.begin_at!).getTime() - new Date(b.begin_at!).getTime());
 
     setInCache(CACHE_KEY_TOURNAMENTS(videogame, 'upcoming'), upcoming);
     return upcoming;
@@ -117,13 +108,16 @@ export async function getPastTournaments(videogame: VideoGameSlug = 'cs-2'): Pro
   if (!isSDKConfigured()) return [];
 
   try {
-    const allTournaments = await getTournamentsForGame(videogame);
-    const now = new Date();
+    const response = await apiClient.getTournaments(videogame, {
+      'page[size]': 50,
+      sort: '-end_at',
+    });
     
-    // Filter past: end_at < now
-    const past = allTournaments
-      .filter(t => t.end_at && new Date(t.end_at) < now)
-      .sort((a, b) => new Date(b.end_at!).getTime() - new Date(a.end_at!).getTime());
+    const now = new Date();
+    const all = response.data.map(mapTournament);
+    const past = all
+      .filter((t: TournamentFull) => t.end_at && new Date(t.end_at) < now)
+      .sort((a: TournamentFull, b: TournamentFull) => new Date(b.end_at!).getTime() - new Date(a.end_at!).getTime());
 
     setInCache(CACHE_KEY_TOURNAMENTS(videogame, 'past'), past);
     return past;
@@ -133,7 +127,6 @@ export async function getPastTournaments(videogame: VideoGameSlug = 'cs-2'): Pro
   }
 }
 
-
 /**
  * Get tournaments by tier
  */
@@ -141,17 +134,14 @@ export async function getTournamentsByTier(tier: TournamentTier, videogame: Vide
   if (!isSDKConfigured()) return [];
 
   try {
-    const apiId = getApiId(videogame);
-    const response = await pandaScoreSDK.get_tournaments({
-      'filter[videogame]': apiId,
+    const response = await apiClient.getTournaments(videogame, {
       'filter[tier]': tier,
-      'page[size]': '20',
-      sort: ['-begin_at'],
+      'page[size]': 50,
+      sort: '-begin_at',
     });
-
-    return (response.data as unknown[]).map(mapTournament);
+    return response.data.map(mapTournament);
   } catch (error) {
-    console.error(`Failed to fetch ${tier}-tier tournaments:`, error);
+    console.error(`Failed to fetch ${tier} tournaments:`, error);
     return [];
   }
 }
@@ -166,11 +156,9 @@ export async function getTournamentById(tournamentId: number): Promise<Tournamen
   if (!isSDKConfigured()) return null;
 
   try {
-    const response = await pandaScoreSDK.get_tournaments_tournamentIdOrSlug({
-      tournament_id_or_slug: String(tournamentId),
-    });
-
-    const tournament = mapTournament(response.data);
+    const response = await apiClient.getTournamentById(tournamentId);
+    const data = Array.isArray(response.data) ? response.data[0] : response.data;
+    const tournament = mapTournament(data);
     setInCache(CACHE_KEY_TOURNAMENT(tournamentId), tournament);
     return tournament;
   } catch (error) {
@@ -189,13 +177,12 @@ export async function getTournamentMatches(tournamentId: number): Promise<Match[
   if (!isSDKConfigured()) return [];
 
   try {
-    const response = await pandaScoreSDK.get_tournaments_tournamentIdOrSlug_matches({
-      tournament_id_or_slug: String(tournamentId),
-      'page[size]': '50',
-      sort: ['-scheduled_at'],
+    const response = await apiClient.getTournamentMatches(tournamentId, {
+      'page[size]': 50,
+      sort: '-scheduled_at',
     });
 
-    const matches = (response.data as unknown[]).map(mapMatch);
+    const matches = response.data.map(mapMatch);
     setInCache(CACHE_KEY_TOURNAMENT_MATCHES(tournamentId), matches);
     return matches;
   } catch (error) {
@@ -218,7 +205,7 @@ export async function getAllTournaments(videogame: VideoGameSlug = 'cs-2') {
 }
 
 /**
- * Tournament Service object
+ * Tournament Service Object
  */
 export const TournamentService = {
   getRunningTournaments,
@@ -227,5 +214,5 @@ export const TournamentService = {
   getTournamentsByTier,
   getTournamentById,
   getTournamentMatches,
-  getAllTournaments,
+  getAllTournaments
 };
