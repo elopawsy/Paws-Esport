@@ -37,6 +37,10 @@
     "**/*.mts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "test_raw_fetch.ts",
+    "debug_bracket.ts",
+    "test_bracket_logic.ts",
+    "fetch-logos.mjs"
   ]
 }
