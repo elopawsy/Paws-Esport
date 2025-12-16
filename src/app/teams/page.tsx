@@ -87,7 +87,7 @@ export default function TeamsPage() {
                         {filteredTeams.map((team) => (
                             <Link
                                 key={team.id}
-                                href={`/teams/${team.id}`}
+                                href={team.slug ? `/teams/${team.slug}` : `/teams/${team.id}`}
                                 className="group relative bg-card border border-card-border rounded-xl p-5 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 flex flex-col"
                             >
                                 <div className="flex items-start justify-between mb-4">

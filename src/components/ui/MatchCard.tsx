@@ -21,6 +21,7 @@ interface Result {
 
 interface Match {
     id: number;
+    slug?: string;
     name: string;
     status: "not_started" | "running" | "finished";
     scheduled_at: string;
@@ -105,8 +106,11 @@ const MatchCard = memo(function MatchCard({ match, compact = false }: Props) {
             ? "bg-muted"
             : "bg-primary";
 
+    // Prefer slug for cleaner URLs, fallback to id
+    const matchUrl = match.slug ? `/match/${match.slug}` : `/match/${match.id}`;
+
     return (
-        <Link href={`/match/${match.id}`} className={`block bg-card border border-card-border rounded-md overflow-hidden hover:border-primary/30 transition-colors group ${compact ? "p-3" : "p-4"}`}>
+        <Link href={matchUrl} className={`block bg-card border border-card-border rounded-md overflow-hidden hover:border-primary/30 transition-colors group ${compact ? "p-3" : "p-4"}`}>
             {/* Header */}
             <div className={`flex items-center justify-between ${compact ? "mb-2" : "mb-3"}`}>
                 <div className="flex items-center gap-2">

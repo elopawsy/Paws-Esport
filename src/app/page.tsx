@@ -6,6 +6,7 @@ import Image from "next/image";
 import { VIDEO_GAMES } from "@/types";
 import type { VideoGameSlug } from "@/types";
 import { Calendar, Trophy, Coins, ArrowRight, Gamepad2, AlertCircle } from "lucide-react";
+import { getTournamentDisplayName } from "@/lib/tournament-utils";
 
 interface Tournament {
   id: number;
@@ -41,14 +42,19 @@ const TIER_COLORS: Record<string, string> = {
   d: "from-gray-500/20 to-slate-600/20 text-gray-400 border-gray-500/50",
 };
 
+
+
 function TournamentCard({ tournament }: { tournament: Tournament }) {
   const tierClass = tournament.tier
     ? TIER_COLORS[tournament.tier.toLowerCase()] || "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700"
     : "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700";
 
+  // Prefer slug for cleaner URLs, fallback to id
+  const tournamentUrl = tournament.slug ? `/tournaments/${tournament.slug}` : `/tournaments/${tournament.id}`;
+
   return (
     <Link
-      href={`/tournaments/${tournament.id}`}
+      href={tournamentUrl}
       className="block group relative bg-card h-full rounded-xl overflow-hidden border border-card-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
     >
       <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20 pointer-events-none" />
@@ -70,14 +76,9 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold font-display text-lg leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-2">
-              {tournament.name}
+            <h3 className="font-semibold font-display text-lg leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-3">
+              {getTournamentDisplayName(tournament)}
             </h3>
-            {tournament.serie?.full_name && (
-              <p className="text-sm text-muted-foreground truncate mt-1">
-                {tournament.serie.full_name}
-              </p>
-            )}
           </div>
         </div>
 

@@ -77,7 +77,7 @@ function SearchContent() {
                         {results.tournaments.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {results.tournaments.map((tournament) => (
-                                    <Link key={tournament.id} href={`/tournaments/${tournament.id}`} className="group block h-full">
+                                    <Link key={tournament.id} href={tournament.slug ? `/tournaments/${tournament.slug}` : `/tournaments/${tournament.id}`} className="group block h-full">
                                         <div className="bg-card border border-card-border p-6 rounded-xl hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5 h-full flex flex-col">
                                             <div className="flex items-start justify-between mb-4">
                                                 <span className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wider bg-secondary px-2 py-1 rounded border border-card-border group-hover:border-primary/20 transition-colors">

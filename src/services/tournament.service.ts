@@ -15,8 +15,8 @@ import { apiClient } from '../infrastructure/pandascore/ApiClient';
 import type { VideoGameSlug } from '@/infrastructure/pandascore/gameSlugMapper';
 
 const CACHE_KEY_TOURNAMENTS = (game: VideoGameSlug, status: string) => `${game}-tournaments-${status}-v2`;
-const CACHE_KEY_TOURNAMENT = (id: number) => `tournament-${id}`;
-const CACHE_KEY_TOURNAMENT_MATCHES = (id: number) => `tournament-${id}-matches`;
+const CACHE_KEY_TOURNAMENT = (id: number | string) => `tournament-${id}`;
+const CACHE_KEY_TOURNAMENT_MATCHES = (id: number | string) => `tournament-${id}-matches`;
 
 // Local mapper to avoid circular imports or missing exports
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -49,14 +49,14 @@ export async function getRunningTournaments(videogame: VideoGameSlug = 'cs-2'): 
       'page[size]': 50,
       sort: '-begin_at',
     });
-    
+
     const now = new Date();
     const all = response.data.map(mapTournament);
     const running = all.filter((t: TournamentFull) => {
-       if (!t.begin_at) return false;
-       const begin = new Date(t.begin_at);
-       const end = t.end_at ? new Date(t.end_at) : null;
-       return begin <= now && (!end || end >= now);
+      if (!t.begin_at) return false;
+      const begin = new Date(t.begin_at);
+      const end = t.end_at ? new Date(t.end_at) : null;
+      return begin <= now && (!end || end >= now);
     });
 
     setInCache(CACHE_KEY_TOURNAMENTS(videogame, 'running'), running);
@@ -80,10 +80,10 @@ export async function getUpcomingTournaments(videogame: VideoGameSlug = 'cs-2'):
     // Fetch upcoming by sorting by begin_at (ascending)
     const response = await apiClient.getTournaments(videogame, {
       'page[size]': 50,
-      sort: 'begin_at', 
+      sort: 'begin_at',
       'range[begin_at]': `${new Date().toISOString()},`
     });
-    
+
     const now = new Date();
     const all = response.data.map(mapTournament);
     const upcoming = all
@@ -112,7 +112,7 @@ export async function getPastTournaments(videogame: VideoGameSlug = 'cs-2'): Pro
       'page[size]': 50,
       sort: '-end_at',
     });
-    
+
     const now = new Date();
     const all = response.data.map(mapTournament);
     const past = all
@@ -147,9 +147,9 @@ export async function getTournamentsByTier(tier: TournamentTier, videogame: Vide
 }
 
 /**
- * Get tournament by ID
+ * Get tournament by ID or Slug
  */
-export async function getTournamentById(tournamentId: number): Promise<TournamentFull | null> {
+export async function getTournamentById(tournamentId: number | string): Promise<TournamentFull | null> {
   const cached = getFromCache<TournamentFull>(CACHE_KEY_TOURNAMENT(tournamentId));
   if (cached) return cached;
 
@@ -170,7 +170,7 @@ export async function getTournamentById(tournamentId: number): Promise<Tournamen
 /**
  * Get matches for a tournament
  */
-export async function getTournamentMatches(tournamentId: number): Promise<Match[]> {
+export async function getTournamentMatches(tournamentId: number | string): Promise<Match[]> {
   const cached = getFromCache<Match[]>(CACHE_KEY_TOURNAMENT_MATCHES(tournamentId));
   if (cached) return cached;
 
@@ -205,6 +205,35 @@ export async function getAllTournaments(videogame: VideoGameSlug = 'cs-2') {
 }
 
 /**
+ * Get all tournaments for a specific series (e.g. all phases of a tournament)
+ */
+export async function getSeriesTournaments(serieId: number, videogame: VideoGameSlug = 'cs-2'): Promise<TournamentFull[]> {
+  if (!isSDKConfigured()) return [];
+
+  // Cache key could be improved, but for now simple time-based or just no long-term cache for this dynamic data?
+  // Let's use a specific cache key for series.
+  const CACHE_KEY_SERIES = (sId: number) => `series-${sId}-tournaments`;
+
+  const cached = getFromCache<TournamentFull[]>(CACHE_KEY_SERIES(serieId));
+  if (cached) return cached;
+
+  try {
+    const response = await apiClient.getTournaments(videogame, {
+      'filter[serie_id]': serieId,
+      'page[size]': 50,
+      sort: 'begin_at', // Chronological order
+    });
+
+    const tournaments = response.data.map(mapTournament);
+    setInCache(CACHE_KEY_SERIES(serieId), tournaments);
+    return tournaments;
+  } catch (error) {
+    console.error(`Failed to fetch series ${serieId} tournaments:`, error);
+    return [];
+  }
+}
+
+/**
  * Tournament Service Object
  */
 export const TournamentService = {
@@ -214,5 +243,6 @@ export const TournamentService = {
   getTournamentsByTier,
   getTournamentById,
   getTournamentMatches,
-  getAllTournaments
+  getAllTournaments,
+  getSeriesTournaments
 };

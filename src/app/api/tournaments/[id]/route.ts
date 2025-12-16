@@ -15,14 +15,8 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const tournamentId = parseInt(id, 10);
-
-    if (isNaN(tournamentId)) {
-      return NextResponse.json(
-        { error: "Invalid tournament ID" },
-        { status: 400 }
-      );
-    }
+    const parsedId = parseInt(id, 10);
+    const tournamentId = isNaN(parsedId) ? id : parsedId;
 
     const tournament = await TournamentService.getTournamentById(tournamentId);
 
@@ -33,7 +27,13 @@ export async function GET(
       );
     }
 
-    return NextResponse.json(tournament);
+    // Fetch related tournaments (phases) if the tournament belongs to a series
+    let phases: any[] = [];
+    if (tournament.serie) {
+      phases = await TournamentService.getSeriesTournaments(tournament.serie.id);
+    }
+
+    return NextResponse.json({ ...tournament, phases });
   } catch (error) {
     console.error("Error fetching tournament:", error);
     return NextResponse.json(

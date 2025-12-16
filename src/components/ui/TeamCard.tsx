@@ -8,10 +8,13 @@ interface TeamCardProps {
 }
 
 export default function TeamCard({ team }: TeamCardProps) {
+    // Prefer slug for cleaner URLs, fallback to id
+    const teamUrl = team.slug ? `/teams/${team.slug}` : `/teams/${team.id}`;
+
     return (
-        <Link href={`/teams/${team.id}`}>
+        <Link href={teamUrl}>
             <div className="group h-full bg-card border border-card-border p-6 hover:border-primary/50 hover:bg-secondary/80 transition-all duration-200 flex flex-col items-center justify-between rounded-md relative overflow-hidden">
-                
+
                 {/* Subtle colored glow on hover */}
                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -translate-y-12 translate-x-12 group-hover:bg-primary/10 transition-colors" />
 
@@ -26,7 +29,7 @@ export default function TeamCard({ team }: TeamCardProps) {
                         />
                     ) : (
                         <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center">
-                             <span className="text-xl font-display text-muted">{team.name.charAt(0)}</span>
+                            <span className="text-xl font-display text-muted">{team.name.charAt(0)}</span>
                         </div>
                     )}
                 </div>
@@ -37,8 +40,8 @@ export default function TeamCard({ team }: TeamCardProps) {
                         {team.name}
                     </h3>
                     <div className="mt-2 flex items-center justify-center gap-2 text-xs font-medium text-muted uppercase tracking-wider">
-                         <span className="bg-background/50 px-2 py-1 rounded">{team.acronym || "TEAM"}</span>
-                         {team.location && <span>{team.location}</span>}
+                        <span className="bg-background/50 px-2 py-1 rounded">{team.acronym || "TEAM"}</span>
+                        {team.location && <span>{team.location}</span>}
                     </div>
                 </div>
             </div>

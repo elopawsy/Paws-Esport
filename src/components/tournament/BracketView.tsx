@@ -1,7 +1,7 @@
 
 "use client";
 
-import { Match } from "@/types";
+import type { Match } from "@/types";
 import { parseBracketMatches, BracketSection, BracketRound } from "@/lib/bracket-parser";
 import { useMemo } from "react";
 import Image from "next/image";

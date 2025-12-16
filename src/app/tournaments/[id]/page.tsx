@@ -5,34 +5,28 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Trophy, Calendar, Coins, Play, Clock, CheckCircle, GitMerge } from "lucide-react";
 import { BracketView } from "@/components/tournament/BracketView";
-import { Match } from "@/types";
+import type { TournamentFull, Match } from "@/types";
 
-interface Tournament {
-    id: number;
-    name: string;
-    tier: string | null;
-    begin_at: string | null;
-    end_at: string | null;
-    prizepool: string | null;
-    league: { id: number; name: string; image_url: string | null } | null;
-    serie: { id: number; full_name: string | null } | null;
+function getTournamentDisplayName(tournament: TournamentFull | null) {
+    if (!tournament) return "Tournoi";
+    const parts = [];
+    if (tournament.league?.name) parts.push(tournament.league.name);
+    if (tournament.serie?.full_name) parts.push(tournament.serie.full_name);
+    if (tournament.name) parts.push(tournament.name);
+
+    // Deduplicate if needed, or just join.
+    // Sometimes series name includes league name.
+    // E.g. League: ESL Pro League, Serie: Season 18, Name: Playoffs -> ESL Pro League Season 18 Playoffs
+    return parts.join(" ");
 }
-
-// Match type is already imported from types but let's use the local strict interface for now compatible with BracketView
-// Actually we should unify. The BracketView expects Match from @/types.
-// The local interface defined in the original file was slightly simpler.
-// Let's redefine Match here to match @/types roughly or import it.
-// The original file defined an interface Match locally. I should respect that or replace it.
-// To avoid conflicts, I will remove the local interface and try to use the one from ApiClient/mappers or types.
-// But the BracketView imports from '@/types'. 
-// Let's check what '@/types' has. I saw mappers.ts importing from '@/types'.
-// I'll assume '@/types' is the source of truth.
 
 function MatchCard({ match }: { match: Match }) {
     const team1 = match.opponents[0]?.opponent;
     const team2 = match.opponents[1]?.opponent;
     const score1 = match.results?.find((r) => r.team_id === team1?.id)?.score;
     const score2 = match.results?.find((r) => r.team_id === team2?.id)?.score;
+
+    // ... (rest of component) ...
 
     const statusColors: Record<string, string> = {
         running: "bg-red-500/10 text-red-500 border-red-500/20 animate-pulse",
@@ -89,7 +83,7 @@ function MatchCard({ match }: { match: Match }) {
 
 export default function TournamentDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = use(params);
-    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [tournament, setTournament] = useState<TournamentFull | null>(null);
     const [matches, setMatches] = useState<Match[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<"list" | "bracket">("list");
@@ -147,8 +141,14 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                         </div>
 
                         <div className="flex-1">
-                            <h1 className="text-3xl font-display font-bold text-foreground mb-2 uppercase tracking-wide">{tournament?.name || "Tournoi"}</h1>
-                            {tournament?.serie?.full_name && <p className="text-lg text-muted-foreground mb-4">{tournament.serie.full_name}</p>}
+                            <h1 className="text-3xl font-display font-bold text-foreground mb-2 uppercase tracking-wide">
+                                {getTournamentDisplayName(tournament)}
+                            </h1>
+                            {/* {tournament?.serie?.full_name && <p className="text-lg text-muted-foreground mb-4">{tournament.serie.full_name}</p>} */}
+                            {/* Remove redundant subtitle if it's integrated in the title, or keep it if different. 
+                                Let's check: if title is "ESL Pro League Season 18 Playoffs", displaying "Season 18" in subtitle is distinct. 
+                                But usually we want just one nice header. Let's keep it clean.
+                            */}
 
                             <div className="flex flex-wrap gap-3">
                                 {tournament?.tier && (
@@ -173,6 +173,36 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                             </div>
                         </div>
                     </div>
+
+                    {/* Phases Navigation */}
+                    {(tournament as any)?.phases && (tournament as any).phases.length > 1 && (
+                        <div className="mt-8 pt-4 border-t border-card-border/50">
+                            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
+                                <GitMerge className="w-3.5 h-3.5" />
+                                Phases du tournoi
+                            </h3>
+                            <div className="flex flex-wrap gap-2">
+                                {(tournament as any).phases.map((phase: any) => {
+                                    const isActive = phase.id === tournament?.id;
+                                    return (
+                                        <Link
+                                            key={phase.id}
+                                            href={`/tournaments/${phase.slug || phase.id}`}
+                                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all border ${isActive
+                                                ? "bg-primary/10 text-primary border-primary/20"
+                                                : "bg-secondary/50 text-muted-foreground border-card-border hover:bg-secondary hover:text-foreground"
+                                                }`}
+                                        >
+                                            {phase.name}
+                                            <span className={`ml-2 text-[10px] uppercase ${isActive ? "text-primary/70" : "text-muted-foreground/50"}`}>
+                                                {phase.status === "running" ? "Live" : phase.status === "finished" ? "Fin" : "Futur"}
+                                            </span>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -248,6 +278,6 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                     <BracketView matches={matches} />
                 )}
             </div>
-        </div>
+        </div >
     );
 }

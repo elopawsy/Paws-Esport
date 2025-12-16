@@ -20,3 +20,13 @@ export type { Transfer } from './transfer';
 // Video game types (client-safe)
 export type { VideoGameSlug } from './videogame';
 export { VIDEO_GAMES } from './videogame';
+
+// Game types (maps and stats)
+export type {
+    GameDetail,
+    GamePlayerStats,
+    GameRound,
+    GameTeamScore,
+    GameBasic,
+    MatchWithGameStats
+} from './game.types';

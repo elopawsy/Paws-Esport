@@ -65,42 +65,68 @@ export class ApiClient {
    * Get players
    */
   async getPlayers(videogame: VideoGameSlug, params: any = {}) {
-     const slug = getApiSlug(videogame);
-     return this.fetch<any[]>(`/${slug}/players`, params);
+    const slug = getApiSlug(videogame);
+    return this.fetch<any[]>(`/${slug}/players`, params);
   }
 
   async getGlobalPlayers(params: any = {}) {
-      return this.fetch<any[]>('/players', params);
+    return this.fetch<any[]>('/players', params);
   }
 
   async getPlayerById(id: number) {
-      return this.fetch<any>(`/players/${id}`);
+    return this.fetch<any>(`/players/${id}`);
   }
 
   /**
    * Matches
    */
   async getMatches(videogame: VideoGameSlug, params: any = {}) {
-     const slug = getApiSlug(videogame);
-     return this.fetch<any[]>(`/${slug}/matches`, params);
+    const slug = getApiSlug(videogame);
+    return this.fetch<any[]>(`/${slug}/matches`, params);
   }
 
   /**
    * Tournaments
    */
   async getTournaments(videogame: VideoGameSlug, params: any = {}) {
-     const slug = getApiSlug(videogame);
-     return this.fetch<any>(`/${slug}/tournaments`, params);
-  }
-  
-  async getTournamentById(id: number) {
-      return this.fetch<any>(`/tournaments/${id}`);
+    const slug = getApiSlug(videogame);
+    return this.fetch<any>(`/${slug}/tournaments`, params);
   }
 
-  async getTournamentMatches(id: number, params: any = {}) {
-      return this.fetch<any>(`/tournaments/${id}/matches`, params);
+  async getTournamentById(id: number | string) {
+    return this.fetch<any>(`/tournaments/${id}`);
   }
-  
+
+  async getTournamentMatches(id: number | string, params: any = {}) {
+    return this.fetch<any>(`/tournaments/${id}/matches`, params);
+  }
+
+  /**
+   * Games - CS2/CSGO specific
+   */
+  async getMatchGames(matchId: number) {
+    return this.fetch<any[]>(`/csgo/matches/${matchId}/games`);
+  }
+
+  async getGameById(gameId: number) {
+    return this.fetch<any>(`/csgo/games/${gameId}`);
+  }
+
+  async getGameRounds(gameId: number) {
+    return this.fetch<any[]>(`/csgo/games/${gameId}/rounds`);
+  }
+
+  /**
+   * Match Statistics
+   */
+  async getMatchPlayersStats(matchId: number) {
+    return this.fetch<any[]>(`/csgo/matches/${matchId}/players/stats`);
+  }
+
+  async getMatchById(matchId: number) {
+    return this.fetch<any>(`/matches/${matchId}`);
+  }
+
 
 }
 

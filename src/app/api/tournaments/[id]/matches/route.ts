@@ -15,14 +15,8 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const tournamentId = parseInt(id, 10);
-
-    if (isNaN(tournamentId)) {
-      return NextResponse.json(
-        { error: "Invalid tournament ID" },
-        { status: 400 }
-      );
-    }
+    const parsedId = parseInt(id, 10);
+    const tournamentId = isNaN(parsedId) ? id : parsedId;
 
     const matches = await TournamentService.getTournamentMatches(tournamentId);
     return NextResponse.json(matches);
