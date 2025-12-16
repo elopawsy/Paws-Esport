@@ -159,7 +159,7 @@ function TournamentSection({
 }
 
 export default function HomePage() {
-  const [selectedGame, setSelectedGame] = useState<VideoGameSlug>("csgo");
+  const [selectedGame, setSelectedGame] = useState<VideoGameSlug>("cs-2");
   const [tournaments, setTournaments] = useState<TournamentsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

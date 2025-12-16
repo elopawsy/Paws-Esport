@@ -48,7 +48,7 @@ export async function GET(
     }
 
     // Get team IDs
-    const opponents = (match.opponents as Array<{ opponent: Record<string, unknown> }>) || [];
+    const opponents = (match.opponents as Array<{ type: string; opponent: Record<string, unknown> }>) || [];
     const team1Id = opponents[0]?.opponent?.id as number | undefined;
     const team2Id = opponents[1]?.opponent?.id as number | undefined;
     const videogame = (match.videogame as Record<string, unknown>)?.slug || "csgo";
@@ -179,16 +179,24 @@ export async function GET(
       draw: match.draw,
       winner_id: match.winner_id,
 
-      opponents: opponents.map((op) => ({
-        type: op.type,
-        opponent: {
-          id: op.opponent?.id,
-          name: op.opponent?.name,
-          acronym: op.opponent?.acronym,
-          location: op.opponent?.location,
-          image_url: op.opponent?.image_url,
-        },
-      })),
+      opponents: opponents.map((op) => {
+        const opponentData = op.opponent as Record<string, unknown>;
+        const isTeam = op.type === 'Team'; // Check the type of the opponent entry itself
+
+        return {
+          type: op.type,
+          opponent: {
+            id: opponentData?.id,
+            name: isTeam ? opponentData?.name : undefined,
+            acronym: isTeam ? opponentData?.acronym : undefined,
+            location: isTeam ? opponentData?.location : undefined,
+            image_url: isTeam ? opponentData?.image_url : undefined,
+            // Add other properties if needed, e.g., for players
+            first_name: !isTeam ? opponentData?.first_name : undefined,
+            last_name: !isTeam ? opponentData?.last_name : undefined,
+          },
+        };
+      }),
 
       results: match.results || [],
 

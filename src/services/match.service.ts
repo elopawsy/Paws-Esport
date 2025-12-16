@@ -11,6 +11,7 @@ import {
   getFromCache,
   setInCache,
   mapMatch,
+  getApiSlug,
 } from '@/infrastructure/pandascore';
 import type { VideoGameSlug } from '@/infrastructure/pandascore';
 
@@ -20,14 +21,15 @@ const CACHE_TTL_DEFAULT = 5 * 60 * 1000; // 5 minutes
 /**
  * Get live (running) matches
  */
-export async function getLiveMatches(videogame: VideoGameSlug = 'csgo'): Promise<Match[]> {
+export async function getLiveMatches(videogame: VideoGameSlug = 'cs-2'): Promise<Match[]> {
   if (!isSDKConfigured()) {
     return [];
   }
 
   try {
+    const apiSlug = getApiSlug(videogame);
     const response = await pandaScoreSDK.get_matches_running({
-      'filter[videogame]': videogame,
+      'filter[videogame]': apiSlug,
       'page[size]': '20',
     });
 
@@ -41,14 +43,15 @@ export async function getLiveMatches(videogame: VideoGameSlug = 'csgo'): Promise
 /**
  * Get upcoming matches
  */
-export async function getUpcomingMatches(videogame: VideoGameSlug = 'csgo'): Promise<Match[]> {
+export async function getUpcomingMatches(videogame: VideoGameSlug = 'cs-2'): Promise<Match[]> {
   if (!isSDKConfigured()) {
     return [];
   }
 
   try {
+    const apiSlug = getApiSlug(videogame);
     const response = await pandaScoreSDK.get_matches_upcoming({
-      'filter[videogame]': videogame,
+      'filter[videogame]': apiSlug,
       'page[size]': '30',
       sort: ['scheduled_at'],
     });
@@ -63,14 +66,15 @@ export async function getUpcomingMatches(videogame: VideoGameSlug = 'csgo'): Pro
 /**
  * Get past matches
  */
-export async function getPastMatches(videogame: VideoGameSlug = 'csgo'): Promise<Match[]> {
+export async function getPastMatches(videogame: VideoGameSlug = 'cs-2'): Promise<Match[]> {
   if (!isSDKConfigured()) {
     return [];
   }
 
   try {
+    const apiSlug = getApiSlug(videogame);
     const response = await pandaScoreSDK.get_matches_past({
-      'filter[videogame]': videogame,
+      'filter[videogame]': apiSlug,
       'page[size]': '50',
       sort: ['-end_at'],
     });
@@ -85,14 +89,15 @@ export async function getPastMatches(videogame: VideoGameSlug = 'csgo'): Promise
 /**
  * Get tournaments by tier
  */
-export async function getTournamentsByTier(tier: TournamentTier, videogame: VideoGameSlug = 'csgo'): Promise<{ id: number }[]> {
+export async function getTournamentsByTier(tier: TournamentTier, videogame: VideoGameSlug = 'cs-2'): Promise<{ id: number }[]> {
   if (!isSDKConfigured()) {
     return [];
   }
 
   try {
+    const apiSlug = getApiSlug(videogame);
     const response = await pandaScoreSDK.get_tournaments({
-      'filter[videogame]': videogame,
+      'filter[videogame]': apiSlug,
       'filter[tier]': tier,
       'page[size]': '10',
       sort: ['-begin_at'],
@@ -130,7 +135,7 @@ export async function getMatchesForTournament(tournamentId: number): Promise<Mat
 /**
  * Get all categorized matches (live, upcoming, past) with tier prioritization
  */
-export async function getAllMatches(videogame: VideoGameSlug = 'csgo'): Promise<MatchesResponse> {
+export async function getAllMatches(videogame: VideoGameSlug = 'cs-2'): Promise<MatchesResponse> {
   // Check cache first
   const cached = getFromCache<MatchesResponse>(CACHE_KEY_MATCHES(videogame));
   if (cached) return cached;

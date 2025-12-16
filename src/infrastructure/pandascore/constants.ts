@@ -1,9 +1,6 @@
 /**
- * Video game types and constants
- * 
- * These are client-safe exports (no SDK dependency)
+ * Supported video games
  */
-
 export type VideoGameSlug = 'cs-2' | 'valorant' | 'lol' | 'dota2' | 'codmw' | 'r6siege';
 
 export const VIDEO_GAMES: Record<VideoGameSlug, { name: string; slug: VideoGameSlug }> = {

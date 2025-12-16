@@ -57,6 +57,7 @@ interface Props {
     freeAgents: SearchPlayer[];
     existingPlayerIds?: Set<number>;
     teams?: Team[];
+    selectedGame?: string;
     onAddFreeAgent: (player: SearchPlayer) => void;
     onRemoveFreeAgent: (playerId: number) => void;
 }
@@ -65,6 +66,7 @@ export default function PlayerSearchSidebar({
     freeAgents,
     existingPlayerIds,
     teams = [],
+    selectedGame = "cs-2",
     onAddFreeAgent,
     onRemoveFreeAgent
 }: Props) {
@@ -97,7 +99,7 @@ export default function PlayerSearchSidebar({
         const timer = setTimeout(async () => {
             setSearching(true);
             try {
-                const res = await fetch(`/api/players/search?q=${encodeURIComponent(query)}`);
+                const res = await fetch(`/api/players/search?q=${encodeURIComponent(query)}&videogame=${selectedGame}`);
                 if (res.ok) {
                     let data = await res.json();
 

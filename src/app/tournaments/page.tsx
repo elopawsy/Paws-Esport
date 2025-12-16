@@ -173,7 +173,7 @@ function TournamentSection({
 }
 
 export default function TournamentsPage() {
-    const [selectedGame, setSelectedGame] = useState<VideoGameSlug>("csgo");
+    const [selectedGame, setSelectedGame] = useState<VideoGameSlug>("cs-2");
     const [tournaments, setTournaments] = useState<TournamentsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -222,8 +222,8 @@ export default function TournamentsPage() {
                                     key={slug}
                                     onClick={() => setSelectedGame(slug as VideoGameSlug)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-all ${selectedGame === slug
-                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                                            : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-card-border"
+                                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                        : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-card-border"
                                         }`}
                                 >
                                     <Gamepad2 className="w-4 h-4" />

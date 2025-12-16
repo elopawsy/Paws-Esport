@@ -39,6 +39,11 @@ export function mapTeam(sdkTeam: SDKTeam): Team {
     image_url: sdkTeam.image_url ?? null,
     location: sdkTeam.location ?? null,
     players: (sdkTeam.players ?? []).map(mapPlayer),
+    current_videogame: sdkTeam.current_videogame ? {
+      id: sdkTeam.current_videogame.id,
+      name: sdkTeam.current_videogame.name,
+      slug: sdkTeam.current_videogame.slug,
+    } : null,
   };
 }
 

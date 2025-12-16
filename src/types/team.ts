@@ -12,6 +12,11 @@ export interface Team {
   image_url: string | null;
   location: string | null;
   players: Player[];
+  current_videogame?: {
+    id: number;
+    name: string;
+    slug: string;
+  } | null;
 }
 
 export interface TeamBasic {

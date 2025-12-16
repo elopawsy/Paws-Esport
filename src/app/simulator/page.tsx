@@ -18,6 +18,8 @@ import {
 import { Team, Player, Transfer } from "@/types";
 import PlayerSearchSidebar from "@/components/ui/PlayerSearchSidebar";
 import TeamManagementModal from "@/components/ui/TeamManagementModal";
+import OnboardingModal from "@/components/simulator/OnboardingModal";
+import { VideoGameSlug } from "@/infrastructure/pandascore/constants";
 import { Users, UserMinus, Armchair, History, Trash2, Camera, Download, RotateCcw, Search, Settings } from "lucide-react";
 
 interface FreeAgentPlayer extends Player {
@@ -386,6 +388,9 @@ const TransferItem = memo(function TransferItem({
 });
 
 export default function SimulatorPage() {
+    const [selectedGame, setSelectedGame] = useState<VideoGameSlug | null>("cs-2");
+    const [onboardingOpen, setOnboardingOpen] = useState(false);
+
     const [allTeams, setAllTeams] = useState<Team[]>([]);
     const [customTeams, setCustomTeams] = useState<Team[]>([]);
     const [modifiedTeams, setModifiedTeams] = useState<Record<number, Team>>({});
@@ -401,7 +406,6 @@ export default function SimulatorPage() {
     const [teamSearchQuery, setTeamSearchQuery] = useState("");
     const [teamSearchResults, setTeamSearchResults] = useState<Team[]>([]);
     const [teamSearching, setTeamSearching] = useState(false);
-    const [teamSearchOpen, setTeamSearchOpen] = useState(false);
     const [teamModalOpen, setTeamModalOpen] = useState(false);
     const [hiddenTeams, setHiddenTeams] = useState<Set<number>>(new Set());
 
@@ -410,18 +414,15 @@ export default function SimulatorPage() {
     );
 
     useEffect(() => {
-        // Start with 0 teams, user adds them via search
-        // We only fetch active teams if we need them, but here we just initialize empty
-        // The search functionality handles finding new teams
         setAllTeams([]);
         setLoading(false);
     }, []);
 
     useEffect(() => {
-        const stored = localStorage.getItem("paws-sim-v3"); // New version key for color update
+        const stored = localStorage.getItem("paws-sim-v3");
         if (stored) {
             try {
-                const { modifiedTeams: mt, transfers: tr, freeAgents: fa, retiredPlayers: rp, vacantPlayers: vp, customTeams: ct, hiddenTeams: ht } = JSON.parse(stored);
+                const { modifiedTeams: mt, transfers: tr, freeAgents: fa, retiredPlayers: rp, vacantPlayers: vp, customTeams: ct, hiddenTeams: ht, selectedGame: sg } = JSON.parse(stored);
                 if (mt) setModifiedTeams(mt);
                 if (tr) setTransfers(tr);
                 if (fa) setFreeAgents(fa);
@@ -429,7 +430,16 @@ export default function SimulatorPage() {
                 if (vp) setVacantPlayers(vp);
                 if (ct) setCustomTeams(ct);
                 if (ht) setHiddenTeams(new Set(ht));
-            } catch { }
+                if (sg) setSelectedGame(sg);
+
+                if ((!mt || Object.keys(mt).length === 0) && (!ct || ct.length === 0) && (!fa || fa.length === 0)) {
+                    setOnboardingOpen(true);
+                }
+            } catch {
+                setOnboardingOpen(true);
+            }
+        } else {
+            setOnboardingOpen(true);
         }
     }, []);
 
@@ -438,42 +448,18 @@ export default function SimulatorPage() {
         const timer = setTimeout(() => {
             localStorage.setItem("paws-sim-v3", JSON.stringify({
                 modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, customTeams,
-                hiddenTeams: Array.from(hiddenTeams)
+                hiddenTeams: Array.from(hiddenTeams),
+                selectedGame
             }));
         }, 500);
         return () => clearTimeout(timer);
-    }, [modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, customTeams, hiddenTeams, loading]);
-
-    // Debounced team search
-    useEffect(() => {
-        if (teamSearchQuery.length < 2) {
-            setTeamSearchResults([]);
-            return;
-        }
-
-        const timer = setTimeout(async () => {
-            setTeamSearching(true);
-            try {
-                const res = await fetch(`/api/teams/search?q=${encodeURIComponent(teamSearchQuery)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    // Filter out teams already in list
-                    const existingIds = new Set([...allTeams.map(t => t.id), ...customTeams.map(t => t.id)]);
-                    setTeamSearchResults(data.filter((t: Team) => !existingIds.has(t.id)));
-                }
-            } catch { }
-            setTeamSearching(false);
-        }, 400);
-
-        return () => clearTimeout(timer);
-    }, [teamSearchQuery, allTeams, customTeams]);
+    }, [modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, customTeams, hiddenTeams, loading, selectedGame]);
 
     const getDisplayTeam = useCallback(
         (team: Team) => modifiedTeams[team.id] || team,
         [modifiedTeams]
     );
 
-    // Combine base teams + custom teams
     const combinedTeams = useMemo(
         () => [...allTeams, ...customTeams],
         [allTeams, customTeams]
@@ -509,19 +495,14 @@ export default function SimulatorPage() {
             const existingIndex = prev.findIndex(t => t.player.id === player.id);
             if (existingIndex !== -1) {
                 const existing = prev[existingIndex];
-                // Check if returning to original source (Net zero move)
-                // We compare IDs. Note: Bench is -2, Ret is -1, FA is 0.
                 if (existing.fromTeam.id === toTeamData.id) {
                     return prev.filter((_, i) => i !== existingIndex);
                 }
-                // Update destination
                 const next = [...prev];
                 next[existingIndex] = { ...existing, toTeam: toTeamData, timestamp: Date.now() };
                 return next;
             }
 
-            // Create new
-            // Avoid logging if source == dest
             if (fromTeamData.id === toTeamData.id) return prev;
 
             return [...prev, {
@@ -542,24 +523,20 @@ export default function SimulatorPage() {
         const { player, teamId: sourceTeamId, isFreeAgent, isVacant: isFromVacant, originalTeam } = active.data.current as any;
         const overData = over.data.current as any;
 
-        // Determine Source Team Data (for new transfer records)
         let fromTeamData: any;
         if (isFreeAgent) {
             fromTeamData = player.currentTeam
                 ? { ...player.currentTeam, slug: "ext", acronym: player.currentTeam.name.slice(0, 3).toUpperCase(), players: [], location: null }
                 : { id: 0, name: "Free Agent", image_url: "", slug: "fa", acronym: "FA", players: [], location: null };
         } else if (isFromVacant) {
-            // If coming from vacant, we use the original team as source
             fromTeamData = { ...originalTeam, slug: "vac", acronym: "VAC", players: [], location: null };
         } else if (active.data.current?.isRetired) {
             fromTeamData = { id: -1, name: "Retirement", image_url: "", slug: "ret", acronym: "RET", players: [], location: null };
         } else {
-            // From a real team
             const sourceTeam = getDisplayTeam(combinedTeams.find((t) => t.id === sourceTeamId)!);
             fromTeamData = sourceTeam;
         }
 
-        // 1. Handle Target: Vacant (Bench)
         if (overData.isVacant) {
             const toTeamData = { id: -2, name: "Bench", image_url: "", slug: "vac", acronym: "BENCH", players: [], location: null };
 
@@ -581,7 +558,6 @@ export default function SimulatorPage() {
             return;
         }
 
-        // 2. Handle Target: Retirement
         if (overData.isRetirement) {
             const toTeamData = { id: -1, name: "Retirement", image_url: "", slug: "ret", acronym: "RET", players: [], location: null };
 
@@ -601,7 +577,6 @@ export default function SimulatorPage() {
             return;
         }
 
-        // 3. Handle Target: Team
         if (overData.team) {
             const targetTeam = getDisplayTeam(overData.team);
             if (sourceTeamId === targetTeam.id) return;
@@ -625,7 +600,6 @@ export default function SimulatorPage() {
                 }));
                 setRetiredPlayers(prev => prev.filter(p => p.id !== player.id));
             } else {
-                // Team to Team
                 const sourceTeam = getDisplayTeam(combinedTeams.find(t => t.id === sourceTeamId)!);
                 setModifiedTeams(prev => ({
                     ...prev,
@@ -641,7 +615,6 @@ export default function SimulatorPage() {
         const transfer = transfers.find((t) => t.id === id);
         if (!transfer) return;
 
-        // Undo retirement
         if (transfer.toTeam.id === -1) {
             setRetiredPlayers((prev) => prev.filter((p) => p.id !== transfer.player.id));
             if (transfer.fromTeam.id === 0) {
@@ -683,8 +656,11 @@ export default function SimulatorPage() {
         setRetiredPlayers([]);
         setVacantPlayers([]);
         setCustomTeams([]);
+        setAllTeams([]);
         setHiddenTeams(new Set());
+        setSelectedGame(null);
         localStorage.removeItem("paws-sim-v3");
+        setOnboardingOpen(true);
     }
 
     function addCustomTeam(team: Team) {
@@ -725,7 +701,7 @@ export default function SimulatorPage() {
         try {
             const dataUrl = await domToPng(teamsGridRef.current, {
                 scale: 2,
-                backgroundColor: '#09090b', // zinc-950
+                backgroundColor: '#09090b',
             });
 
             const link = document.createElement('a');
@@ -744,7 +720,7 @@ export default function SimulatorPage() {
         try {
             const dataUrl = await domToPng(recapRef.current, {
                 scale: 2,
-                backgroundColor: '#09090b', // zinc-950
+                backgroundColor: '#09090b',
             });
 
             const link = document.createElement('a');
@@ -774,16 +750,30 @@ export default function SimulatorPage() {
 
     return (
         <>
-            {/* Hidden Export Container for Recap - Positioned behind app */}
+            <OnboardingModal
+                isOpen={onboardingOpen}
+                canClose={allTeams.length > 0 || customTeams.length > 0}
+                onClose={() => setOnboardingOpen(false)}
+                onComplete={(game: VideoGameSlug, teams: Team[]) => {
+                    setSelectedGame(game);
+                    setAllTeams(teams);
+                    const modTeams: Record<number, Team> = {};
+                    teams.forEach(t => { modTeams[t.id] = t; });
+                    setModifiedTeams(modTeams);
+                    setOnboardingOpen(false);
+                }}
+            />
+
+            {/* Hidden Export Container for Recap */}
             <div
                 ref={recapRef}
                 style={{
                     position: 'fixed',
                     top: 0,
-                    left: '-9999px', // Hide off-screen
+                    left: '-9999px',
                     width: '800px',
                     zIndex: -100,
-                    backgroundColor: '#09090b', // Force background color
+                    backgroundColor: '#09090b',
                 }}
                 className="p-10 text-white font-sans pointer-events-none"
             >
@@ -800,60 +790,35 @@ export default function SimulatorPage() {
                     <div className="space-y-4">
                         {[...transfers].reverse().map((t) => (
                             <div key={t.id} className="relative flex items-center justify-between bg-[#18181b] p-6 rounded-xl border border-white/5 overflow-hidden">
-
-                                {/* Background Arrow */}
                                 <div className="absolute top-[4rem] left-0 w-full flex items-center justify-center z-0 px-32 pointer-events-none -translate-y-1/2 opacity-20">
                                     <div className="w-full h-[2px] bg-primary shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
                                 </div>
-
-                                {/* From Team */}
                                 <div className="flex flex-col items-center gap-3 w-32 z-10">
                                     <div className="w-20 h-20 flex items-center justify-center bg-black/20 rounded-xl p-2 border border-white/5">
                                         {t.fromTeam.image_url ? (
-                                            <img
-                                                src={getProxiedUrl(t.fromTeam.image_url)}
-                                                crossOrigin="anonymous"
-                                                alt=""
-                                                className="w-full h-full object-contain"
-                                            />
+                                            <img src={getProxiedUrl(t.fromTeam.image_url)} crossOrigin="anonymous" alt="" className="w-full h-full object-contain" />
                                         ) : (
                                             <span className="text-2xl font-bold text-gray-500">{t.fromTeam.acronym || t.fromTeam.name.slice(0, 3)}</span>
                                         )}
                                     </div>
                                     <span className="text-xs text-gray-400 font-bold uppercase text-center tracking-wide">{t.fromTeam.name}</span>
                                 </div>
-
-                                {/* Player */}
                                 <div className="flex flex-col items-center z-10">
                                     <div className="relative mb-3">
                                         <div className="w-28 h-28 rounded-full bg-[#09090b] border-4 border-primary/20 overflow-hidden z-10 relative flex items-center justify-center shadow-2xl">
                                             {t.player.image_url ? (
-                                                <img
-                                                    src={getProxiedUrl(t.player.image_url)}
-                                                    crossOrigin="anonymous"
-                                                    alt=""
-                                                    className="w-full h-full object-cover object-top"
-                                                />
+                                                <img src={getProxiedUrl(t.player.image_url)} crossOrigin="anonymous" alt="" className="w-full h-full object-cover object-top" />
                                             ) : (
-                                                <div className="text-2xl font-bold text-gray-500">
-                                                    {t.player.name.charAt(0)}
-                                                </div>
+                                                <div className="text-2xl font-bold text-gray-500">{t.player.name.charAt(0)}</div>
                                             )}
                                         </div>
                                     </div>
                                     <span className="text-2xl font-display font-bold uppercase tracking-wide">{t.player.name}</span>
                                 </div>
-
-                                {/* To Team */}
                                 <div className="flex flex-col items-center gap-3 w-32 z-10">
                                     <div className="w-20 h-20 flex items-center justify-center bg-black/20 rounded-xl p-2 border border-white/5">
                                         {t.toTeam.image_url ? (
-                                            <img
-                                                src={getProxiedUrl(t.toTeam.image_url)}
-                                                crossOrigin="anonymous"
-                                                alt=""
-                                                className="w-full h-full object-contain"
-                                            />
+                                            <img src={getProxiedUrl(t.toTeam.image_url)} crossOrigin="anonymous" alt="" className="w-full h-full object-contain" />
                                         ) : (
                                             <span className="text-2xl font-bold text-white">{t.toTeam.acronym || t.toTeam.name.slice(0, 3)}</span>
                                         )}
@@ -864,20 +829,15 @@ export default function SimulatorPage() {
                         ))}
                     </div>
                 )}
-
-                <div className="mt-12 pt-6 border-t border-white/10 flex justify-between items-center text-xs text-gray-600 font-mono uppercase tracking-widest">
-                    <span>Generated by Paws Simulator</span>
-                    <span>{new Date().toLocaleDateString("en-US")}</span>
-                </div>
             </div>
 
-            <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-            >
-                <div className="min-h-screen bg-background relative z-0">
+            <div className="min-h-screen bg-background relative z-0">
+                <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                >
                     <header className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-b border-card-border py-4 shadow-sm">
                         <div className="container-custom flex items-center gap-6">
                             <div className="flex-1 flex items-center gap-4">
@@ -895,8 +855,6 @@ export default function SimulatorPage() {
                                     />
                                 </div>
                             </div>
-
-                            {/* Team Management */}
                             <button
                                 onClick={() => setTeamModalOpen(true)}
                                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all bg-card border-card-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-secondary"
@@ -904,13 +862,8 @@ export default function SimulatorPage() {
                                 <Settings className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Manage Teams</span>
                             </button>
-
-                            <div className="flex flex-col items-center">
-                                <span className="text-lg font-bold text-primary leading-none">{transfers.length}</span>
-                                <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Transfers</span>
-                            </div>
-
-                            {(transfers.length > 0 || freeAgents.length > 0 || retiredPlayers.length > 0 || vacantPlayers.length > 0 || customTeams.length > 0 || hiddenTeams.size > 0) && (
+                            <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Transfers</span>
+                            <div className="flex gap-2">
                                 <button
                                     onClick={resetAll}
                                     className="flex items-center gap-2 px-4 py-2 border border-red-500/20 text-red-500 bg-red-500/5 hover:bg-red-500/10 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
@@ -918,7 +871,7 @@ export default function SimulatorPage() {
                                     <RotateCcw className="w-3.5 h-3.5" />
                                     <span className="hidden sm:inline">Reset</span>
                                 </button>
-                            )}
+                            </div>
                         </div>
                     </header>
 
@@ -926,16 +879,12 @@ export default function SimulatorPage() {
                         <div className="flex flex-col xl:flex-row gap-8">
                             <PlayerSearchSidebar
                                 freeAgents={freeAgents}
-                                existingPlayerIds={getAllPlayerIds()}
                                 teams={displayTeams}
-                                onAddFreeAgent={(p) => {
-                                    const existing = getAllPlayerIds();
-                                    if (existing.has(p.id)) return;
-                                    setFreeAgents((prev) => [...prev, { ...p, currentTeam: p.currentTeam } as FreeAgentPlayer]);
-                                }}
-                                onRemoveFreeAgent={(id) => setFreeAgents((prev) => prev.filter((p) => p.id !== id))}
+                                existingPlayerIds={getAllPlayerIds()}
+                                selectedGame={selectedGame || "cs-2"}
+                                onAddFreeAgent={(p: any) => setFreeAgents(prev => [p, ...prev])}
+                                onRemoveFreeAgent={(pid) => setFreeAgents(prev => prev.filter(p => p.id !== pid))}
                             />
-
                             <div className="flex-1 min-w-0">
                                 <div ref={teamsGridRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 bg-secondary/10 rounded-2xl border border-card-border">
                                     {displayTeams.map((team) => (
@@ -947,8 +896,6 @@ export default function SimulatorPage() {
                                         />
                                     ))}
                                 </div>
-
-                                {/* Export Button */}
                                 <div className="mt-8 flex flex-wrap justify-center gap-4">
                                     <button
                                         onClick={exportAsImage}
@@ -966,23 +913,22 @@ export default function SimulatorPage() {
                                     </button>
                                 </div>
                             </div>
-
-                            <div className="w-full xl:w-80 flex-shrink-0 space-y-6 sticky top-32 self-start">
-                                {/* Vacant Zone */}
+                            <div className="w-full xl:w-80 space-y-6 flex-shrink-0">
                                 <VacantZone vacantPlayers={vacantPlayers} />
-
-                                {/* Retirement Zone */}
                                 <RetirementZone retiredPlayers={retiredPlayers} />
-
-                                {/* Transfers History */}
-                                <div className="bg-card border border-card-border rounded-xl shadow-sm overflow-hidden">
-                                    <div className="px-4 py-3 border-b border-card-border bg-secondary/30 flex items-center gap-2">
-                                        <History className="w-4 h-4 text-primary" />
-                                        <h3 className="font-display font-bold text-sm uppercase tracking-wide text-foreground">Transfer Log</h3>
+                                <div ref={recapRef} className="bg-card border border-card-border rounded-xl p-5 shadow-sm">
+                                    <div className="flex items-center gap-3 mb-4 border-b border-card-border pb-3">
+                                        <div className="p-2 bg-primary/10 rounded-lg">
+                                            <History className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-display font-bold text-sm uppercase tracking-wide text-foreground">Activity</h3>
+                                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{transfers.length} Events</p>
+                                        </div>
                                     </div>
                                     {transfers.length === 0 ? (
-                                        <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
-                                            <History className="w-8 h-8 mb-2 opacity-20" />
+                                        <div className="text-center py-8 text-muted-foreground bg-secondary/20 rounded-lg border border-dashed border-card-border">
+                                            <History className="w-8 h-8 mx-auto mb-2 opacity-20" />
                                             <p className="text-xs uppercase tracking-widest font-medium">No Activity</p>
                                         </div>
                                     ) : (
@@ -996,7 +942,6 @@ export default function SimulatorPage() {
                             </div>
                         </div>
                     </div>
-
                     <DragOverlay dropAnimation={{
                         duration: 250,
                         easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
@@ -1016,10 +961,9 @@ export default function SimulatorPage() {
                             </div>
                         )}
                     </DragOverlay>
-                </div>
-            </DndContext>
+                </DndContext>
+            </div>
 
-            {/* Team Management Modal */}
             <TeamManagementModal
                 isOpen={teamModalOpen}
                 onClose={() => setTeamModalOpen(false)}
