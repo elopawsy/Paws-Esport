@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, memo, useMemo } from "react";
-import { Player, Team } from "@/lib/types";
+import { Player, Team } from "@/types";
 import { useDraggable } from "@dnd-kit/core";
 import CountryFlag, { CS2_COUNTRIES } from "./CountryFlag";
+import { Search, Globe, Users, Filter, X, Plus, AlertCircle, Loader2, LayoutGrid, List } from "lucide-react";
+import Image from "next/image";
 
 interface SearchPlayer extends Player {
     currentTeam: { id: number; name: string; image_url: string | null } | null;
@@ -26,11 +28,11 @@ const FreeAgentCard = memo(function FreeAgentCard({ player }: { player: SearchPl
             style={style}
             {...listeners}
             {...attributes}
-            className={`flex items-center gap-3 p-2 border-b border-card-border hover:bg-white/5 cursor-grab transition-colors ${isDragging ? "opacity-50 ring-1 ring-primary" : ""}`}
+            className={`flex items-center gap-3 p-3 border-b border-card-border hover:bg-secondary/50 cursor-grab transition-all ${isDragging ? "opacity-50 ring-2 ring-primary bg-secondary shadow-xl z-50 rounded-lg" : ""}`}
         >
-            <div className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-muted flex-shrink-0 overflow-hidden">
+            <div className="w-8 h-8 rounded-lg bg-secondary border border-card-border flex items-center justify-center text-[10px] font-bold text-muted-foreground flex-shrink-0 overflow-hidden relative">
                 {player.image_url ? (
-                    <img src={player.image_url} alt="" className="w-full h-full object-cover object-top" />
+                    <Image src={player.image_url} alt="" fill className="object-cover object-top" sizes="32px" />
                 ) : (
                     player.name.charAt(0).toUpperCase()
                 )}
@@ -38,11 +40,14 @@ const FreeAgentCard = memo(function FreeAgentCard({ player }: { player: SearchPl
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                     <CountryFlag code={player.nationality} size="sm" />
-                    <p className="text-sm font-medium text-foreground truncate">{player.name}</p>
+                    <p className="text-sm font-bold text-foreground truncate">{player.name}</p>
                 </div>
-                <p className="text-[10px] text-muted truncate uppercase tracking-wide">
-                    {player.currentTeam?.name || "Free Agent"}
+                <p className="text-[10px] text-muted-foreground truncate uppercase tracking-wide font-medium">
+                    {player.currentTeam?.name || "No Team"}
                 </p>
+            </div>
+            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Hidden drag handle indicator could go here */}
             </div>
         </div>
     );
@@ -156,60 +161,67 @@ export default function PlayerSearchSidebar({
     const displayResults = browseMode ? browseResults : results;
 
     return (
-        <div className="w-72 flex-shrink-0 hidden lg:block">
-            <div className="sticky top-32 bg-card border border-card-border rounded-md shadow-sm">
+        <div className="w-80 flex-shrink-0 hidden lg:block">
+            <div className="sticky top-32 bg-card border border-card-border rounded-xl shadow-sm overflow-hidden">
                 {/* Header */}
-                <div className="px-4 py-3 border-b border-card-border flex items-center justify-between bg-white/5 rounded-t-md">
-                    <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-foreground">
+                <div className="px-4 py-4 border-b border-card-border flex items-center justify-between bg-primary/5">
+                    <h3 className="font-display font-bold text-sm uppercase tracking-wide text-foreground flex items-center gap-2">
+                        <Users className="w-4 h-4 text-primary" />
                         Player Pool
                         {freeAgents.length > 0 && (
-                            <span className="ml-2 text-primary font-bold">[{freeAgents.length}]</span>
+                            <span className="ml-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-bold">{freeAgents.length}</span>
                         )}
                     </h3>
                 </div>
 
                 {/* Search toggle */}
-                <div className="p-2 border-b border-card-border">
+                <div className="p-3 border-b border-card-border bg-background">
                     <button
                         onClick={() => setOpen(!open)}
-                        className={`w-full px-3 py-1.5 text-xs font-medium uppercase tracking-wider border rounded-sm transition-colors ${open ? "bg-primary text-white border-primary" : "bg-background border-card-border text-muted hover:text-foreground hover:border-muted"}`}
+                        className={`w-full px-4 py-2 text-xs font-bold uppercase tracking-wider border rounded-lg transition-all flex items-center justify-center gap-2 ${open ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20" : "bg-secondary text-muted-foreground border-card-border hover:text-foreground hover:border-primary/50"}`}
                     >
-                        {open ? "Close Search" : "Import Player"}
+                        {open ? (
+                            <><X className="w-3.5 h-3.5" /> Close Search</>
+                        ) : (
+                            <><Search className="w-3.5 h-3.5" /> Import Player</>
+                        )}
                     </button>
                 </div>
 
                 {/* Search & Filters */}
                 {open && (
-                    <div className="p-3 border-b border-card-border space-y-3 bg-background/50">
+                    <div className="p-4 border-b border-card-border space-y-4 bg-secondary/20 animate-in slide-in-from-top-2 duration-200">
                         {/* Mode toggle */}
-                        <div className="flex gap-1">
+                        <div className="flex bg-secondary p-1 rounded-lg border border-card-border">
                             <button
                                 onClick={() => setBrowseMode(false)}
-                                className={`flex-1 px-2 py-1 text-[10px] uppercase tracking-wider rounded-sm transition-colors ${!browseMode ? "bg-primary text-white" : "bg-card border border-card-border text-muted hover:text-foreground"}`}
+                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${!browseMode ? "bg-card text-foreground shadow-sm ring-1 ring-black/5" : "text-muted-foreground hover:text-foreground"}`}
                             >
-                                Search
+                                <Search className="w-3 h-3" /> Search
                             </button>
                             <button
                                 onClick={() => setBrowseMode(true)}
-                                className={`flex-1 px-2 py-1 text-[10px] uppercase tracking-wider rounded-sm transition-colors ${browseMode ? "bg-primary text-white" : "bg-card border border-card-border text-muted hover:text-foreground"}`}
+                                className={`flex-1 flex items-center justify-center gap-2 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider rounded-md transition-all ${browseMode ? "bg-card text-foreground shadow-sm ring-1 ring-black/5" : "text-muted-foreground hover:text-foreground"}`}
                             >
-                                Browse
+                                <LayoutGrid className="w-3 h-3" /> Browse
                             </button>
                         </div>
 
                         {/* Filters */}
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             {/* Country filter */}
                             <div>
-                                <label className="text-[10px] text-muted uppercase tracking-wider block mb-1">Country</label>
+                                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold block mb-1.5 flex items-center gap-1.5">
+                                    <Globe className="w-3 h-3" /> Nationality
+                                </label>
                                 <select
                                     value={selectedCountry}
                                     onChange={(e) => setSelectedCountry(e.target.value)}
-                                    className="w-full px-2 py-1.5 bg-background border border-card-border rounded-sm text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                                    className="w-full px-3 py-2 bg-background border border-card-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors cursor-pointer"
                                 >
                                     {CS2_COUNTRIES.map(c => (
                                         <option key={c.code} value={c.code}>
-                                            {c.flag} {c.name}
+                                            {c.name} {c.code !== "ALL" ? `(${c.code})` : ""}
                                         </option>
                                     ))}
                                 </select>
@@ -218,11 +230,13 @@ export default function PlayerSearchSidebar({
                             {/* Team filter */}
                             {availableTeams.length > 0 && (
                                 <div>
-                                    <label className="text-[10px] text-muted uppercase tracking-wider block mb-1">Team</label>
+                                    <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold block mb-1.5 flex items-center gap-1.5">
+                                        <Users className="w-3 h-3" /> Team
+                                    </label>
                                     <select
                                         value={selectedTeam}
                                         onChange={(e) => setSelectedTeam(e.target.value)}
-                                        className="w-full px-2 py-1.5 bg-background border border-card-border rounded-sm text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                                        className="w-full px-3 py-2 bg-background border border-card-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors cursor-pointer"
                                     >
                                         <option value="">All Teams</option>
                                         {availableTeams.map(t => (
@@ -237,42 +251,55 @@ export default function PlayerSearchSidebar({
 
                         {/* Search input (only in search mode) */}
                         {!browseMode && (
-                            <input
-                                type="text"
-                                placeholder="Enter Name..."
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                className="w-full px-3 py-2 bg-background border border-card-border rounded-sm text-sm text-foreground placeholder-muted focus:outline-none focus:border-primary transition-colors"
-                                autoFocus
-                            />
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <input
+                                    type="text"
+                                    placeholder="Enter Name..."
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    className="w-full pl-9 pr-4 py-2 bg-background border border-card-border rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors"
+                                    autoFocus
+                                />
+                            </div>
                         )}
 
                         {/* Loading */}
                         {(searching || browseLoading) && (
-                            <p className="text-center text-muted text-xs">Scanning...</p>
+                            <div className="flex items-center justify-center py-2 text-primary">
+                                <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                <span className="text-xs font-bold uppercase tracking-widest">Searching...</span>
+                            </div>
                         )}
 
                         {/* Results */}
                         {displayResults.length > 0 && (
-                            <div className="max-h-48 overflow-y-auto space-y-1 custom-scrollbar">
+                            <div className="max-h-48 overflow-y-auto space-y-1 scrollbar-thin scrollbar-thumb-card-border scrollbar-track-transparent pr-1">
                                 {displayResults.slice(0, 15).map((p) => (
-                                    <div key={p.id} className="flex items-center gap-2 p-2 hover:bg-white/5 cursor-pointer rounded-sm group">
-                                        <CountryFlag code={p.nationality} size="sm" />
-                                        <span className="flex-1 text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                                            {p.name}
-                                        </span>
-                                        <span className="text-[10px] text-muted truncate max-w-16">
-                                            {p.currentTeam?.name || "FA"}
-                                        </span>
+                                    <div key={p.id} className="flex items-center gap-3 p-2 hover:bg-white/5 cursor-pointer rounded-lg group border border-transparent hover:border-card-border transition-all">
+                                        <div className="relative w-6 h-6 rounded-full overflow-hidden bg-secondary">
+                                            {p.image_url && <Image src={p.image_url} alt="" fill className="object-cover" sizes="24px" />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex justify-between items-baseline">
+                                                <span className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                                                    {p.name}
+                                                </span>
+                                                <CountryFlag code={p.nationality} size="sm" />
+                                            </div>
+                                            <div className="text-[10px] text-muted-foreground truncate">
+                                                {p.currentTeam?.name || "No Team"}
+                                            </div>
+                                        </div>
                                         <button
                                             onClick={() => {
                                                 onAddFreeAgent(p);
                                                 setQuery("");
                                                 setResults([]);
                                             }}
-                                            className="px-2 py-0.5 bg-primary/10 text-primary rounded-sm text-xs hover:bg-primary hover:text-white transition-colors"
+                                            className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs font-bold hover:bg-primary hover:text-white transition-colors"
                                         >
-                                            +
+                                            <Plus className="w-3.5 h-3.5" />
                                         </button>
                                     </div>
                                 ))}
@@ -281,20 +308,32 @@ export default function PlayerSearchSidebar({
 
                         {/* No results */}
                         {!browseMode && query.length >= 2 && !searching && results.length === 0 && (
-                            <p className="text-center text-muted text-xs uppercase tracking-wider">No Match</p>
+                            <div className="text-center py-4 text-muted-foreground flex flex-col items-center">
+                                <AlertCircle className="w-5 h-5 mb-1 opacity-50" />
+                                <p className="text-xs uppercase tracking-widest font-bold">No Results</p>
+                            </div>
                         )}
                         {browseMode && !browseLoading && browseResults.length === 0 && (selectedCountry !== "ALL" || selectedTeam) && (
-                            <p className="text-center text-muted text-xs uppercase tracking-wider">No Players Found</p>
+                            <div className="text-center py-4 text-muted-foreground flex flex-col items-center">
+                                <AlertCircle className="w-5 h-5 mb-1 opacity-50" />
+                                <p className="text-xs uppercase tracking-widest font-bold">No Players Found</p>
+                            </div>
                         )}
                     </div>
                 )}
 
                 {/* Free agents list */}
-                <div className="max-h-[50vh] overflow-y-auto p-0 rounded-b-md">
+                <div className="max-h-[50vh] overflow-y-auto p-0 rounded-b-xl scrollbar-thin scrollbar-thumb-card-border scrollbar-track-transparent">
                     {freeAgents.length === 0 ? (
-                        <p className="py-8 text-center text-muted text-xs uppercase tracking-widest">
-                            -- Idle --
-                        </p>
+                        <div className="py-12 text-center text-muted-foreground flex flex-col items-center">
+                            <List className="w-8 h-8 mb-2 opacity-20" />
+                            <p className="text-xs uppercase tracking-widest font-bold">
+                                Empty List
+                            </p>
+                            <p className="text-[10px] text-muted-foreground/60 mt-1 max-w-[150px]">
+                                Add players here to prepare your transfers
+                            </p>
+                        </div>
                     ) : (
                         <div className="divide-y divide-card-border">
                             {freeAgents.map((p) => (
@@ -302,9 +341,9 @@ export default function PlayerSearchSidebar({
                                     <FreeAgentCard player={p} />
                                     <button
                                         onClick={() => onRemoveFreeAgent(p.id)}
-                                        className="absolute top-2 right-2 text-muted hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                        className="absolute top-3 right-3 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 bg-background/80 rounded-full p-1"
                                     >
-                                        ✕
+                                        <X className="w-3 h-3" />
                                     </button>
                                 </div>
                             ))}

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Player } from "@/lib/types";
+import { Player } from "@/types";
 import { useDraggable } from "@dnd-kit/core";
 
 interface PlayerCardProps {

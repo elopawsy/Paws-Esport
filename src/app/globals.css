@@ -4,25 +4,44 @@
   --font-sans: var(--font-inter), sans-serif;
   --font-display: var(--font-oswald), sans-serif;
 
-  --color-background: #0f172a; /* Slate 950 - Richer dark blue-grey */
-  --color-foreground: #f8fafc; /* Slate 50 */
+  /* HSL Values for better theme switching if needed, but hex is fine for simple setup */
   
-  --color-primary: #3b82f6; /* Blue 500 - Professional Sport Blue */
+  --color-background: #09090b; /* Zinc 950 - Deep Dark */
+  --color-foreground: #f4f4f5; /* Zinc 100 - Soft White */
+  
+  /* Primary - Vibrant Green */
+  --color-primary: #22c55e; /* Green 500 - Vibrant */
   --color-primary-foreground: #ffffff;
+  --color-primary-hover: #16a34a; /* Green 600 */
+
+  /* Secondary / Card */
+  --color-card: #18181b; /* Zinc 900 */
+  --color-card-foreground: #f4f4f5;
+  --color-card-border: #27272a; /* Zinc 800 */
   
-  --color-secondary: #1e293b; /* Slate 800 */
-  --color-secondary-foreground: #f8fafc;
-  
-  --color-muted: #94a3b8; /* Slate 400 */
-  
-  --color-card: #1e293b; /* Slate 800 */
-  --color-card-border: #334155; /* Slate 700 */
-  
-  --color-accent: #3b82f6;
-  
+  /* Muted */
+  --color-muted: #a1a1aa; /* Zinc 400 */
+  --color-muted-foreground: #71717a; /* Zinc 500 */
+
+  /* Accents */
+  --color-accent: #27272a; /* Zinc 800 */
+  --color-accent-foreground: #ffffff;
+
+  /* Destructive */
+  --color-destructive: #ef4444; /* Red 500 */
+  --color-destructive-foreground: #ffffff;
+
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+}
+
+@layer base {
+  :root {
+    /* Light Mode Overrides */
+    --background: 255 255 255; 
+    --foreground: 9 9 11;
+  }
 }
 
 /* Base styles */
@@ -31,8 +50,18 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   
+  /* Light Mode Support via data-theme or class */
+  [data-theme="light"] body {
+    --color-background: #ffffff;
+    --color-foreground: #09090b;
+    --color-card: #f4f4f5; /* Zinc 100 */
+    --color-card-border: #e4e4e7; /* Zinc 200 */
+    --color-muted: #71717a; /* Zinc 500 */
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: 0.02em;
@@ -49,6 +78,7 @@
     padding-right: 1.5rem;
 }
 
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
 }

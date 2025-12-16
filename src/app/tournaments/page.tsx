@@ -1,0 +1,290 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { VIDEO_GAMES } from "@/types";
+import type { VideoGameSlug } from "@/types";
+import { Calendar, Trophy, Coins, Gamepad2, AlertCircle, Filter } from "lucide-react";
+
+interface Tournament {
+    id: number;
+    slug: string;
+    name: string;
+    tier: string | null;
+    begin_at: string | null;
+    end_at: string | null;
+    prizepool: string | null;
+    league: {
+        id: number;
+        name: string;
+        image_url: string | null;
+    } | null;
+    serie: {
+        id: number;
+        name: string | null;
+        full_name: string | null;
+    } | null;
+}
+
+interface TournamentsData {
+    running: Tournament[];
+    upcoming: Tournament[];
+    past: Tournament[];
+}
+
+const TIER_COLORS: Record<string, string> = {
+    s: "from-yellow-500/20 to-amber-600/20 text-yellow-500 border-yellow-500/50",
+    a: "from-purple-500/20 to-indigo-600/20 text-purple-400 border-purple-500/50",
+    b: "from-blue-500/20 to-cyan-600/20 text-blue-400 border-blue-500/50",
+    c: "from-green-500/20 to-emerald-600/20 text-green-400 border-green-500/50",
+    d: "from-gray-500/20 to-slate-600/20 text-gray-400 border-gray-500/50",
+};
+
+function TournamentCard({ tournament }: { tournament: Tournament }) {
+    const tierClass = tournament.tier
+        ? TIER_COLORS[tournament.tier.toLowerCase()] || "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700"
+        : "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700";
+
+    return (
+        <Link
+            href={`/tournaments/${tournament.id}`}
+            className="block group relative bg-card h-full rounded-xl overflow-hidden border border-card-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+        >
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20 pointer-events-none" />
+
+            <div className="p-5 flex flex-col h-full relative z-10">
+                {/* Header with league logo */}
+                <div className="flex items-start gap-4 mb-4">
+                    <div className="relative w-12 h-12 flex-shrink-0 bg-secondary/50 rounded-lg p-2 border border-card-border group-hover:border-primary/30 transition-colors">
+                        {tournament.league?.image_url ? (
+                            <Image
+                                src={tournament.league.image_url}
+                                alt={tournament.league.name}
+                                fill
+                                sizes="48px"
+                                className="object-contain p-1"
+                            />
+                        ) : (
+                            <Trophy className="w-full h-full text-muted-foreground" />
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold font-display text-lg leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-2">
+                            {tournament.name}
+                        </h3>
+                        {tournament.serie?.full_name && (
+                            <p className="text-sm text-muted-foreground truncate mt-1">
+                                {tournament.serie.full_name}
+                            </p>
+                        )}
+                    </div>
+                </div>
+
+                {/* Meta info */}
+                <div className="flex items-center gap-2 flex-wrap mb-4">
+                    {tournament.tier && (
+                        <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border bg-gradient-to-r ${tierClass}`}>
+                            {tournament.tier}-Tier
+                        </span>
+                    )}
+                    {tournament.prizepool && (
+                        <div className="flex items-center gap-1 px-2.5 py-0.5 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 rounded font-medium">
+                            <Coins className="w-3 h-3" />
+                            {tournament.prizepool}
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer: Dates */}
+                <div className="mt-auto pt-4 border-t border-card-border flex items-center text-xs text-muted-foreground font-medium">
+                    <Calendar className="w-3.5 h-3.5 mr-2 text-primary" />
+                    {tournament.begin_at && (
+                        <span>
+                            {new Date(tournament.begin_at).toLocaleDateString("fr-FR", {
+                                day: "numeric",
+                                month: "short",
+                            })}
+                        </span>
+                    )}
+                    {tournament.begin_at && tournament.end_at && <span className="mx-1">→</span>}
+                    {tournament.end_at && (
+                        <span>
+                            {new Date(tournament.end_at).toLocaleDateString("fr-FR", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                            })}
+                        </span>
+                    )}
+                </div>
+            </div>
+        </Link>
+    );
+}
+
+function TournamentSection({
+    title,
+    tournaments,
+    icon: Icon,
+    emptyMessage,
+}: {
+    title: string;
+    tournaments: Tournament[];
+    icon: React.ElementType;
+    emptyMessage: string;
+}) {
+    if (tournaments.length === 0) {
+        return (
+            <div className="mb-12">
+                <h2 className="text-xl font-display font-bold uppercase tracking-wide text-foreground mb-6 flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Icon className="w-5 h-5 text-primary" />
+                    </div>
+                    {title}
+                </h2>
+                <div className="py-12 text-center border border-dashed border-card-border rounded-xl">
+                    <p className="text-muted-foreground text-sm uppercase tracking-widest">
+                        {emptyMessage}
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="mb-12">
+            <h2 className="text-xl font-display font-bold uppercase tracking-wide text-foreground mb-6 flex items-center gap-3">
+                <div className="p-2 bg-primary/10 rounded-lg">
+                    <Icon className="w-5 h-5 text-primary" />
+                </div>
+                {title}
+                <span className="ml-auto px-3 py-0.5 text-xs font-medium bg-secondary text-muted-foreground rounded-full border border-card-border">
+                    {tournaments.length}
+                </span>
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {tournaments.map((tournament) => (
+                    <TournamentCard key={tournament.id} tournament={tournament} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default function TournamentsPage() {
+    const [selectedGame, setSelectedGame] = useState<VideoGameSlug>("csgo");
+    const [tournaments, setTournaments] = useState<TournamentsData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        async function fetchTournaments() {
+            setLoading(true);
+            setError(null);
+
+            try {
+                const res = await fetch(`/api/tournaments?game=${selectedGame}`);
+                if (!res.ok) {
+                    throw new Error("Failed to fetch tournaments");
+                }
+                const data = await res.json();
+                setTournaments(data);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : "Unknown error");
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchTournaments();
+    }, [selectedGame]);
+
+    return (
+        <div className="min-h-screen bg-background">
+            {/* Header */}
+            <div className="bg-card/30 border-b border-card-border backdrop-blur-sm sticky top-16 z-40">
+                <div className="container-custom py-6">
+                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                        <div>
+                            <h1 className="text-3xl font-display font-bold text-foreground mb-2 uppercase tracking-wide">
+                                Esports Tournaments
+                            </h1>
+                            <p className="text-muted-foreground">
+                                All running and upcoming major esports events
+                            </p>
+                        </div>
+
+                        {/* Game Selector */}
+                        <div className="flex gap-2 flex-wrap">
+                            {Object.entries(VIDEO_GAMES).map(([slug, game]) => (
+                                <button
+                                    key={slug}
+                                    onClick={() => setSelectedGame(slug as VideoGameSlug)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-all ${selectedGame === slug
+                                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                            : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-card-border"
+                                        }`}
+                                >
+                                    <Gamepad2 className="w-4 h-4" />
+                                    {game.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="container-custom py-8">
+                {loading ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        {[...Array(8)].map((_, i) => (
+                            <div
+                                key={i}
+                                className="h-[280px] bg-card border border-card-border animate-pulse rounded-xl"
+                            />
+                        ))}
+                    </div>
+                ) : error ? (
+                    <div className="py-20 text-center bg-destructive/5 rounded-xl border border-destructive/20">
+                        <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-4" />
+                        <p className="text-destructive font-mono text-sm uppercase mb-4">
+                            Error: {error}
+                        </p>
+                        <p className="text-muted-foreground text-sm mb-6">
+                            Please check your API key configuration.
+                        </p>
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="px-6 py-2 bg-secondary text-foreground text-sm font-medium rounded-lg hover:bg-secondary/80 transition-colors"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                ) : tournaments ? (
+                    <>
+                        <TournamentSection
+                            title="Live Now"
+                            tournaments={tournaments.running}
+                            icon={Coins}
+                            emptyMessage="No ongoing tournaments"
+                        />
+                        <TournamentSection
+                            title="Upcoming"
+                            tournaments={tournaments.upcoming}
+                            icon={Calendar}
+                            emptyMessage="No upcoming tournaments scheduled"
+                        />
+                        <TournamentSection
+                            title="Recently Finished"
+                            tournaments={tournaments.past.slice(0, 12)}
+                            icon={Trophy}
+                            emptyMessage="No recently finished tournaments"
+                        />
+                    </>
+                ) : null}
+            </div>
+        </div>
+    );
+}

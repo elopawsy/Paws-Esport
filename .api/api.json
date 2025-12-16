@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "apis": [
+    {
+      "identifier": "developers-pandascore",
+      "source": "@developers-pandascore/v2#1h4i0g2jmc95krtl",
+      "integrity": "sha512-Lqtx04LvxytMD4SKocluzQHvxWK1e3WTEneOlm51fuuUxja8bDPffmOGCZzpTXVY+wccEfmUziQpydUjI9r4XQ==",
+      "installerVersion": "6.1.3"
+    }
+  ]
+}

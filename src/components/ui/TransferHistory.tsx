@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Transfer } from "@/lib/types";
+import { Transfer } from "@/types";
 
 interface TransferHistoryProps {
     transfers: Transfer[];
@@ -74,7 +74,7 @@ export default function TransferHistory({ transfers, onUndo, onReset }: Transfer
                         {/* From Team Logo */}
                         <div className="relative w-8 h-8 flex-shrink-0">
                             <Image
-                                src={transfer.fromTeam.logo}
+                                src={transfer.fromTeam.image_url || '/placeholder-team.png'}
                                 alt={transfer.fromTeam.name}
                                 fill
                                 sizes="32px"
@@ -88,7 +88,7 @@ export default function TransferHistory({ transfers, onUndo, onReset }: Transfer
                         {/* To Team Logo */}
                         <div className="relative w-8 h-8 flex-shrink-0">
                             <Image
-                                src={transfer.toTeam.logo}
+                                src={transfer.toTeam.image_url || '/placeholder-team.png'}
                                 alt={transfer.toTeam.name}
                                 fill
                                 sizes="32px"
@@ -99,7 +99,7 @@ export default function TransferHistory({ transfers, onUndo, onReset }: Transfer
                         {/* Player Name */}
                         <div className="flex-1 min-w-0">
                             <p className="font-medium text-white truncate">
-                                {transfer.player.ign || transfer.player.name}
+                                {transfer.player.name}
                             </p>
                             <p className="text-xs text-gray-500 truncate">
                                 {transfer.fromTeam.name} → {transfer.toTeam.name}

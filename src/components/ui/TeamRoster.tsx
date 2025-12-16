@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useDroppable } from "@dnd-kit/core";
-import { Team } from "@/lib/types";
+import { Team } from "@/types";
 import PlayerCard from "./PlayerCard";
 
 interface TeamRosterProps {

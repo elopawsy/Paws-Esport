@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
 import { domToPng } from "modern-screenshot";
+import Image from "next/image";
 import {
     DndContext,
     DragEndEvent,
@@ -11,11 +12,13 @@ import {
     useSensor,
     useSensors,
     PointerSensor,
+    useDraggable,
+    useDroppable
 } from "@dnd-kit/core";
-import { useDraggable, useDroppable } from "@dnd-kit/core";
-import { Team, Player, Transfer } from "@/lib/types";
+import { Team, Player, Transfer } from "@/types";
 import PlayerSearchSidebar from "@/components/ui/PlayerSearchSidebar";
 import TeamManagementModal from "@/components/ui/TeamManagementModal";
+import { Users, UserMinus, Armchair, History, Trash2, Camera, Download, RotateCcw, Search, Settings } from "lucide-react";
 
 interface FreeAgentPlayer extends Player {
     currentTeam: { id: number; name: string; image_url: string | null } | null;
@@ -49,20 +52,27 @@ const DraggablePlayer = memo(function DraggablePlayer({
             style={style}
             {...listeners}
             {...attributes}
-            className={`flex items-center gap-3 p-2 rounded-sm bg-background border border-card-border hover:border-primary/50 hover:bg-card transition-colors cursor-grab active:cursor-grabbing ${isDragging ? "opacity-50 ring-1 ring-primary" : ""}`}
+            className={`flex items-center gap-3 p-2.5 rounded-lg bg-background border border-card-border hover:border-primary/50 hover:bg-secondary/50 transition-all cursor-grab active:cursor-grabbing ${isDragging ? "opacity-50 ring-2 ring-primary z-50 shadow-lg" : ""}`}
         >
-            <div className="w-8 h-8 rounded-full bg-background border border-card-border overflow-hidden flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-secondary border border-card-border overflow-hidden flex-shrink-0 relative">
                 {player.image_url ? (
-                    <img src={player.image_url} alt="" className="w-full h-full object-cover object-top" loading="lazy" />
+                    <Image src={player.image_url} alt="" fill className="object-cover object-top" sizes="32px" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted">
+                    <div className="w-full h-full flex items-center justify-center bg-secondary text-[10px] font-bold text-muted-foreground">
                         {(player.name).charAt(0).toUpperCase()}
                     </div>
                 )}
             </div>
-            <span className="text-sm font-medium text-foreground truncate flex-1">
-                {player.name}
-            </span>
+            <div className="flex-1 min-w-0">
+                <span className="block text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                    {player.name}
+                </span>
+                {player.role && (
+                    <span className="block text-[10px] text-muted-foreground font-medium truncate uppercase tracking-wide">
+                        {player.role}
+                    </span>
+                )}
+            </div>
         </div>
     );
 });
@@ -85,49 +95,54 @@ const TeamCard = memo(function TeamCard({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-card border rounded-md p-4 relative group transition-all duration-200 ${isOver ? "border-primary ring-1 ring-primary shadow-lg shadow-primary/10" : isHighlighted ? "border-primary/40 bg-secondary/80" : "border-card-border"}`}
+            className={`bg-card border rounded-xl p-5 relative group transition-all duration-300 ${isOver ? "border-primary ring-2 ring-primary/20 shadow-xl shadow-primary/10" : isHighlighted ? "border-primary/60 bg-primary/5" : "border-card-border hover:border-primary/30"}`}
         >
             {onRemove && (
                 <button
                     onClick={onRemove}
-                    className="absolute top-2 right-2 text-muted hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                    className="absolute top-2 right-2 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 bg-background/80 rounded"
+                    title="Supprimer l'équipe"
                 >
-                    ✕
+                    <Trash2 className="w-4 h-4" />
                 </button>
             )}
-            <div className="flex items-center gap-3 mb-4 pb-3 border-b border-card-border">
-                <div className="w-10 h-10 flex items-center justify-center">
+            <div className="flex items-center gap-4 mb-4 pb-4 border-b border-card-border">
+                <div className="w-12 h-12 flex items-center justify-center relative bg-secondary/30 rounded-lg p-2 filter drop-shadow-sm">
                     {team.image_url ? (
-                        <img
+                        <Image
                             src={team.image_url}
                             alt=""
-                            className="w-full h-full object-contain"
-                            loading="lazy"
+                            fill
+                            className="object-contain p-1"
+                            sizes="48px"
                         />
                     ) : (
-                        <span className="text-xs font-bold text-muted">{team.name.charAt(0)}</span>
+                        <span className="text-sm font-bold text-muted-foreground">{team.name.charAt(0)}</span>
                     )}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-display font-semibold text-base uppercase tracking-wide truncate text-foreground">{team.name}</h3>
-                    <p className="text-[10px] text-primary uppercase tracking-wider font-medium">
+                    <h3 className="font-display font-bold text-lg uppercase tracking-tight truncate text-foreground leading-tight">{team.name}</h3>
+                    <p className="text-xs text-primary font-bold uppercase tracking-wider flex items-center gap-1.5 mt-1">
+                        <Users className="w-3 h-3" />
                         {team.players.length} Players
                     </p>
                 </div>
             </div>
 
             {isOver && (
-                <div className="mb-2 py-2 border border-dashed border-primary/50 rounded-sm text-center text-xs text-primary uppercase tracking-widest bg-primary/5">
-                    Drop Player
+                <div className="mb-3 py-3 border border-dashed border-primary/50 rounded-lg text-center text-xs font-bold text-primary uppercase tracking-widest bg-primary/5 animate-pulse">
+                    Deposit Player
                 </div>
             )}
 
-            <div className="space-y-2">
+            <div className="space-y-2 min-h-[50px]">
                 {team.players.map((player) => (
                     <DraggablePlayer key={player.id} player={player} teamId={team.id} />
                 ))}
-                {team.players.length === 0 && (
-                    <p className="py-4 text-center text-muted text-xs uppercase tracking-widest">Empty</p>
+                {team.players.length === 0 && !isOver && (
+                    <p className="py-6 text-center text-muted-foreground text-xs uppercase tracking-widest font-medium border border-dashed border-card-border rounded-lg bg-secondary/20">
+                        Empty
+                    </p>
                 )}
             </div>
         </div>
@@ -156,21 +171,59 @@ const DraggableVacantPlayer = memo(function DraggableVacantPlayer({
             style={style}
             {...listeners}
             {...attributes}
-            className={`flex items-center gap-2 p-2 rounded-sm bg-background border border-card-border cursor-grab active:cursor-grabbing hover:border-yellow-500/30 ${isDragging ? "opacity-50" : ""}`}
+            className={`flex items-center gap-3 p-2.5 rounded-lg bg-background border border-card-border hover:border-yellow-500/50 hover:bg-yellow-500/5 cursor-grab active:cursor-grabbing transition-all ${isDragging ? "opacity-50 ring-2 ring-yellow-500" : ""}`}
         >
-            <div className="w-6 h-6 rounded-full bg-background border border-card-border overflow-hidden flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-secondary border border-card-border overflow-hidden flex-shrink-0 relative">
                 {player.image_url ? (
-                    <img src={player.image_url} alt="" className="w-full h-full object-cover object-top" loading="lazy" />
+                    <Image src={player.image_url} alt="" fill className="object-cover object-top" sizes="32px" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted">
+                    <div className="w-full h-full flex items-center justify-center bg-background text-[10px] font-bold text-muted-foreground">
                         {(player.name).charAt(0).toUpperCase()}
                     </div>
                 )}
             </div>
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{player.name}</p>
-                <p className="text-[10px] text-muted truncate">[{player.originalTeam.name.slice(0, 3).toUpperCase()}]</p>
+                <p className="text-sm font-bold text-foreground truncate">{player.name}</p>
+                <p className="text-[10px] font-bold text-muted-foreground truncate opacity-70">[{player.originalTeam.name.slice(0, 3).toUpperCase()}]</p>
             </div>
+        </div>
+    );
+});
+
+// Draggable retired player
+const DraggableRetiredPlayer = memo(function DraggableRetiredPlayer({
+    player,
+}: {
+    player: Player;
+}) {
+    const { attributes, listeners, setNodeRef, transform, isDragging } =
+        useDraggable({
+            id: `retired-${player.id}`,
+            data: { player, isRetired: true },
+        });
+
+    const style = transform
+        ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)` }
+        : undefined;
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            {...listeners}
+            {...attributes}
+            className={`flex items-center gap-3 p-2.5 rounded-lg bg-background border border-card-border hover:border-red-500/50 hover:bg-red-500/5 cursor-grab active:cursor-grabbing transition-all ${isDragging ? "opacity-50 ring-2 ring-red-500 z-50" : "opacity-70 grayscale hover:grayscale-0 hover:opacity-100"}`}
+        >
+            <div className="w-6 h-6 rounded-full bg-secondary border border-card-border overflow-hidden flex-shrink-0 relative">
+                {player.image_url ? (
+                    <Image src={player.image_url} alt="" fill className="object-cover object-top" sizes="24px" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-background text-[10px] font-bold text-muted-foreground">
+                        {(player.name).charAt(0).toUpperCase()}
+                    </div>
+                )}
+            </div>
+            <span className="text-xs font-bold text-muted-foreground">{player.name}</span>
         </div>
     );
 });
@@ -189,26 +242,28 @@ const VacantZone = memo(function VacantZone({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-card border rounded-md p-4 transition-colors ${isOver ? "border-yellow-500/50 bg-yellow-500/5" : "border-card-border"}`}
+            className={`bg-card border rounded-xl p-5 transition-all duration-300 ${isOver ? "border-yellow-500 ring-2 ring-yellow-500/20 bg-yellow-500/5 shadow-lg" : "border-card-border"}`}
         >
-            <div className="flex items-center gap-2 mb-3 border-b border-card-border pb-2">
-                <span className="text-lg">⏸️</span>
+            <div className="flex items-center gap-3 mb-4 border-b border-card-border pb-3">
+                <div className="p-2 bg-yellow-500/10 rounded-lg">
+                    <Armchair className="w-5 h-5 text-yellow-500" />
+                </div>
                 <div>
-                    <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-foreground">Bench</h3>
-                    <p className="text-[10px] text-muted uppercase tracking-wider">{vacantPlayers.length} Players</p>
+                    <h3 className="font-display font-bold text-sm uppercase tracking-wide text-foreground">Bench</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{vacantPlayers.length} Players</p>
                 </div>
             </div>
 
             {isOver && (
-                <div className="mb-2 py-2 border border-dashed border-yellow-500/50 rounded-sm text-center text-xs text-yellow-500 uppercase tracking-widest">
+                <div className="mb-3 py-3 border border-dashed border-yellow-500/50 rounded-lg text-center text-xs font-bold text-yellow-500 uppercase tracking-widest bg-yellow-500/5 animate-pulse">
                     Bench Player
                 </div>
             )}
 
             {vacantPlayers.length === 0 ? (
-                <p className="py-4 text-center text-muted text-xs uppercase tracking-widest">-- Drag Here --</p>
+                <p className="py-6 text-center text-muted-foreground text-xs uppercase tracking-widest font-medium border border-dashed border-card-border rounded-lg bg-secondary/20">-- Drop Here --</p>
             ) : (
-                <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-card-border scrollbar-track-transparent">
                     {vacantPlayers.map((p) => (
                         <DraggableVacantPlayer key={p.id} player={p} />
                     ))}
@@ -232,39 +287,30 @@ const RetirementZone = memo(function RetirementZone({
     return (
         <div
             ref={setNodeRef}
-            className={`bg-card border rounded-md p-4 transition-colors ${isOver ? "border-red-500/50 bg-red-500/5" : "border-card-border"}`}
+            className={`bg-card border rounded-xl p-5 transition-all duration-300 ${isOver ? "border-red-500 ring-2 ring-red-500/20 bg-red-500/5 shadow-lg" : "border-card-border"}`}
         >
-            <div className="flex items-center gap-2 mb-3 border-b border-card-border pb-2">
-                <span className="text-lg">🛑</span>
+            <div className="flex items-center gap-3 mb-4 border-b border-card-border pb-3">
+                <div className="p-2 bg-red-500/10 rounded-lg">
+                    <UserMinus className="w-5 h-5 text-red-500" />
+                </div>
                 <div>
-                    <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-foreground">Retired</h3>
-                    <p className="text-[10px] text-muted uppercase tracking-wider">{retiredPlayers.length} Players</p>
+                    <h3 className="font-display font-bold text-sm uppercase tracking-wide text-foreground">Retirement</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{retiredPlayers.length} Players</p>
                 </div>
             </div>
 
             {isOver && (
-                <div className="mb-2 py-2 border border-dashed border-red-500/50 rounded-sm text-center text-xs text-red-500 uppercase tracking-widest">
+                <div className="mb-3 py-3 border border-dashed border-red-500/50 rounded-lg text-center text-xs font-bold text-red-500 uppercase tracking-widest bg-red-500/5 animate-pulse">
                     Retire Player
                 </div>
             )}
 
             {retiredPlayers.length === 0 ? (
-                <p className="py-4 text-center text-muted text-xs uppercase tracking-widest">-- Drag Here --</p>
+                <p className="py-6 text-center text-muted-foreground text-xs uppercase tracking-widest font-medium border border-dashed border-card-border rounded-lg bg-secondary/20">-- Drop Here --</p>
             ) : (
-                <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-64 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-card-border scrollbar-track-transparent">
                     {retiredPlayers.map((p) => (
-                        <div key={p.id} className="flex items-center gap-2 p-2 rounded-sm bg-background border border-card-border">
-                            <div className="w-6 h-6 rounded-full bg-background border border-card-border overflow-hidden flex-shrink-0 grayscale">
-                                {p.image_url ? (
-                                    <img src={p.image_url} alt="" className="w-full h-full object-cover object-top" loading="lazy" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted">
-                                        {(p.name).charAt(0).toUpperCase()}
-                                    </div>
-                                )}
-                            </div>
-                            <span className="text-xs text-muted">{p.name}</span>
-                        </div>
+                        <DraggableRetiredPlayer key={p.id} player={p} />
                     ))}
                 </div>
             )}
@@ -284,25 +330,25 @@ const TransferItem = memo(function TransferItem({
     const toTeam = transfer.toTeam;
 
     return (
-        <div className="flex items-center gap-3 p-3 bg-background border-b border-card-border group hover:bg-card transition-colors">
+        <div className="flex items-center gap-3 p-3 bg-background border-b border-card-border group hover:bg-secondary/20 transition-colors last:border-0 relative">
             <div className="flex flex-col items-center gap-1 min-w-[3rem]">
                 {/* From Team Logo/Label */}
-                <div className="w-6 h-6 flex items-center justify-center" title={fromTeam.name}>
+                <div className="w-6 h-6 flex items-center justify-center relative" title={fromTeam.name}>
                     {fromTeam.image_url ? (
-                        <img src={fromTeam.image_url} alt={fromTeam.name} className="w-full h-full object-contain" />
+                        <Image src={fromTeam.image_url} alt={fromTeam.name} fill className="object-contain" sizes="24px" />
                     ) : (
-                        <span className="text-[10px] font-bold text-muted uppercase">
+                        <span className="text-[10px] font-bold text-muted-foreground uppercase">
                             {fromTeam.acronym || fromTeam.name.slice(0, 3)}
                         </span>
                     )}
                 </div>
 
-                <span className="text-[10px] text-primary">↓</span>
+                <RotateCcw className="w-3 h-3 text-muted-foreground rotate-90" />
 
                 {/* To Team Logo/Label */}
-                <div className="w-6 h-6 flex items-center justify-center" title={toTeam.name}>
+                <div className="w-6 h-6 flex items-center justify-center relative" title={toTeam.name}>
                     {toTeam.image_url ? (
-                        <img src={toTeam.image_url} alt={toTeam.name} className="w-full h-full object-contain" />
+                        <Image src={toTeam.image_url} alt={toTeam.name} fill className="object-contain" sizes="24px" />
                     ) : (
                         <span className="text-[10px] font-bold text-foreground uppercase">
                             {toTeam.acronym || toTeam.name.slice(0, 3)}
@@ -311,23 +357,29 @@ const TransferItem = memo(function TransferItem({
                 </div>
             </div>
 
-            <div className="w-8 h-8 rounded-full bg-background border border-card-border overflow-hidden flex-shrink-0">
+            <div className="w-10 h-10 rounded-full bg-secondary border border-card-border overflow-hidden flex-shrink-0 relative">
                 {transfer.player.image_url ? (
-                    <img src={transfer.player.image_url} alt="" className="w-full h-full object-cover object-top" loading="lazy" />
+                    <Image src={transfer.player.image_url} alt="" fill className="object-cover object-top" sizes="40px" />
                 ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted">
+                    <div className="w-full h-full flex items-center justify-center bg-background text-[10px] font-bold text-muted-foreground">
                         {(transfer.player.name).charAt(0).toUpperCase()}
                     </div>
                 )}
             </div>
 
-            <span className="flex-1 text-sm font-medium text-foreground truncate">{transfer.player.name}</span>
+            <div className="flex-1 min-w-0">
+                <span className="block text-sm font-bold text-foreground truncate">{transfer.player.name}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">
+                    {new Date(transfer.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                </span>
+            </div>
 
             <button
                 onClick={onUndo}
-                className="opacity-0 group-hover:opacity-100 text-[10px] uppercase tracking-wider text-muted hover:text-red-400 transition-all font-medium"
+                className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 bg-background border border-card-border rounded-md hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all text-muted-foreground shadow-sm"
+                title="Annuler le transfert"
             >
-                Undo
+                <RotateCcw className="w-3.5 h-3.5" />
             </button>
         </div>
     );
@@ -358,15 +410,15 @@ export default function SimulatorPage() {
     );
 
     useEffect(() => {
-        fetch("/api/teams/all")
-            .then((res) => res.json())
-            .then(setAllTeams)
-            .catch(console.error)
-            .finally(() => setLoading(false));
+        // Start with 0 teams, user adds them via search
+        // We only fetch active teams if we need them, but here we just initialize empty
+        // The search functionality handles finding new teams
+        setAllTeams([]);
+        setLoading(false);
     }, []);
 
     useEffect(() => {
-        const stored = localStorage.getItem("nexus-sim-v3"); // New version key for color update
+        const stored = localStorage.getItem("paws-sim-v3"); // New version key for color update
         if (stored) {
             try {
                 const { modifiedTeams: mt, transfers: tr, freeAgents: fa, retiredPlayers: rp, vacantPlayers: vp, customTeams: ct, hiddenTeams: ht } = JSON.parse(stored);
@@ -384,7 +436,7 @@ export default function SimulatorPage() {
     useEffect(() => {
         if (loading) return;
         const timer = setTimeout(() => {
-            localStorage.setItem("nexus-sim-v3", JSON.stringify({
+            localStorage.setItem("paws-sim-v3", JSON.stringify({
                 modifiedTeams, transfers, freeAgents, retiredPlayers, vacantPlayers, customTeams,
                 hiddenTeams: Array.from(hiddenTeams)
             }));
@@ -499,6 +551,8 @@ export default function SimulatorPage() {
         } else if (isFromVacant) {
             // If coming from vacant, we use the original team as source
             fromTeamData = { ...originalTeam, slug: "vac", acronym: "VAC", players: [], location: null };
+        } else if (active.data.current?.isRetired) {
+            fromTeamData = { id: -1, name: "Retirement", image_url: "", slug: "ret", acronym: "RET", players: [], location: null };
         } else {
             // From a real team
             const sourceTeam = getDisplayTeam(combinedTeams.find((t) => t.id === sourceTeamId)!);
@@ -529,7 +583,7 @@ export default function SimulatorPage() {
 
         // 2. Handle Target: Retirement
         if (overData.isRetirement) {
-            const toTeamData = { id: -1, name: "Retraite", image_url: "", slug: "ret", acronym: "RET", players: [], location: null };
+            const toTeamData = { id: -1, name: "Retirement", image_url: "", slug: "ret", acronym: "RET", players: [], location: null };
 
             if (isFreeAgent) {
                 setFreeAgents(prev => prev.filter(p => p.id !== player.id));
@@ -564,6 +618,12 @@ export default function SimulatorPage() {
                     [targetTeam.id]: { ...targetTeam, players: [...targetTeam.players, player] },
                 }));
                 setFreeAgents(prev => prev.filter(p => p.id !== player.id));
+            } else if (active.data.current?.isRetired) {
+                setModifiedTeams(prev => ({
+                    ...prev,
+                    [targetTeam.id]: { ...targetTeam, players: [...targetTeam.players, player] },
+                }));
+                setRetiredPlayers(prev => prev.filter(p => p.id !== player.id));
             } else {
                 // Team to Team
                 const sourceTeam = getDisplayTeam(combinedTeams.find(t => t.id === sourceTeamId)!);
@@ -624,7 +684,7 @@ export default function SimulatorPage() {
         setVacantPlayers([]);
         setCustomTeams([]);
         setHiddenTeams(new Set());
-        localStorage.removeItem("nexus-sim-v3");
+        localStorage.removeItem("paws-sim-v3");
     }
 
     function addCustomTeam(team: Team) {
@@ -665,16 +725,16 @@ export default function SimulatorPage() {
         try {
             const dataUrl = await domToPng(teamsGridRef.current, {
                 scale: 2,
-                backgroundColor: '#0f172a',
+                backgroundColor: '#09090b', // zinc-950
             });
 
             const link = document.createElement('a');
-            link.download = `nexus-rosters-${new Date().toISOString().split('T')[0]}.png`;
+            link.download = `paws-rosters-${new Date().toISOString().split('T')[0]}.png`;
             link.href = dataUrl;
             link.click();
         } catch (error) {
             console.error('Error exporting image:', error);
-            alert('Export malfunction.');
+            alert('Erreur lors de l\'exportation.');
         }
     }
 
@@ -684,16 +744,16 @@ export default function SimulatorPage() {
         try {
             const dataUrl = await domToPng(recapRef.current, {
                 scale: 2,
-                backgroundColor: '#0f172a',
+                backgroundColor: '#09090b', // zinc-950
             });
 
             const link = document.createElement('a');
-            link.download = `nexus-transfers-recap-${new Date().toISOString().split('T')[0]}.png`;
+            link.download = `paws-transfers-recap-${new Date().toISOString().split('T')[0]}.png`;
             link.href = dataUrl;
             link.click();
         } catch (error) {
             console.error('Error exporting image:', error);
-            alert('Export malfunction.');
+            alert('Erreur lors de l\'exportation.');
         }
     }
 
@@ -705,8 +765,9 @@ export default function SimulatorPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-background text-muted text-sm font-medium uppercase tracking-widest">
-                Loading Simulator...
+            <div className="flex flex-col items-center justify-center min-h-screen bg-background text-primary animate-pulse">
+                <RotateCcw className="w-10 h-10 mb-4 animate-spin" />
+                <span className="text-sm font-bold uppercase tracking-widest">Loading Simulator...</span>
             </div>
         );
     }
@@ -719,36 +780,35 @@ export default function SimulatorPage() {
                 style={{
                     position: 'fixed',
                     top: 0,
-                    left: 0,
+                    left: '-9999px', // Hide off-screen
                     width: '800px',
                     zIndex: -100,
-                    backgroundColor: '#0f172a', // Force background color
+                    backgroundColor: '#09090b', // Force background color
                 }}
-                className="p-8 text-white font-sans pointer-events-none"
+                className="p-10 text-white font-sans pointer-events-none"
             >
-                <div className="text-center mb-8 border-b border-white/10 pb-4">
-                    <h1 className="text-4xl font-display font-bold uppercase tracking-widest text-white mb-2">Transfer Market Recap</h1>
-                    <p className="text-primary font-mono text-sm uppercase tracking-widest">Official Transaction Log</p>
+                <div className="text-center mb-10 border-b border-primary/20 pb-6">
+                    <h1 className="text-4xl font-display font-bold uppercase tracking-widest text-white mb-2">
+                        Transfer <span className="text-primary">Recap</span>
+                    </h1>
+                    <p className="text-gray-400 font-mono text-sm uppercase tracking-widest">Official Transaction Log</p>
                 </div>
 
                 {transfers.length === 0 ? (
-                    <div className="text-center text-gray-500 py-12 uppercase tracking-widest">No Transfers Recorded</div>
+                    <div className="text-center text-gray-500 py-12 uppercase tracking-widest font-bold">No transfers recorded</div>
                 ) : (
                     <div className="space-y-4">
                         {[...transfers].reverse().map((t) => (
-                            <div key={t.id} className="relative flex items-center justify-between bg-[#1e293b] p-4 rounded border border-white/5 overflow-hidden">
+                            <div key={t.id} className="relative flex items-center justify-between bg-[#18181b] p-6 rounded-xl border border-white/5 overflow-hidden">
 
                                 {/* Background Arrow */}
-                                <div className="absolute top-[4rem] left-0 w-full flex items-center justify-center z-0 px-32 pointer-events-none -translate-y-1/2">
-                                    <div className="w-full h-[2px] bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]"></div>
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white -ml-2 drop-shadow-[0_0_8px_rgba(255,255,255,0.5)]">
-                                        <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clipRule="evenodd" />
-                                    </svg>
+                                <div className="absolute top-[4rem] left-0 w-full flex items-center justify-center z-0 px-32 pointer-events-none -translate-y-1/2 opacity-20">
+                                    <div className="w-full h-[2px] bg-primary shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
                                 </div>
 
                                 {/* From Team */}
-                                <div className="flex flex-col items-center gap-2 w-32 z-10">
-                                    <div className="w-16 h-16 flex items-center justify-center">
+                                <div className="flex flex-col items-center gap-3 w-32 z-10">
+                                    <div className="w-20 h-20 flex items-center justify-center bg-black/20 rounded-xl p-2 border border-white/5">
                                         {t.fromTeam.image_url ? (
                                             <img
                                                 src={getProxiedUrl(t.fromTeam.image_url)}
@@ -760,13 +820,13 @@ export default function SimulatorPage() {
                                             <span className="text-2xl font-bold text-gray-500">{t.fromTeam.acronym || t.fromTeam.name.slice(0, 3)}</span>
                                         )}
                                     </div>
-                                    <span className="text-xs text-gray-400 font-bold uppercase text-center">{t.fromTeam.name}</span>
+                                    <span className="text-xs text-gray-400 font-bold uppercase text-center tracking-wide">{t.fromTeam.name}</span>
                                 </div>
 
                                 {/* Player */}
                                 <div className="flex flex-col items-center z-10">
-                                    <div className="relative">
-                                        <div className="w-24 h-24 rounded-full bg-[#0f172a] border-2 border-white/20 overflow-hidden mb-2 z-10 relative flex items-center justify-center shadow-lg">
+                                    <div className="relative mb-3">
+                                        <div className="w-28 h-28 rounded-full bg-[#09090b] border-4 border-primary/20 overflow-hidden z-10 relative flex items-center justify-center shadow-2xl">
                                             {t.player.image_url ? (
                                                 <img
                                                     src={getProxiedUrl(t.player.image_url)}
@@ -781,12 +841,12 @@ export default function SimulatorPage() {
                                             )}
                                         </div>
                                     </div>
-                                    <span className="text-xl font-display font-bold uppercase tracking-wide">{t.player.name}</span>
+                                    <span className="text-2xl font-display font-bold uppercase tracking-wide">{t.player.name}</span>
                                 </div>
 
                                 {/* To Team */}
-                                <div className="flex flex-col items-center gap-2 w-32 z-10">
-                                    <div className="w-16 h-16 flex items-center justify-center">
+                                <div className="flex flex-col items-center gap-3 w-32 z-10">
+                                    <div className="w-20 h-20 flex items-center justify-center bg-black/20 rounded-xl p-2 border border-white/5">
                                         {t.toTeam.image_url ? (
                                             <img
                                                 src={getProxiedUrl(t.toTeam.image_url)}
@@ -798,16 +858,16 @@ export default function SimulatorPage() {
                                             <span className="text-2xl font-bold text-white">{t.toTeam.acronym || t.toTeam.name.slice(0, 3)}</span>
                                         )}
                                     </div>
-                                    <span className="text-xs text-white font-bold uppercase text-center">{t.toTeam.name}</span>
+                                    <span className="text-xs text-primary font-bold uppercase text-center tracking-wide">{t.toTeam.name}</span>
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
 
-                <div className="mt-8 pt-4 border-t border-white/10 flex justify-between items-center text-xs text-gray-500 font-mono uppercase">
-                    <span>Generated by Nexus Simulator</span>
-                    <span>{new Date().toLocaleDateString()}</span>
+                <div className="mt-12 pt-6 border-t border-white/10 flex justify-between items-center text-xs text-gray-600 font-mono uppercase tracking-widest">
+                    <span>Generated by Paws Simulator</span>
+                    <span>{new Date().toLocaleDateString("en-US")}</span>
                 </div>
             </div>
 
@@ -818,48 +878,52 @@ export default function SimulatorPage() {
                 onDragEnd={handleDragEnd}
             >
                 <div className="min-h-screen bg-background relative z-0">
-
-
-                    <header className="sticky top-16 z-40 bg-background/95 backdrop-blur border-b border-card-border py-4">
-                        <div className="max-w-[1800px] mx-auto px-6 flex items-center gap-6">
-                            <div className="flex-1">
-                                <h1 className="text-xl font-display font-semibold uppercase tracking-wide text-foreground">
-                                    Transfer <span className="text-primary">Sim</span>
+                    <header className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-b border-card-border py-4 shadow-sm">
+                        <div className="container-custom flex items-center gap-6">
+                            <div className="flex-1 flex items-center gap-4">
+                                <h1 className="text-xl font-display font-bold uppercase tracking-wide text-foreground hidden md:block">
+                                    Transfer <span className="text-primary">Simulator</span>
                                 </h1>
+                                <div className="relative group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                    <input
+                                        type="text"
+                                        placeholder="Filter teams..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-48 md:w-64 pl-9 pr-4 py-2 bg-secondary/50 border border-card-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+                                    />
+                                </div>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Filter Teams..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-48 px-3 py-1.5 bg-card border border-card-border rounded-sm text-sm text-foreground placeholder-muted focus:outline-none focus:border-primary transition-colors"
-                            />
 
                             {/* Team Management */}
                             <button
                                 onClick={() => setTeamModalOpen(true)}
-                                className="px-3 py-1.5 rounded-sm text-xs font-medium uppercase tracking-wider border transition-colors bg-card border-card-border text-muted hover:text-foreground hover:border-muted"
+                                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider border transition-all bg-card border-card-border text-muted-foreground hover:text-foreground hover:border-primary/50 hover:bg-secondary"
                             >
-                                Manage Teams
+                                <Settings className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Manage Teams</span>
                             </button>
 
-                            <div className="text-center">
-                                <span className="text-lg font-bold text-primary">{transfers.length}</span>
-                                <span className="text-[10px] text-muted ml-1 uppercase tracking-wider">Moves</span>
+                            <div className="flex flex-col items-center">
+                                <span className="text-lg font-bold text-primary leading-none">{transfers.length}</span>
+                                <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Transfers</span>
                             </div>
+
                             {(transfers.length > 0 || freeAgents.length > 0 || retiredPlayers.length > 0 || vacantPlayers.length > 0 || customTeams.length > 0 || hiddenTeams.size > 0) && (
                                 <button
                                     onClick={resetAll}
-                                    className="px-3 py-1.5 border border-red-500/20 text-red-400 text-xs hover:bg-red-500/10 rounded-sm uppercase tracking-wider transition-colors"
+                                    className="flex items-center gap-2 px-4 py-2 border border-red-500/20 text-red-500 bg-red-500/5 hover:bg-red-500/10 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors"
                                 >
-                                    Reset
+                                    <RotateCcw className="w-3.5 h-3.5" />
+                                    <span className="hidden sm:inline">Reset</span>
                                 </button>
                             )}
                         </div>
                     </header>
 
-                    <div className="max-w-[1800px] mx-auto px-6 py-8">
-                        <div className="flex gap-6">
+                    <div className="container-custom py-8">
+                        <div className="flex flex-col xl:flex-row gap-8">
                             <PlayerSearchSidebar
                                 freeAgents={freeAgents}
                                 existingPlayerIds={getAllPlayerIds()}
@@ -872,9 +936,8 @@ export default function SimulatorPage() {
                                 onRemoveFreeAgent={(id) => setFreeAgents((prev) => prev.filter((p) => p.id !== id))}
                             />
 
-                            <div className="flex-1">
-
-                                <div ref={teamsGridRef} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 p-6 bg-background rounded-lg border border-card-border shadow-inner">
+                            <div className="flex-1 min-w-0">
+                                <div ref={teamsGridRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 bg-secondary/10 rounded-2xl border border-card-border">
                                     {displayTeams.map((team) => (
                                         <TeamCard
                                             key={team.id}
@@ -886,23 +949,25 @@ export default function SimulatorPage() {
                                 </div>
 
                                 {/* Export Button */}
-                                <div className="mt-8 flex justify-center gap-4">
+                                <div className="mt-8 flex flex-wrap justify-center gap-4">
                                     <button
                                         onClick={exportAsImage}
-                                        className="px-6 py-2 bg-primary text-white font-medium text-sm uppercase tracking-widest hover:bg-primary/90 transition-colors rounded-sm shadow-lg shadow-primary/20"
+                                        className="flex items-center gap-2 px-8 py-3 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-wide hover:bg-primary/90 transition-all rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/40 transform hover:-translate-y-0.5"
                                     >
+                                        <Camera className="w-5 h-5" />
                                         Capture Rosters
                                     </button>
                                     <button
                                         onClick={exportRecapAsImage}
-                                        className="px-6 py-2 bg-card border border-card-border text-white font-medium text-sm uppercase tracking-widest hover:bg-white/5 transition-colors rounded-sm"
+                                        className="flex items-center gap-2 px-8 py-3 bg-card border border-card-border text-foreground font-bold text-sm uppercase tracking-wide hover:bg-secondary transition-all rounded-xl shadow-sm hover:shadow-md"
                                     >
+                                        <Download className="w-5 h-5" />
                                         Export Recap
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="w-72 flex-shrink-0 hidden xl:block space-y-6">
+                            <div className="w-full xl:w-80 flex-shrink-0 space-y-6 sticky top-32 self-start">
                                 {/* Vacant Zone */}
                                 <VacantZone vacantPlayers={vacantPlayers} />
 
@@ -910,14 +975,18 @@ export default function SimulatorPage() {
                                 <RetirementZone retiredPlayers={retiredPlayers} />
 
                                 {/* Transfers History */}
-                                <div className="sticky top-48 bg-card border border-card-border rounded-md shadow-sm">
-                                    <div className="px-4 py-3 border-b border-card-border bg-white/5 rounded-t-md">
-                                        <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-foreground">Transfer Log</h3>
+                                <div className="bg-card border border-card-border rounded-xl shadow-sm overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-card-border bg-secondary/30 flex items-center gap-2">
+                                        <History className="w-4 h-4 text-primary" />
+                                        <h3 className="font-display font-bold text-sm uppercase tracking-wide text-foreground">Transfer Log</h3>
                                     </div>
                                     {transfers.length === 0 ? (
-                                        <p className="p-6 text-center text-muted text-xs uppercase tracking-widest">No Activity</p>
+                                        <div className="p-8 text-center text-muted-foreground flex flex-col items-center">
+                                            <History className="w-8 h-8 mb-2 opacity-20" />
+                                            <p className="text-xs uppercase tracking-widest font-medium">No Activity</p>
+                                        </div>
                                     ) : (
-                                        <div className="max-h-[40vh] overflow-y-auto bg-background/50 rounded-b-md">
+                                        <div className="max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-card-border scrollbar-track-transparent">
                                             {[...transfers].reverse().map((t) => (
                                                 <TransferItem key={t.id} transfer={t} onUndo={() => undoTransfer(t.id)} />
                                             ))}
@@ -928,14 +997,17 @@ export default function SimulatorPage() {
                         </div>
                     </div>
 
-                    <DragOverlay>
+                    <DragOverlay dropAnimation={{
+                        duration: 250,
+                        easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+                    }}>
                         {activePlayer && (
-                            <div className="bg-card border border-primary px-3 py-1.5 text-white font-medium text-sm shadow-xl rounded-sm ring-1 ring-primary/20 flex items-center gap-2">
-                                <div className="w-6 h-6 rounded-full bg-background border border-card-border overflow-hidden flex-shrink-0">
+                            <div className="bg-card border border-primary px-4 py-2 text-foreground font-bold text-sm shadow-xl rounded-full ring-2 ring-primary/20 flex items-center gap-3 transform scale-105 cursor-grabbing">
+                                <div className="w-8 h-8 rounded-full bg-secondary border border-card-border overflow-hidden flex-shrink-0 relative">
                                     {activePlayer.image_url ? (
                                         <img src={activePlayer.image_url} alt="" className="w-full h-full object-cover object-top" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-white/5 text-[10px] font-bold text-muted">
+                                        <div className="w-full h-full flex items-center justify-center bg-background text-[10px] font-bold text-muted-foreground">
                                             {(activePlayer.name).charAt(0).toUpperCase()}
                                         </div>
                                     )}

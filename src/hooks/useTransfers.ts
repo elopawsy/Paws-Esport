@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Transfer, Team, Player } from "@/lib/types";
+import { Transfer, Team, Player } from "@/types";
 
 const STORAGE_KEY = "nexus-transfer-sim-state-v1";
 

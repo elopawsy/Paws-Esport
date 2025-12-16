@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useEffect, useState, use } from "react";
 import Link from "next/link";
+import Image from "next/image";
+import { ArrowLeft, MapPin, Hash, Users, Activity, Plus } from "lucide-react";
 import PlayerCard from "@/components/ui/PlayerCard";
-import { Team } from "@/lib/types";
-import { DndContext } from "@dnd-kit/core";
+import { Team } from "@/types";
 
-export default function TeamPage() {
-    const params = useParams();
-    const teamId = params.id as string;
+export default function TeamPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id: teamId } = use(params);
 
     const [team, setTeam] = useState<Team | null>(null);
     const [loading, setLoading] = useState(true);
@@ -19,7 +18,7 @@ export default function TeamPage() {
         async function fetchTeam() {
             try {
                 const res = await fetch(`/api/teams/${teamId}`);
-                if (!res.ok) throw new Error("Failed to fetch team");
+                if (!res.ok) throw new Error("Unable to fetch team");
                 const data = await res.json();
                 setTeam(data);
             } catch (err) {
@@ -33,15 +32,8 @@ export default function TeamPage() {
 
     if (loading) {
         return (
-            <div className="container-custom py-16">
-                <div className="animate-pulse space-y-12">
-                    <div className="h-40 bg-card rounded-md w-full max-w-2xl" />
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                        {[...Array(5)].map((_, i) => (
-                            <div key={i} className="bg-card h-80 rounded-md" />
-                        ))}
-                    </div>
-                </div>
+            <div className="container-custom py-16 flex justify-center">
+                <div className="animate-spin h-12 w-12 border-4 border-primary border-t-transparent rounded-full" />
             </div>
         );
     }
@@ -49,84 +41,97 @@ export default function TeamPage() {
     if (error || !team) {
         return (
             <div className="container-custom py-20 text-center">
-                <h3 className="text-2xl font-display uppercase mb-4">Team Not Found</h3>
+                <h3 className="text-2xl font-display uppercase mb-4 text-foreground">Team not found</h3>
                 <Link
                     href="/"
-                    className="text-sm border-b border-white pb-1 hover:text-muted transition-colors"
+                    className="inline-flex items-center gap-2 text-primary hover:underline transition-colors"
                 >
-                    Return to Index
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Home
                 </Link>
             </div>
         );
     }
 
     return (
-        <DndContext onDragEnd={() => { }}>
-            <div className="container-custom py-12">
-                {/* Back Link */}
-                <Link
-                    href="/"
-                    className="inline-flex items-center gap-2 text-muted hover:text-white mb-12 text-xs font-medium uppercase tracking-widest transition-colors"
-                >
-                    ← Back to Database
-                </Link>
+        <div className="min-h-screen bg-background pb-12">
+            <div className="bg-card/30 border-b border-card-border">
+                <div className="container-custom py-8">
+                    {/* Back Link */}
+                    <Link
+                        href="/"
+                        className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 text-sm font-medium transition-colors group"
+                    >
+                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                        Back to Database
+                    </Link>
 
-                {/* Team Header */}
-                <header className="flex flex-col md:flex-row items-start md:items-end gap-8 mb-20 border-b border-card-border pb-10">
-                    <div className="w-32 h-32 flex-shrink-0 flex items-center justify-center bg-card rounded-lg border border-card-border">
-                        {team.image_url ? (
-                            <img
-                                src={team.image_url}
-                                alt={team.name}
-                                className="w-24 h-24 object-contain"
-                                loading="lazy"
-                            />
-                        ) : (
-                            <span className="text-4xl font-display text-muted">{team.name.charAt(0)}</span>
-                        )}
-                    </div>
-                    
-                    <div className="flex-1">
-                        <h1 className="text-6xl font-display font-bold uppercase tracking-tight leading-none mb-4">{team.name}</h1>
-                        <div className="flex items-center gap-4 text-sm font-medium text-muted uppercase tracking-wider">
-                            {team.location && (
-                                <span>{team.location}</span>
+                    {/* Team Header */}
+                    <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                        <div className="relative w-32 h-32 flex-shrink-0 flex items-center justify-center bg-card rounded-2xl border border-card-border p-4 shadow-lg shadow-black/5">
+                            {team.image_url ? (
+                                <Image
+                                    src={team.image_url}
+                                    alt={team.name}
+                                    fill
+                                    className="object-contain p-2"
+                                />
+                            ) : (
+                                <span className="text-4xl font-display font-bold text-muted-foreground">{team.name.charAt(0)}</span>
                             )}
-                            <span className="text-card-border">|</span>
-                             <span>ID: {team.slug}</span>
                         </div>
-                    </div>
-                    
-                    <div>
-                        <Link
-                            href={`/simulator?team=${team.id}`}
-                            className="inline-block px-6 py-3 bg-white text-black font-medium text-xs uppercase tracking-widest hover:bg-gray-200 transition-colors rounded-sm"
-                        >
-                            Add to Simulator
-                        </Link>
-                    </div>
-                </header>
 
-                {/* Players Section */}
-                <section>
-                    <div className="flex items-center justify-between mb-8">
-                        <h2 className="text-xl font-display font-medium uppercase tracking-wide">
-                            Active Roster <span className="text-muted ml-2">[{team.players.length}]</span>
-                        </h2>
+                        <div className="flex-1 text-center md:text-left">
+                            <h1 className="text-4xl md:text-6xl font-display font-bold uppercase tracking-tight text-foreground mb-4">{team.name}</h1>
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium text-muted-foreground">
+                                {team.location && (
+                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-secondary rounded-full border border-card-border">
+                                        <MapPin className="w-3.5 h-3.5 text-primary" />
+                                        {team.location}
+                                    </span>
+                                )}
+                                <span className="flex items-center gap-1.5 px-3 py-1 bg-secondary rounded-full border border-card-border">
+                                    <Hash className="w-3.5 h-3.5 text-primary" />
+                                    ID: {team.slug}
+                                </span>
+                            </div>
+                        </div>
+
+
                     </div>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                </div>
+            </div>
+
+            {/* Players Section */}
+            <div className="container-custom py-12">
+                <div className="flex items-center gap-3 mb-8">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                        <Users className="w-6 h-6 text-primary" />
+                    </div>
+                    <h2 className="text-2xl font-display font-bold uppercase tracking-wide text-foreground">
+                        Active Roster <span className="text-muted-foreground text-lg ml-2 font-normal">[{team.players.length}]</span>
+                    </h2>
+                </div>
+
+                {team.players.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         {team.players.map((player) => (
-                            <PlayerCard
-                                key={player.id}
-                                player={player}
-                                teamId={team.id}
-                                isDraggable={false}
-                            />
+                            <div key={player.id} className="relative group">
+                                <PlayerCard
+                                    player={player}
+                                    teamId={team.id}
+                                    isDraggable={false}
+                                />
+                            </div>
                         ))}
                     </div>
-                </section>
+                ) : (
+                    <div className="flex flex-col items-center justify-center py-16 border border-dashed border-card-border rounded-2xl text-muted-foreground bg-card/20">
+                        <Activity className="w-12 h-12 mb-4 opacity-20" />
+                        <p>No active players in this team</p>
+                    </div>
+                )}
             </div>
-        </DndContext>
+        </div>
     );
 }

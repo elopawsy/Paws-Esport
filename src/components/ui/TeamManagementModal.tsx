@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect, memo, useMemo } from "react";
-import { Team } from "@/lib/types";
-import CountryFlag, { CS2_COUNTRIES, COUNTRY_FLAGS } from "./CountryFlag";
+import { Team } from "@/types";
+import CountryFlag from "./CountryFlag";
+import Image from "next/image";
+import { X, Search, Globe, Eye, EyeOff, Plus, Trash2, RotateCcw } from "lucide-react";
 
 interface Props {
     isOpen: boolean;
@@ -17,12 +19,12 @@ interface Props {
 // Regions for filtering
 const REGIONS = [
     { code: "ALL", name: "All Regions" },
-    { code: "EU", name: "🇪🇺 Europe" },
-    { code: "CIS", name: "🇷🇺 CIS" },
-    { code: "NA", name: "🇺🇸 North America" },
-    { code: "SA", name: "🇧🇷 South America" },
-    { code: "ASIA", name: "🇨🇳 Asia" },
-    { code: "OCE", name: "🇦🇺 Oceania" },
+    { code: "EU", name: "Europe" },
+    { code: "CIS", name: "CIS" },
+    { code: "NA", name: "North America" },
+    { code: "SA", name: "South America" },
+    { code: "ASIA", name: "Asia" },
+    { code: "OCE", name: "Oceania" },
 ];
 
 // Map country codes to regions
@@ -59,33 +61,35 @@ const TeamRow = memo(function TeamRow({
     onRestore: () => void;
 }) {
     return (
-        <div className={`flex items-center gap-3 p-3 border-b border-card-border transition-colors ${isHidden ? "opacity-50 bg-red-500/5" : "hover:bg-white/5"}`}>
-            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0">
+        <div className={`flex items-center gap-3 p-3 border-b border-card-border transition-colors ${isHidden ? "opacity-50 bg-red-500/5 hover:opacity-100" : "hover:bg-secondary/50"}`}>
+            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 relative bg-secondary rounded-md p-1 border border-card-border">
                 {team.image_url ? (
-                    <img src={team.image_url} alt="" className="w-full h-full object-contain" />
+                    <Image src={team.image_url} alt="" fill className="object-contain p-0.5" sizes="32px" />
                 ) : (
-                    <span className="text-xs font-bold text-muted">{team.name.charAt(0)}</span>
+                    <span className="text-xs font-bold text-muted-foreground">{team.name.charAt(0)}</span>
                 )}
             </div>
             <CountryFlag code={team.location} size="sm" />
             <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">{team.name}</p>
-                <p className="text-[10px] text-muted uppercase tracking-wide">
+                <p className="text-sm font-bold text-foreground truncate">{team.name}</p>
+                <p className="text-[10px] text-muted-foreground uppercase tracking-wide font-medium">
                     {team.players?.length || 0} Players
                 </p>
             </div>
             {isHidden ? (
                 <button
                     onClick={onRestore}
-                    className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-sm hover:bg-primary hover:text-white transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-1.5 bg-primary/10 text-primary text-xs font-bold rounded hover:bg-primary hover:text-white transition-colors"
                 >
-                    Restore
+                    <Eye className="w-3 h-3" />
+                    Show
                 </button>
             ) : (
                 <button
                     onClick={onRemove}
-                    className="px-2 py-1 text-muted text-xs hover:text-red-400 hover:bg-red-500/10 rounded-sm transition-colors"
+                    className="flex items-center gap-1 px-2.5 py-1.5 text-muted-foreground text-xs font-bold hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
                 >
+                    <EyeOff className="w-3 h-3" />
                     Hide
                 </button>
             )}
@@ -101,17 +105,20 @@ const SearchResultRow = memo(function SearchResultRow({
     onAdd: () => void;
 }) {
     return (
-        <div className="flex items-center gap-3 p-2 hover:bg-white/5 cursor-pointer rounded-sm" onClick={onAdd}>
-            <div className="w-6 h-6 flex items-center justify-center flex-shrink-0">
+        <div className="flex items-center gap-3 p-3 hover:bg-secondary/50 cursor-pointer rounded-lg border border-transparent hover:border-card-border transition-all" onClick={onAdd}>
+            <div className="w-8 h-8 flex items-center justify-center flex-shrink-0 relative bg-secondary rounded-md p-1 border border-card-border">
                 {team.image_url ? (
-                    <img src={team.image_url} alt="" className="w-full h-full object-contain" />
+                    <Image src={team.image_url} alt="" fill className="object-contain p-0.5" sizes="32px" />
                 ) : (
-                    <span className="text-[10px] font-bold text-muted">{team.name.charAt(0)}</span>
+                    <span className="text-[10px] font-bold text-muted-foreground">{team.name.charAt(0)}</span>
                 )}
             </div>
             <CountryFlag code={team.location} size="sm" />
-            <span className="flex-1 text-sm font-medium text-foreground truncate">{team.name}</span>
-            <span className="text-xs text-primary">+ Add</span>
+            <span className="flex-1 text-sm font-bold text-foreground truncate">{team.name}</span>
+            <span className="flex items-center gap-1 text-xs text-primary font-bold bg-primary/10 px-2 py-1 rounded">
+                <Plus className="w-3 h-3" />
+                Add
+            </span>
         </div>
     );
 });
@@ -177,57 +184,60 @@ export default function TeamManagementModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
 
             {/* Modal */}
-            <div className="relative bg-card border border-card-border rounded-lg shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div className="relative bg-card border border-card-border rounded-xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col animate-in fade-in zoom-in-95 duration-200">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-card-border flex items-center justify-between bg-white/5">
-                    <h2 className="font-display font-semibold text-lg uppercase tracking-wide text-foreground">
+                <div className="px-6 py-4 border-b border-card-border flex items-center justify-between bg-white/5 rounded-t-xl">
+                    <h2 className="font-display font-bold text-lg uppercase tracking-wide text-foreground flex items-center gap-2">
                         Team Management
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-muted hover:text-foreground transition-colors"
+                        className="text-muted-foreground hover:text-foreground transition-colors p-1 hover:bg-secondary rounded"
                     >
-                        ✕
+                        <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="px-6 py-2 border-b border-card-border flex gap-2">
+                <div className="px-6 py-3 border-b border-card-border flex gap-2 bg-secondary/20">
                     <button
                         onClick={() => setActiveTab("current")}
-                        className={`px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-sm transition-colors ${activeTab === "current" ? "bg-primary text-white" : "text-muted hover:text-foreground hover:bg-white/5"}`}
+                        className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === "current" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent"}`}
                     >
                         Current Teams ({visibleTeams.length})
                     </button>
                     <button
                         onClick={() => setActiveTab("search")}
-                        className={`px-4 py-2 text-xs font-medium uppercase tracking-wider rounded-sm transition-colors ${activeTab === "search" ? "bg-primary text-white" : "text-muted hover:text-foreground hover:bg-white/5"}`}
+                        className={`px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${activeTab === "search" ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20" : "text-muted-foreground hover:text-foreground hover:bg-secondary border border-transparent"}`}
                     >
                         Add Team
                     </button>
                     {hiddenTeamsList.length > 0 && (
-                        <span className="ml-auto text-[10px] text-muted self-center">
-                            {hiddenTeamsList.length} hidden
+                        <span className="ml-auto text-[10px] text-muted-foreground font-bold uppercase tracking-widest self-center bg-red-500/10 text-red-500 px-2 py-1 rounded">
+                            {hiddenTeamsList.length} Hidden
                         </span>
                     )}
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-card-border scrollbar-track-transparent">
                     {activeTab === "current" ? (
                         <>
                             {/* Region filter */}
-                            <div className="px-6 py-3 border-b border-card-border bg-background/50">
-                                <label className="text-[10px] text-muted uppercase tracking-wider block mb-1">Filter by Region</label>
+                            <div className="px-6 py-4 border-b border-card-border bg-background/50 sticky top-0 z-10 backdrop-blur-sm">
+                                <label className="text-[10px] text-muted-foreground uppercase tracking-widest font-bold block mb-2 flex items-center gap-1.5">
+                                    <Globe className="w-3 h-3" />
+                                    Filter by Region
+                                </label>
                                 <select
                                     value={selectedRegion}
                                     onChange={(e) => setSelectedRegion(e.target.value)}
-                                    className="w-full px-3 py-2 bg-background border border-card-border rounded-sm text-sm text-foreground focus:outline-none focus:border-primary transition-colors"
+                                    className="w-full px-3 py-2 bg-secondary border border-card-border rounded-lg text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors font-medium"
                                 >
                                     {REGIONS.map(r => (
                                         <option key={r.code} value={r.code}>{r.name}</option>
@@ -236,7 +246,7 @@ export default function TeamManagementModal({
                             </div>
 
                             {/* Teams list */}
-                            <div className="divide-y divide-card-border">
+                            <div className="divide-y divide-card-border p-2">
                                 {visibleTeams.map(team => (
                                     <TeamRow
                                         key={team.id}
@@ -247,21 +257,25 @@ export default function TeamManagementModal({
                                     />
                                 ))}
                                 {visibleTeams.length === 0 && (
-                                    <p className="py-8 text-center text-muted text-xs uppercase tracking-widest">
-                                        No teams in this region
-                                    </p>
+                                    <div className="py-12 text-center text-muted-foreground flex flex-col items-center">
+                                        <Search className="w-8 h-8 mb-3 opacity-20" />
+                                        <p className="text-xs uppercase tracking-widest font-bold">
+                                            No teams in this region
+                                        </p>
+                                    </div>
                                 )}
                             </div>
 
                             {/* Hidden teams */}
                             {hiddenTeamsList.length > 0 && (
                                 <>
-                                    <div className="px-6 py-2 bg-red-500/10 border-y border-red-500/20">
-                                        <span className="text-xs text-red-400 uppercase tracking-wider font-medium">
+                                    <div className="px-6 py-2 bg-red-500/10 border-y border-red-500/20 sticky top-0 z-10 backdrop-blur-sm">
+                                        <span className="text-xs text-red-400 uppercase tracking-wider font-bold flex items-center gap-2">
+                                            <EyeOff className="w-3 h-3" />
                                             Hidden Teams ({hiddenTeamsList.length})
                                         </span>
                                     </div>
-                                    <div className="divide-y divide-card-border">
+                                    <div className="divide-y divide-card-border p-2 bg-red-500/5">
                                         {hiddenTeamsList.map(team => (
                                             <TeamRow
                                                 key={team.id}
@@ -278,21 +292,27 @@ export default function TeamManagementModal({
                     ) : (
                         <>
                             {/* Search */}
-                            <div className="px-6 py-4 border-b border-card-border bg-background/50">
-                                <input
-                                    type="text"
-                                    placeholder="Search teams..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="w-full px-4 py-2 bg-background border border-card-border rounded-sm text-sm text-foreground placeholder-muted focus:outline-none focus:border-primary transition-colors"
-                                    autoFocus
-                                />
+                            <div className="px-6 py-4 border-b border-card-border bg-background/50 sticky top-0 z-10 backdrop-blur-sm">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search for a team..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full pl-9 pr-4 py-2 bg-secondary border border-card-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/50 transition-colors"
+                                        autoFocus
+                                    />
+                                </div>
                             </div>
 
                             {/* Search results */}
                             <div className="p-4">
                                 {searching && (
-                                    <p className="text-center text-muted text-xs py-4">Searching...</p>
+                                    <div className="flex flex-col items-center justify-center py-8">
+                                        <RotateCcw className="w-6 h-6 text-primary animate-spin mb-2" />
+                                        <p className="text-muted-foreground text-xs font-medium uppercase tracking-widest">Searching...</p>
+                                    </div>
                                 )}
 
                                 {!searching && searchResults.length > 0 && (
@@ -312,15 +332,19 @@ export default function TeamManagementModal({
                                 )}
 
                                 {!searching && searchQuery.length >= 2 && searchResults.length === 0 && (
-                                    <p className="text-center text-muted text-xs uppercase tracking-widest py-4">
-                                        No teams found
-                                    </p>
+                                    <div className="py-8 text-center text-muted-foreground">
+                                        <p className="text-xs uppercase tracking-widest font-bold">
+                                            No team found
+                                        </p>
+                                    </div>
                                 )}
 
                                 {searchQuery.length < 2 && (
-                                    <p className="text-center text-muted text-xs py-8">
-                                        Enter at least 2 characters to search
-                                    </p>
+                                    <div className="py-12 text-center text-muted-foreground">
+                                        <p className="text-xs font-medium">
+                                            Enter at least 2 characters to search
+                                        </p>
+                                    </div>
                                 )}
                             </div>
                         </>
@@ -328,10 +352,10 @@ export default function TeamManagementModal({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-card-border bg-white/5 flex justify-end">
+                <div className="px-6 py-4 border-t border-card-border bg-white/5 flex justify-end rounded-b-xl">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 bg-primary text-white text-xs font-medium uppercase tracking-wider rounded-sm hover:bg-primary/90 transition-colors"
+                        className="px-6 py-2 bg-primary text-primary-foreground text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
                     >
                         Done
                     </button>

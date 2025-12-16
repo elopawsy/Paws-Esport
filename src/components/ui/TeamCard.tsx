@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Team } from "@/lib/types";
+import { Team } from "@/types";
 
 interface TeamCardProps {
     team: Team;

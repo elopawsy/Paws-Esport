@@ -1,25 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
-import { searchCS2Teams } from "@/lib/pandascore";
+import { TeamService } from "@/services";
 
 export async function GET(request: NextRequest) {
-    const searchParams = request.nextUrl.searchParams;
-    const query = searchParams.get("q");
+  const searchParams = request.nextUrl.searchParams;
+  const query = searchParams.get("q");
 
-    if (!query || query.length < 2) {
-        return NextResponse.json(
-            { error: "Query must be at least 2 characters" },
-            { status: 400 }
-        );
-    }
+  if (!query || query.length < 2) {
+    return NextResponse.json(
+      { error: "Query must be at least 2 characters" },
+      { status: 400 }
+    );
+  }
 
-    try {
-        const teams = await searchCS2Teams(query);
-        return NextResponse.json(teams);
-    } catch (error) {
-        console.error("Error searching teams:", error);
-        return NextResponse.json(
-            { error: "Failed to search teams" },
-            { status: 500 }
-        );
-    }
+  try {
+    const teams = await TeamService.searchTeams(query);
+    return NextResponse.json(teams);
+  } catch (error) {
+    console.error("Error searching teams:", error);
+    return NextResponse.json(
+      { error: "Failed to search teams" },
+      { status: 500 }
+    );
+  }
 }
