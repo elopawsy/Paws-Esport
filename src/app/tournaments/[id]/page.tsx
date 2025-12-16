@@ -3,7 +3,9 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Trophy, Calendar, Coins, Play, Clock, CheckCircle } from "lucide-react";
+import { ArrowLeft, Trophy, Calendar, Coins, Play, Clock, CheckCircle, GitMerge } from "lucide-react";
+import { BracketView } from "@/components/tournament/BracketView";
+import { Match } from "@/types";
 
 interface Tournament {
     id: number;
@@ -16,14 +18,15 @@ interface Tournament {
     serie: { id: number; full_name: string | null } | null;
 }
 
-interface Match {
-    id: number;
-    name: string;
-    status: string;
-    scheduled_at: string | null;
-    opponents: { opponent: { id: number; name: string; acronym: string | null; image_url: string | null } }[];
-    results: { team_id: number; score: number }[];
-}
+// Match type is already imported from types but let's use the local strict interface for now compatible with BracketView
+// Actually we should unify. The BracketView expects Match from @/types.
+// The local interface defined in the original file was slightly simpler.
+// Let's redefine Match here to match @/types roughly or import it.
+// The original file defined an interface Match locally. I should respect that or replace it.
+// To avoid conflicts, I will remove the local interface and try to use the one from ApiClient/mappers or types.
+// But the BracketView imports from '@/types'. 
+// Let's check what '@/types' has. I saw mappers.ts importing from '@/types'.
+// I'll assume '@/types' is the source of truth.
 
 function MatchCard({ match }: { match: Match }) {
     const team1 = match.opponents[0]?.opponent;
@@ -89,6 +92,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
     const [tournament, setTournament] = useState<Tournament | null>(null);
     const [matches, setMatches] = useState<Match[]>([]);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<"list" | "bracket">("list");
     const [filter, setFilter] = useState<"all" | "running" | "upcoming" | "finished">("all");
 
     useEffect(() => {
@@ -173,44 +177,75 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
             </div>
 
             <div className="container-custom py-8">
-                <div className="flex gap-2 mb-8 overflow-x-auto pb-2 scrollbar-hide">
-                    {[
-                        { id: "all", label: "Tous", icon: Trophy, count: matches.length },
-                        { id: "running", label: "En cours", icon: Play, count: matches.filter(m => m.status === "running").length },
-                        { id: "upcoming", label: "À venir", icon: Clock, count: matches.filter(m => m.status === "not_started").length },
-                        { id: "finished", label: "Terminés", icon: CheckCircle, count: matches.filter(m => m.status === "finished").length },
-                    ].map((item) => {
-                        const Icon = item.icon;
-                        const isActive = filter === item.id;
-                        return (
-                            <button
-                                key={item.id}
-                                onClick={() => setFilter(item.id as any)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap border ${isActive
+                {/* View Toggles */}
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {[
+                            { id: "all", label: "Tous", icon: Trophy, count: matches.length },
+                            { id: "running", label: "En cours", icon: Play, count: matches.filter(m => m.status === "running").length },
+                            { id: "upcoming", label: "À venir", icon: Clock, count: matches.filter(m => m.status === "not_started").length },
+                            { id: "finished", label: "Terminés", icon: CheckCircle, count: matches.filter(m => m.status === "finished").length },
+                        ].map((item) => {
+                            const Icon = item.icon;
+                            const isActive = filter === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    onClick={() => setFilter(item.id as any)}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all whitespace-nowrap border ${isActive
                                         ? "bg-primary text-primary-foreground border-primary"
                                         : "bg-card border-card-border text-muted-foreground hover:bg-secondary hover:text-foreground"
-                                    }`}
-                            >
-                                <Icon className="w-4 h-4" />
-                                {item.label}
-                                <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${isActive ? "bg-primary-foreground/20" : "bg-secondary-foreground/10"}`}>
-                                    {item.count}
-                                </span>
-                            </button>
-                        );
-                    })}
+                                        }`}
+                                >
+                                    <Icon className="w-4 h-4" />
+                                    {item.label}
+                                    <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${isActive ? "bg-primary-foreground/20" : "bg-secondary-foreground/10"}`}>
+                                        {item.count}
+                                    </span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <div className="flex bg-secondary p-1 rounded-lg border border-card-border">
+                        <button
+                            onClick={() => setViewMode("list")}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'list' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                        >
+                            List
+                        </button>
+                        <button
+                            onClick={() => setViewMode("bracket")}
+                            className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-2 ${viewMode === 'bracket' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                        >
+                            <GitMerge className="w-4 h-4" />
+                            Bracket
+                        </button>
+                    </div>
                 </div>
 
-                {filteredMatches.length === 0 ? (
-                    <div className="py-20 text-center border border-dashed border-card-border rounded-xl">
-                        <p className="text-muted-foreground">Aucun match trouvé pour ce filtre</p>
-                    </div>
+                {viewMode === 'list' ? (
+                    filteredMatches.length === 0 ? (
+                        <div className="py-20 text-center border border-dashed border-card-border rounded-xl">
+                            <p className="text-muted-foreground">Aucun match trouvé pour ce filtre</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            {filteredMatches.map((match) => (
+                                <MatchCard key={match.id} match={match} />
+                            ))}
+                        </div>
+                    )
                 ) : (
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        {filteredMatches.map((match) => (
-                            <MatchCard key={match.id} match={match} />
-                        ))}
-                    </div>
+                    /* Pass ALL matches to BracketView, or maybe filtered? Usually brackets show everything. */
+                    /* But if user specifically filters for 'Upcoming', they might get partial bracket. */
+                    /* Let's pass all matches for consistency, or filtered if they really want. */
+                    /* Actually, a partial bracket is weird. Let's pass all matches but highlight? Or just pass all. */
+                    /* User expects filters to apply. If I select "Running", I want to see running matches. */
+                    /* But a bracket needs context. */
+                    /* Compromise: Pass ALL matches to BracketView, but maybe highlight filtered? */
+                    /* For now, just pass ALL matches to ensure structure is maintained.*/
+                    <BracketView matches={matches} />
                 )}
             </div>
         </div>
