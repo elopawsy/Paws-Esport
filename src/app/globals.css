@@ -5,30 +5,40 @@
   --font-display: var(--font-oswald), sans-serif;
 
   /* HSL Values for better theme switching if needed, but hex is fine for simple setup */
-  
-  --color-background: #09090b; /* Zinc 950 - Deep Dark */
-  --color-foreground: #f4f4f5; /* Zinc 100 - Soft White */
-  
+
+  --color-background: #09090b;
+  /* Zinc 950 - Deep Dark */
+  --color-foreground: #f4f4f5;
+  /* Zinc 100 - Soft White */
+
   /* Primary - Vibrant Green */
-  --color-primary: #22c55e; /* Green 500 - Vibrant */
+  --color-primary: #22c55e;
+  /* Green 500 - Vibrant */
   --color-primary-foreground: #ffffff;
-  --color-primary-hover: #16a34a; /* Green 600 */
+  --color-primary-hover: #16a34a;
+  /* Green 600 */
 
   /* Secondary / Card */
-  --color-card: #18181b; /* Zinc 900 */
+  --color-card: #18181b;
+  /* Zinc 900 */
   --color-card-foreground: #f4f4f5;
-  --color-card-border: #27272a; /* Zinc 800 */
-  
+  --color-card-border: #27272a;
+  /* Zinc 800 */
+
   /* Muted */
-  --color-muted: #a1a1aa; /* Zinc 400 */
-  --color-muted-foreground: #71717a; /* Zinc 500 */
+  --color-muted: #a1a1aa;
+  /* Zinc 400 */
+  --color-muted-foreground: #71717a;
+  /* Zinc 500 */
 
   /* Accents */
-  --color-accent: #27272a; /* Zinc 800 */
+  --color-accent: #27272a;
+  /* Zinc 800 */
   --color-accent-foreground: #ffffff;
 
   /* Destructive */
-  --color-destructive: #ef4444; /* Red 500 */
+  --color-destructive: #ef4444;
+  /* Red 500 */
   --color-destructive-foreground: #ffffff;
 
   --radius-sm: 4px;
@@ -39,8 +49,15 @@
 @layer base {
   :root {
     /* Light Mode Overrides */
-    --background: 255 255 255; 
+    --background: 255 255 255;
     --foreground: 9 9 11;
+    --logo-filter: none;
+    /* Black logos in light mode */
+  }
+
+  [data-theme="dark"] {
+    --logo-filter: brightness(0) invert(1);
+    /* White logos in dark mode */
   }
 }
 
@@ -52,17 +69,25 @@
     font-family: var(--font-sans);
     transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
+
   /* Light Mode Support via data-theme or class */
   [data-theme="light"] body {
     --color-background: #ffffff;
     --color-foreground: #09090b;
-    --color-card: #f4f4f5; /* Zinc 100 */
-    --color-card-border: #e4e4e7; /* Zinc 200 */
-    --color-muted: #71717a; /* Zinc 500 */
+    --color-card: #f4f4f5;
+    /* Zinc 100 */
+    --color-card-border: #e4e4e7;
+    /* Zinc 200 */
+    --color-muted: #71717a;
+    /* Zinc 500 */
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: var(--font-display);
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -71,11 +96,11 @@
 
 /* Utilities */
 @utility container-custom {
-    max-width: 1400px;
-    margin-left: auto;
-    margin-right: auto;
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
 }
 
 /* Custom Scrollbar */
@@ -88,10 +113,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-card-border); 
+  background: var(--color-card-border);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary); 
+  background: var(--color-primary);
 }

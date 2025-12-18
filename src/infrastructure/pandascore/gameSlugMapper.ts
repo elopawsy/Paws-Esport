@@ -32,6 +32,7 @@ export const PANDASCORE_GAMES: Record<VideoGameSlug, PandaScoreGame> = {
   dota2: { id: 4, slug: 'dota2', name: 'Dota 2' },
   codmw: { id: 23, slug: 'codmw', name: 'Call of Duty' },
   r6siege: { id: 24, slug: 'r6siege', name: 'Rainbow 6 Siege' },
+  ow: { id: 14, slug: 'ow', name: 'Overwatch' },
 };
 
 /**
