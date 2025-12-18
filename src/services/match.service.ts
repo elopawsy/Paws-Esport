@@ -46,6 +46,25 @@ export async function getLiveMatches(videogame: VideoGameSlug = 'cs-2'): Promise
 }
 
 /**
+ * Get global live matches (all games)
+ */
+export async function getGlobalLiveMatches(): Promise<Match[]> {
+  if (!isSDKConfigured()) return [];
+
+  try {
+    const response = await apiClient.getGlobalMatches({
+      'filter[status]': 'running',
+      'page[size]': '20',
+      'sort': '-begin_at'
+    });
+    return response.data.map(mapMatch);
+  } catch (error) {
+    console.error('Failed to fetch global live matches:', error);
+    return [];
+  }
+}
+
+/**
  * Get upcoming matches
  */
 export async function getUpcomingMatches(videogame: VideoGameSlug = 'cs-2'): Promise<Match[]> {

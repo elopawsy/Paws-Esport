@@ -84,8 +84,8 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
             {/* Header */}
             <div className="bg-card/50 border-b border-card-border">
                 <div className="container-custom py-8">
-                    {/* Stream Embed */}
-                    {activeStream && (
+                    {/* Stream Embed - Only if Live */}
+                    {isLive && activeStream && (
                         <div className="mb-6 animate-in fade-in zoom-in duration-500">
                             <StreamPlayer stream={activeStream} />
 
@@ -148,20 +148,32 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                     <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16 py-8">
                         {/* Team 1 */}
                         <div className={`flex flex-col items-center gap-4 ${isFinished && match.winner_id !== team1?.id ? "opacity-60 grayscale" : ""}`}>
-                            <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border hover:border-primary/50 transition-colors">
-                                {team1?.image_url ?
-                                    <Image src={team1.image_url} alt={team1.name} width={80} height={80} className="object-contain" />
-                                    : <span className="text-3xl font-bold text-muted-foreground">?</span>
-                                }
-                            </div>
-                            <div className="text-center">
-                                <p className="text-xl font-bold font-display tracking-wide">{team1?.name || "TBD"}</p>
-                                {isFinished && match.winner_id === team1?.id && (
-                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-1">
-                                        <Trophy className="w-3 h-3" /> Vainqueur
-                                    </span>
-                                )}
-                            </div>
+                            {team1 ? (
+                                <Link href={`/teams/${team1.id}`} className="group flex flex-col items-center gap-4 transition-transform hover:scale-105">
+                                    <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border group-hover:border-primary/50 transition-colors shadow-lg group-hover:shadow-primary/10">
+                                        {team1.image_url ? (
+                                            <Image src={team1.image_url} alt={team1.name} width={80} height={80} className="object-contain" />
+                                        ) : (
+                                            <span className="text-3xl font-bold text-muted-foreground">?</span>
+                                        )}
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-xl font-bold font-display tracking-wide group-hover:text-primary transition-colors">{team1.name}</p>
+                                        {isFinished && match.winner_id === team1.id && (
+                                            <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-1">
+                                                <Trophy className="w-3 h-3" /> Vainqueur
+                                            </span>
+                                        )}
+                                    </div>
+                                </Link>
+                            ) : (
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border">
+                                        <span className="text-3xl font-bold text-muted-foreground">?</span>
+                                    </div>
+                                    <p className="text-xl font-bold font-display tracking-wide">TBD</p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Score */}
@@ -179,20 +191,32 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
 
                         {/* Team 2 */}
                         <div className={`flex flex-col items-center gap-4 ${isFinished && match.winner_id !== team2?.id ? "opacity-60 grayscale" : ""}`}>
-                            <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border hover:border-primary/50 transition-colors">
-                                {team2?.image_url ?
-                                    <Image src={team2.image_url} alt={team2.name} width={80} height={80} className="object-contain" />
-                                    : <span className="text-3xl font-bold text-muted-foreground">?</span>
-                                }
-                            </div>
-                            <div className="text-center">
-                                <p className="text-xl font-bold font-display tracking-wide">{team2?.name || "TBD"}</p>
-                                {isFinished && match.winner_id === team2?.id && (
-                                    <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-1">
-                                        <Trophy className="w-3 h-3" /> Vainqueur
-                                    </span>
-                                )}
-                            </div>
+                            {team2 ? (
+                                <Link href={`/teams/${team2.id}`} className="group flex flex-col items-center gap-4 transition-transform hover:scale-105">
+                                    <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border group-hover:border-primary/50 transition-colors shadow-lg group-hover:shadow-primary/10">
+                                        {team2.image_url ? (
+                                            <Image src={team2.image_url} alt={team2.name} width={80} height={80} className="object-contain" />
+                                        ) : (
+                                            <span className="text-3xl font-bold text-muted-foreground">?</span>
+                                        )}
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-xl font-bold font-display tracking-wide group-hover:text-primary transition-colors">{team2.name}</p>
+                                        {isFinished && match.winner_id === team2.id && (
+                                            <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-1">
+                                                <Trophy className="w-3 h-3" /> Vainqueur
+                                            </span>
+                                        )}
+                                    </div>
+                                </Link>
+                            ) : (
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border">
+                                        <span className="text-3xl font-bold text-muted-foreground">?</span>
+                                    </div>
+                                    <p className="text-xl font-bold font-display tracking-wide">TBD</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 

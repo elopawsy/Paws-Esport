@@ -93,6 +93,10 @@ export class ApiClient {
     return this.fetch<any[]>(`/${slug}/matches`, params);
   }
 
+  async getGlobalMatches(params: any = {}) {
+    return this.fetch<any[]>('/matches', params);
+  }
+
   /**
    * Tournaments
    */
