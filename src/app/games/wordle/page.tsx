@@ -35,7 +35,7 @@ interface Guess {
 
 type HintType = "correct" | "wrong";
 
-const MAX_GUESSES = 6;
+const MAX_GUESSES = 10;
 
 const GAME_NAMES: Record<VideoGameSlug, string> = {
     "cs-2": "Counter-Strikle",
