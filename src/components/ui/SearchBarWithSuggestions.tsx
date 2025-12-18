@@ -11,13 +11,12 @@ import {
     Users,
     Gamepad2,
     Zap,
-    Clock,
     ArrowRight,
-    X
+    User
 } from "lucide-react";
 
 interface SearchResult {
-    type: "match" | "team" | "tournament";
+    type: "match" | "team" | "tournament" | "player";
     id: number;
     name: string;
     subtitle?: string;
@@ -25,13 +24,61 @@ interface SearchResult {
     status?: string;
     href: string;
     isLive?: boolean;
+    relevanceScore?: number;
 }
 
 interface SearchSuggestion {
     matches: SearchResult[];
     tournaments: SearchResult[];
     teams: SearchResult[];
+    players: SearchResult[];
     liveEvents: SearchResult[];
+}
+
+// Calculate relevance score based on how well the name matches the query
+function calculateRelevance(name: string, query: string): number {
+    const lowerName = name.toLowerCase();
+    const lowerQuery = query.toLowerCase();
+
+    // Exact match = highest score
+    if (lowerName === lowerQuery) return 100;
+
+    // Starts with query = very high score
+    if (lowerName.startsWith(lowerQuery)) return 90 + (lowerQuery.length / lowerName.length) * 10;
+
+    // Contains query as a word = high score
+    const words = lowerName.split(/[\s\-_]+/);
+    for (const word of words) {
+        if (word === lowerQuery) return 80;
+        if (word.startsWith(lowerQuery)) return 70 + (lowerQuery.length / word.length) * 10;
+    }
+
+    // Contains query anywhere = medium score
+    if (lowerName.includes(lowerQuery)) {
+        const index = lowerName.indexOf(lowerQuery);
+        return 50 + (10 - Math.min(index, 10));
+    }
+
+    // Partial match (all query chars present in order)
+    let queryIdx = 0;
+    for (const char of lowerName) {
+        if (char === lowerQuery[queryIdx]) queryIdx++;
+        if (queryIdx === lowerQuery.length) break;
+    }
+    if (queryIdx === lowerQuery.length) return 30;
+
+    return 0;
+}
+
+// Sort by relevance
+function sortByRelevance<T extends SearchResult>(items: T[], query: string): T[] {
+    return items
+        .map(item => ({
+            ...item,
+            relevanceScore: calculateRelevance(item.name, query)
+        }))
+        .filter(item => item.relevanceScore > 0)
+        .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
 }
 
 export default function SearchBarWithSuggestions() {
@@ -43,6 +90,7 @@ export default function SearchBarWithSuggestions() {
         matches: [],
         tournaments: [],
         teams: [],
+        players: [],
         liveEvents: [],
     });
     const inputRef = useRef<HTMLInputElement>(null);
@@ -79,20 +127,32 @@ export default function SearchBarWithSuggestions() {
                 ...prev,
                 matches: [],
                 tournaments: [],
-                teams: []
+                teams: [],
+                players: []
             }));
             return;
         }
 
         setLoading(true);
         try {
-            const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-            if (res.ok) {
-                const data = await res.json();
+            // Fetch all in parallel
+            const [searchRes, teamsRes, playersRes] = await Promise.all([
+                fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`),
+                fetch(`/api/teams/search?q=${encodeURIComponent(searchQuery)}`),
+                fetch(`/api/players/search?q=${encodeURIComponent(searchQuery)}`)
+            ]);
 
-                // Transform matches
-                const matches: SearchResult[] = (data.matches || []).slice(0, 5).map((m: any) => ({
-                    type: "match",
+            let matches: SearchResult[] = [];
+            let tournaments: SearchResult[] = [];
+            let teams: SearchResult[] = [];
+            let players: SearchResult[] = [];
+
+            // Process search results
+            if (searchRes.ok) {
+                const data = await searchRes.json();
+
+                matches = (data.matches || []).map((m: any) => ({
+                    type: "match" as const,
                     id: m.id,
                     name: m.name,
                     subtitle: m.tournament?.name || m.league?.name || "",
@@ -102,37 +162,49 @@ export default function SearchBarWithSuggestions() {
                     isLive: m.status === "running",
                 }));
 
-                // Transform tournaments
-                const tournaments: SearchResult[] = (data.tournaments || []).slice(0, 5).map((t: any) => ({
-                    type: "tournament",
+                tournaments = (data.tournaments || []).map((t: any) => ({
+                    type: "tournament" as const,
                     id: t.id,
                     name: t.name,
                     subtitle: t.league?.name || t.serie?.name,
                     imageUrl: t.league?.image_url,
                     href: `/tournaments/${t.id}`,
                 }));
-
-                // Fetch teams separately
-                let teams: SearchResult[] = [];
-                try {
-                    const teamsRes = await fetch(`/api/teams/search?q=${encodeURIComponent(searchQuery)}`);
-                    if (teamsRes.ok) {
-                        const teamsData = await teamsRes.json();
-                        teams = teamsData.slice(0, 5).map((t: any) => ({
-                            type: "team",
-                            id: t.id,
-                            name: t.name,
-                            subtitle: t.location,
-                            imageUrl: t.image_url,
-                            href: `/teams/${t.id}`,
-                        }));
-                    }
-                } catch (err) {
-                    console.error("Failed to fetch teams:", err);
-                }
-
-                setSuggestions((prev) => ({ ...prev, matches, tournaments, teams }));
             }
+
+            // Process teams
+            if (teamsRes.ok) {
+                const teamsData = await teamsRes.json();
+                teams = (teamsData || []).map((t: any) => ({
+                    type: "team" as const,
+                    id: t.id,
+                    name: t.name,
+                    subtitle: t.location,
+                    imageUrl: t.image_url,
+                    href: `/teams/${t.id}`,
+                }));
+            }
+
+            // Process players
+            if (playersRes.ok) {
+                const playersData = await playersRes.json();
+                players = (playersData || []).map((p: any) => ({
+                    type: "player" as const,
+                    id: p.id,
+                    name: p.name,
+                    subtitle: p.current_team?.name || p.nationality,
+                    imageUrl: p.image_url,
+                    href: `/players/${p.id}`,
+                }));
+            }
+
+            // Sort all by relevance
+            matches = sortByRelevance(matches, searchQuery).slice(0, 5);
+            tournaments = sortByRelevance(tournaments, searchQuery).slice(0, 5);
+            teams = sortByRelevance(teams, searchQuery).slice(0, 8);
+            players = sortByRelevance(players, searchQuery).slice(0, 8);
+
+            setSuggestions((prev) => ({ ...prev, matches, tournaments, teams, players }));
         } catch (error) {
             console.error("Search failed:", error);
         } finally {
@@ -188,7 +260,8 @@ export default function SearchBarWithSuggestions() {
         suggestions.liveEvents.length > 0 ||
         suggestions.matches.length > 0 ||
         suggestions.tournaments.length > 0 ||
-        suggestions.teams.length > 0;
+        suggestions.teams.length > 0 ||
+        suggestions.players.length > 0;
 
     const showDropdown = focused && (hasResults || loading || query.length === 0);
 
@@ -201,7 +274,7 @@ export default function SearchBarWithSuggestions() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     onFocus={() => setFocused(true)}
-                    placeholder="Search matches, teams, tournaments..."
+                    placeholder="Search teams, players, tournaments..."
                     className="bg-secondary/50 border border-card-border rounded-lg py-2 pl-4 pr-10 text-sm text-foreground focus:outline-none focus:border-primary/50 w-80 transition-all placeholder:text-muted-foreground"
                 />
                 <button
@@ -235,6 +308,32 @@ export default function SearchBarWithSuggestions() {
                     {/* Search Results */}
                     {query.length >= 2 && (
                         <>
+                            {/* Teams - Priority display */}
+                            {suggestions.teams.length > 0 && (
+                                <div className="p-2 border-b border-card-border">
+                                    <div className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                        <Users className="w-3.5 h-3.5" />
+                                        Teams
+                                    </div>
+                                    {suggestions.teams.map((item) => (
+                                        <SuggestionItem key={`team-${item.id}`} item={item} onSelect={() => setFocused(false)} />
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Players */}
+                            {suggestions.players.length > 0 && (
+                                <div className="p-2 border-b border-card-border">
+                                    <div className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
+                                        <User className="w-3.5 h-3.5" />
+                                        Players
+                                    </div>
+                                    {suggestions.players.map((item) => (
+                                        <SuggestionItem key={`player-${item.id}`} item={item} onSelect={() => setFocused(false)} />
+                                    ))}
+                                </div>
+                            )}
+
                             {/* Live/Running Matches */}
                             {suggestions.matches.filter(m => m.isLive).length > 0 && (
                                 <div className="p-2 border-b border-card-border">
@@ -257,19 +356,6 @@ export default function SearchBarWithSuggestions() {
                                     </div>
                                     {suggestions.matches.filter(m => !m.isLive).map((item) => (
                                         <SuggestionItem key={`match-${item.id}`} item={item} onSelect={() => setFocused(false)} />
-                                    ))}
-                                </div>
-                            )}
-
-                            {/* Teams */}
-                            {suggestions.teams.length > 0 && (
-                                <div className="p-2 border-b border-card-border">
-                                    <div className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-muted-foreground uppercase tracking-wider">
-                                        <Users className="w-3.5 h-3.5" />
-                                        Teams
-                                    </div>
-                                    {suggestions.teams.map((item) => (
-                                        <SuggestionItem key={`team-${item.id}`} item={item} onSelect={() => setFocused(false)} />
                                     ))}
                                 </div>
                             )}
@@ -321,8 +407,8 @@ export default function SearchBarWithSuggestions() {
                     {query.length === 0 && suggestions.liveEvents.length === 0 && !loading && (
                         <div className="p-6 text-center text-muted-foreground">
                             <Search className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">Search for teams, matches, or tournaments</p>
-                            <p className="text-xs mt-1 opacity-70">Try searching for &quot;Navi&quot;, &quot;Blast&quot;, or &quot;Major&quot;</p>
+                            <p className="text-sm">Search for teams, players, or tournaments</p>
+                            <p className="text-xs mt-1 opacity-70">Try searching for &quot;Navi&quot;, &quot;s1mple&quot;, or &quot;Major&quot;</p>
                         </div>
                     )}
                 </div>
@@ -351,6 +437,8 @@ function SuggestionItem({ item, onSelect }: { item: SearchResult; onSelect: () =
                     />
                 ) : item.type === "team" ? (
                     <Users className="w-4 h-4 text-muted-foreground" />
+                ) : item.type === "player" ? (
+                    <User className="w-4 h-4 text-muted-foreground" />
                 ) : item.type === "tournament" ? (
                     <Trophy className="w-4 h-4 text-muted-foreground" />
                 ) : (

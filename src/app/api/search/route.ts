@@ -22,36 +22,38 @@ export async function GET(request: Request) {
     }
 
     try {
-        // Search matches
-        const matchesRes = await fetch(
-            `${PANDASCORE_BASE_URL}/csgo/matches?search[name]=${encodeURIComponent(query)}&page[size]=10&sort=-scheduled_at`,
-            {
-                headers: {
-                    Authorization: `Bearer ${apiKey}`,
-                    Accept: "application/json",
-                },
-                next: { revalidate: 60 },
-            }
-        );
-
-        // Search tournaments
-        const tournamentsRes = await fetch(
-            `${PANDASCORE_BASE_URL}/csgo/tournaments?search[name]=${encodeURIComponent(query)}&page[size]=10&sort=-begin_at`,
-            {
-                headers: {
-                    Authorization: `Bearer ${apiKey}`,
-                    Accept: "application/json",
-                },
-                next: { revalidate: 3600 },
-            }
-        );
+        // Search across ALL games using the general endpoints
+        const [matchesRes, tournamentsRes] = await Promise.all([
+            // Search matches (all games)
+            fetch(
+                `${PANDASCORE_BASE_URL}/matches?search[name]=${encodeURIComponent(query)}&page[size]=15&sort=-scheduled_at`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        Accept: "application/json",
+                    },
+                    next: { revalidate: 60 },
+                }
+            ),
+            // Search tournaments (all games)
+            fetch(
+                `${PANDASCORE_BASE_URL}/tournaments?search[name]=${encodeURIComponent(query)}&page[size]=15&sort=-begin_at`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${apiKey}`,
+                        Accept: "application/json",
+                    },
+                    next: { revalidate: 3600 },
+                }
+            ),
+        ]);
 
         const [matches, tournaments] = await Promise.all([
             matchesRes.ok ? matchesRes.json() : [],
             tournamentsRes.ok ? tournamentsRes.json() : [],
         ]);
 
-        // Transform matches (reuse basic transform logic if needed, simplify for search results)
+        // Transform matches with videogame info
         const transformedMatches = matches.map((match: any) => ({
             id: match.id,
             name: match.name,
@@ -62,8 +64,10 @@ export async function GET(request: Request) {
             league: match.league,
             serie: match.serie,
             tournament: match.tournament,
+            videogame: match.videogame, // Include game info
         }));
 
+        // Transform tournaments with videogame info
         const transformedTournaments = tournaments.map((t: any) => ({
             id: t.id,
             name: t.name,
@@ -74,6 +78,7 @@ export async function GET(request: Request) {
             end_at: t.end_at,
             prizepool: t.prizepool,
             teams_count: t.teams ? t.teams.length : 0,
+            videogame: t.videogame, // Include game info
         }));
 
         return NextResponse.json({
