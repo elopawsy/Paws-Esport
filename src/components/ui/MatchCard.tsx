@@ -4,42 +4,15 @@ import { memo } from "react";
 import Link from "next/link";
 import CountryFlag from "./CountryFlag";
 
-interface Opponent {
-    opponent: {
-        id: number;
-        name: string;
-        acronym?: string;
-        image_url: string | null;
-        location?: string;
-    };
-}
-
-interface Result {
-    team_id: number;
-    score: number;
-}
-
-interface Match {
-    id: number;
-    slug?: string;
-    name: string;
-    status: "not_started" | "running" | "finished";
-    scheduled_at: string;
-    begin_at?: string;
-    end_at?: string;
-    opponents: Opponent[];
-    results: Result[];
-    league?: { id: number; name: string; image_url: string | null };
-    serie?: { full_name: string };
-    tier: string;
-}
+import type { Match, MatchOpponent } from "@/types";
 
 interface Props {
     match: Match;
     compact?: boolean;
 }
 
-function formatTime(dateString: string): string {
+function formatTime(dateString: string | null): string {
+    if (!dateString) return "-";
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = date.getTime() - now.getTime();
@@ -60,7 +33,7 @@ const TeamDisplay = memo(function TeamDisplay({
     isWinner,
     compact
 }: {
-    opponent: Opponent["opponent"];
+    opponent: MatchOpponent["opponent"];
     score?: number;
     isWinner?: boolean;
     compact?: boolean;
@@ -100,11 +73,15 @@ const MatchCard = memo(function MatchCard({ match, compact = false }: Props) {
     const winner1 = isFinished && score1 !== undefined && score2 !== undefined && score1 > score2;
     const winner2 = isFinished && score1 !== undefined && score2 !== undefined && score2 > score1;
 
+    const isCanceled = match.status === "canceled";
+
     const statusColor = isLive
         ? "bg-red-500 animate-pulse"
         : isFinished
             ? "bg-muted"
-            : "bg-primary";
+            : isCanceled
+                ? "bg-red-900/50"
+                : "bg-primary";
 
     // Prefer slug for cleaner URLs, fallback to id
     const matchUrl = match.slug ? `/match/${match.slug}` : `/match/${match.id}`;
@@ -116,7 +93,7 @@ const MatchCard = memo(function MatchCard({ match, compact = false }: Props) {
                 <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${statusColor}`} />
                     <span className={`${compact ? "text-[10px]" : "text-xs"} text-muted uppercase tracking-wider font-medium`}>
-                        {isLive ? "LIVE" : isFinished ? "Finished" : formatTime(match.scheduled_at)}
+                        {isLive ? "LIVE" : isFinished ? "Finished" : isCanceled ? "Canceled" : formatTime(match.scheduled_at)}
                     </span>
                 </div>
                 <span className={`${compact ? "text-[8px]" : "text-[10px]"} px-1.5 py-0.5 rounded ${match.tier === "Tier 1"
