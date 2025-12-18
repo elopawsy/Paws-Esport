@@ -19,6 +19,7 @@ interface Player {
         image_url?: string | null;
         location?: string | null;
     } | null;
+    relevanceScore?: number;
 }
 
 interface Guess {
@@ -45,6 +46,52 @@ const GAME_NAMES: Record<VideoGameSlug, string> = {
     r6siege: "Rainbow Sixle",
     ow: "Overwatchle",
 };
+
+// Calculate relevance score based on how well the name matches the query
+function calculateRelevance(name: string, query: string): number {
+    const lowerName = name.toLowerCase();
+    const lowerQuery = query.toLowerCase();
+
+    // Exact match = highest score
+    if (lowerName === lowerQuery) return 100;
+
+    // Starts with query = very high score
+    if (lowerName.startsWith(lowerQuery)) return 90 + (lowerQuery.length / lowerName.length) * 10;
+
+    // Contains query as a word = high score
+    const words = lowerName.split(/[\s\-_]+/);
+    for (const word of words) {
+        if (word === lowerQuery) return 80;
+        if (word.startsWith(lowerQuery)) return 70 + (lowerQuery.length / word.length) * 10;
+    }
+
+    // Contains query anywhere = medium score
+    if (lowerName.includes(lowerQuery)) {
+        const index = lowerName.indexOf(lowerQuery);
+        return 50 + (10 - Math.min(index, 10));
+    }
+
+    // Partial match (all query chars present in order)
+    let queryIdx = 0;
+    for (const char of lowerName) {
+        if (char === lowerQuery[queryIdx]) queryIdx++;
+        if (queryIdx === lowerQuery.length) break;
+    }
+    if (queryIdx === lowerQuery.length) return 30;
+
+    return 0;
+}
+
+// Sort by relevance
+function sortByRelevance(items: Player[], query: string): Player[] {
+    return items
+        .map(item => ({
+            ...item,
+            relevanceScore: calculateRelevance(item.name, query)
+        }))
+        .filter(item => (item.relevanceScore || 0) > 0)
+        .sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0));
+}
 
 const getRegion = (countryCode?: string | null): string => {
     if (!countryCode) return "?";
@@ -143,9 +190,12 @@ export default function WordlePage() {
                     const guessedIds = new Set(guesses.map((g) => g.player.id));
                     // Filter out already guessed players
                     const filtered = data
-                        .filter((p: Player) => !guessedIds.has(p.id))
-                        .slice(0, 8);
-                    setSuggestions(filtered);
+                        .filter((p: Player) => !guessedIds.has(p.id));
+
+                    // Sort by relevance logic like SearchBar
+                    const sorted = sortByRelevance(filtered, searchQuery).slice(0, 8);
+
+                    setSuggestions(sorted);
                 }
             } catch (error) {
                 console.error("Search failed", error);
@@ -169,7 +219,7 @@ export default function WordlePage() {
 
             return {
                 name: guessedPlayer.id === mysteryPlayer.id ? "correct" : "wrong",
-                team: guessedPlayer.current_team?.name === mysteryPlayer.current_team?.name ? "correct" : "wrong",
+                team: guessedPlayer.current_team?.id === mysteryPlayer.current_team?.id ? "correct" : "wrong",
                 nationality: guessedPlayer.nationality === mysteryPlayer.nationality ? "correct" : "wrong",
                 team_nationality: teamRegion(guessedPlayer) === teamRegion(mysteryPlayer) ? "correct" : "wrong",
                 initial: getInitial(guessedPlayer.first_name) === getInitial(mysteryPlayer.first_name) ? "correct" : "wrong",

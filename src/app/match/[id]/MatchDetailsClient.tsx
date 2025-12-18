@@ -61,14 +61,23 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
     // Fix: Find best stream
     // Prioritize: Official Main > Official English > Official Other > Non-official Main
     // Or just Official > others.
-    const bestStream = isLive && match.streams?.length > 0
-        ? match.streams.sort((a: any, b: any) => {
+    const getBestStream = (streams: any[]) => {
+        if (!streams || streams.length === 0) return null;
+        return streams.sort((a: any, b: any) => {
             if (a.official !== b.official) return a.official ? -1 : 1;
             if (a.main !== b.main) return a.main ? -1 : 1;
             if (a.language === "en" && b.language !== "en") return -1;
             return 0;
-        })[0]
-        : null;
+        })[0];
+    };
+
+    const [activeStream, setActiveStream] = useState<any>(null);
+
+    useEffect(() => {
+        if (match.streams?.length > 0 && !activeStream) {
+            setActiveStream(getBestStream([...match.streams]));
+        }
+    }, [match.streams, activeStream]);
 
     return (
         <div className="min-h-screen pb-12 bg-background">
@@ -76,8 +85,30 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
             <div className="bg-card/50 border-b border-card-border">
                 <div className="container-custom py-8">
                     {/* Stream Embed */}
-                    {bestStream && (
-                        <StreamPlayer stream={bestStream} />
+                    {activeStream && (
+                        <div className="mb-6 animate-in fade-in zoom-in duration-500">
+                            <StreamPlayer stream={activeStream} />
+
+                            {/* Stream Selector */}
+                            {match.streams.length > 1 && (
+                                <div className="flex flex-wrap items-center justify-center gap-2 mt-4">
+                                    <span className="text-xs font-medium text-muted-foreground mr-2">Select Stream:</span>
+                                    {match.streams.map((stream: any, idx: number) => (
+                                        <button
+                                            key={`${stream.raw_url}-${idx}`}
+                                            onClick={() => setActiveStream(stream)}
+                                            className={`flex items-center gap-2 px-3 py-1.5 text-xs font-bold rounded-full border transition-all ${activeStream.raw_url === stream.raw_url
+                                                ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-105"
+                                                : "bg-card text-muted-foreground border-card-border hover:border-primary/50 hover:text-foreground"
+                                                }`}
+                                        >
+                                            <span className="uppercase">{stream.language || "Other"}</span>
+                                            {stream.main && <span className="text-[10px] opacity-80">★</span>}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     )}
 
                     <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-6 group">
@@ -439,12 +470,12 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                     </div>
                 )}
 
-                {/* Streams */}
-                {match.streams.length > 0 && (
+                {/* Streams & Replays */}
+                {(match.streams.length > 0 || isFinished) && (
                     <div className="bg-card border border-card-border rounded-xl p-6 shadow-sm">
                         <h2 className="font-display font-bold text-lg mb-6 flex items-center gap-2">
                             <Tv className="w-5 h-5 text-primary" />
-                            Streams
+                            Streams & Replays
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                             {match.streams.map((stream: any, idx: number) => (
@@ -458,6 +489,24 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                     </div>
                                 </a>
                             ))}
+
+                            {/* Replay Search Button */}
+                            {isFinished && (
+                                <a
+                                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${team1?.name || "Team 1"} vs ${team2?.name || "Team 2"} ${match.league?.name || ""} ${match.serie?.full_name || ""} replay`)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-4 p-4 bg-red-600/10 border border-red-600/30 rounded-xl hover:bg-red-600/20 hover:border-red-600/50 transition-all group"
+                                >
+                                    <div className="w-10 h-10 bg-red-600 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                                        <PlayCircle className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-red-500">Search Replay</p>
+                                        <p className="text-xs text-muted-foreground">on YouTube</p>
+                                    </div>
+                                </a>
+                            )}
                         </div>
                     </div>
                 )}

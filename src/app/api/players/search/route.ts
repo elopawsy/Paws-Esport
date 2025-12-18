@@ -36,13 +36,13 @@ export async function GET(request: NextRequest) {
     // Search players, optionally filtered by game
     const endpoint = game ? `/${game}/players` : `/players`;
     const res = await fetch(
-      `${PANDASCORE_BASE_URL}${endpoint}?search[name]=${encodeURIComponent(query)}&page[size]=20`,
+      `${PANDASCORE_BASE_URL}${endpoint}?search[name]=${encodeURIComponent(query)}&page[size]=100`,
       {
         headers: {
           Authorization: `Bearer ${apiKey}`,
           Accept: "application/json",
         },
-        next: { revalidate: 300 },
+        next: { revalidate: 0 },
       }
     );
 
@@ -50,7 +50,34 @@ export async function GET(request: NextRequest) {
       throw new Error(`API returned ${res.status}`);
     }
 
-    const players = await res.json();
+    let players = await res.json();
+
+    // Backup for short queries: Try exact slug match to ensure we find players like "iM"
+    // who might be buried in "contains" results for "im"
+    if (query.length <= 3) {
+      try {
+        const slugQuery = query.toLowerCase();
+        const exactRes = await fetch(
+          `${PANDASCORE_BASE_URL}${endpoint}?filter[slug]=${encodeURIComponent(slugQuery)}`,
+          {
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              Accept: "application/json",
+            },
+            next: { revalidate: 0 },
+          }
+        );
+        if (exactRes.ok) {
+          const exactPlayers = await exactRes.json();
+          // Merge results, putting exact matches first
+          const existingIds = new Set(players.map((p: any) => p.id));
+          const newPlayers = exactPlayers.filter((p: any) => !existingIds.has(p.id));
+          players = [...newPlayers, ...players];
+        }
+      } catch (err) {
+        console.error("Backup search failed", err);
+      }
+    }
 
     const calculateAge = (birthday: string | null) => {
       if (!birthday) return null;
