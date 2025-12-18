@@ -1,13 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { Search } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import SearchBarWithSuggestions from "./SearchBarWithSuggestions";
 
 export default function Navbar() {
     const pathname = usePathname();
-    const router = useRouter();
 
     const links = [
         { href: "/", label: "Home" },
@@ -45,24 +44,8 @@ export default function Navbar() {
 
                 {/* Search and Settings */}
                 <div className="flex items-center gap-4">
-                    {/* Search Bar */}
-                    <form onSubmit={(e) => {
-                        e.preventDefault();
-                        const form = e.currentTarget;
-                        const input = form.querySelector('input') as HTMLInputElement;
-                        if (input.value.trim()) {
-                            router.push(`/search?q=${encodeURIComponent(input.value)}`);
-                        }
-                    }} className="relative hidden md:block">
-                        <input
-                            type="text"
-                            placeholder="Search..."
-                            className="bg-secondary/50 border border-card-border rounded-lg py-1.5 pl-4 pr-10 text-sm text-foreground focus:outline-none focus:border-primary/50 w-64 transition-all placeholder:text-muted-foreground"
-                        />
-                        <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
-                            <Search className="w-4 h-4" />
-                        </button>
-                    </form>
+                    {/* Search Bar with Suggestions */}
+                    <SearchBarWithSuggestions />
 
                     <ThemeToggle />
                 </div>

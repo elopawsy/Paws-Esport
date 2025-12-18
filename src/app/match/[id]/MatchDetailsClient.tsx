@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { StreamPlayer } from "@/components/match/StreamPlayer";
+import { RoleBadge } from "@/components/ui/RoleBadge";
 import type { Match } from "@/types";
 
 
@@ -255,6 +256,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                                                 <thead>
                                                                     <tr className="text-muted-foreground border-b border-card-border">
                                                                         <th className="text-left py-2 px-2 font-medium">Player</th>
+                                                                        <th className="text-left py-2 px-2 font-medium hidden lg:table-cell">Role</th>
                                                                         <th className="text-center py-2 px-2 font-medium">K</th>
                                                                         <th className="text-center py-2 px-2 font-medium">D</th>
                                                                         <th className="text-center py-2 px-2 font-medium">A</th>
@@ -268,6 +270,9 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                                                     {players.sort((a: any, b: any) => (b.rating || 0) - (a.rating || 0)).map((p: any) => (
                                                                         <tr key={p.player_id} className="border-b border-card-border/50 last:border-0">
                                                                             <td className="py-2 px-2 font-medium text-foreground">{p.player_name}</td>
+                                                                            <td className="py-2 px-2 hidden lg:table-cell">
+                                                                                {p.role && <RoleBadge role={p.role} />}
+                                                                            </td>
                                                                             <td className="py-2 px-2 text-center text-green-500 font-mono">{p.kills ?? '-'}</td>
                                                                             <td className="py-2 px-2 text-center text-red-500 font-mono">{p.deaths ?? '-'}</td>
                                                                             <td className="py-2 px-2 text-center text-muted-foreground font-mono">{p.assists ?? '-'}</td>
@@ -361,7 +366,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                                         {player.first_name} {player.last_name}
                                                     </p>
                                                 </div>
-                                                {player.role && <span className="text-[10px] font-bold px-2 py-0.5 bg-primary/10 text-primary border border-primary/20 rounded uppercase">{player.role}</span>}
+                                                {player.role && <RoleBadge role={player.role} size="md" />}
                                             </div>
                                         ))}
                                     </div>

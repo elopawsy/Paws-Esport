@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Video Game
+// ============================================
+model VideoGame {
+  id        Int      @id
+  slug      String   @unique
+  name      String
+  teams     Team[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// Team
+// ============================================
+model Team {
+  id              Int             @id
+  slug            String          @unique
+  name            String
+  acronym         String?
+  imageUrl        String?
+  location        String?
+  videogameId     Int?
+  videogame       VideoGame?      @relation(fields: [videogameId], references: [id])
+  players         Player[]
+  matchOpponents  MatchOpponent[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([videogameId])
+}
+
+// ============================================
+// Player
+// ============================================
+model Player {
+  id          Int      @id
+  slug        String   @unique
+  name        String   // In-game name (IGN)
+  firstName   String?
+  lastName    String?
+  nationality String?
+  imageUrl    String?
+  role        String?
+  teamId      Int?
+  team        Team?    @relation(fields: [teamId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([teamId])
+  @@index([name])
+}
+
+// ============================================
+// League
+// ============================================
+model League {
+  id        Int      @id
+  slug      String   @unique
+  name      String
+  imageUrl  String?
+  series    Serie[]
+  matches   Match[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// Serie (Season / Edition)
+// ============================================
+model Serie {
+  id          Int          @id
+  slug        String       @unique
+  name        String?
+  fullName    String?
+  beginAt     DateTime?
+  endAt       DateTime?
+  leagueId    Int?
+  league      League?      @relation(fields: [leagueId], references: [id])
+  tournaments Tournament[]
+  matches     Match[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([leagueId])
+}
+
+// ============================================
+// Tournament
+// ============================================
+model Tournament {
+  id        Int      @id
+  slug      String   @unique
+  name      String
+  tier      String?  // 's', 'a', 'b', 'c', 'd', 'unranked'
+  beginAt   DateTime?
+  endAt     DateTime?
+  prizepool String?
+  serieId   Int?
+  serie     Serie?   @relation(fields: [serieId], references: [id])
+  matches   Match[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([serieId])
+  @@index([tier])
+}
+
+// ============================================
+// Match
+// ============================================
+model Match {
+  id            Int             @id
+  slug          String          @unique
+  name          String
+  status        String          // 'not_started', 'running', 'finished', 'canceled', 'postponed'
+  scheduledAt   DateTime?
+  beginAt       DateTime?
+  endAt         DateTime?
+  tier          String          // 'Tier 1', 'Tier 2', 'Other'
+  numberOfGames Int?
+  leagueId      Int?
+  league        League?         @relation(fields: [leagueId], references: [id])
+  serieId       Int?
+  serie         Serie?          @relation(fields: [serieId], references: [id])
+  tournamentId  Int?
+  tournament    Tournament?     @relation(fields: [tournamentId], references: [id])
+  opponents     MatchOpponent[]
+  streams       MatchStream[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([leagueId])
+  @@index([serieId])
+  @@index([tournamentId])
+  @@index([tier])
+}
+
+// ============================================
+// Match Opponent (Junction table for Match-Team with score)
+// ============================================
+model MatchOpponent {
+  id      Int   @id @default(autoincrement())
+  matchId Int
+  match   Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  teamId  Int
+  team    Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  score   Int   @default(0)
+
+  @@unique([matchId, teamId])
+  @@index([matchId])
+  @@index([teamId])
+}
+
+// ============================================
+// Match Stream
+// ============================================
+model MatchStream {
+  id       Int     @id @default(autoincrement())
+  matchId  Int
+  match    Match   @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  language String
+  rawUrl   String
+  embedUrl String?
+  official Boolean @default(false)
+  main     Boolean @default(false)
+
+  @@index([matchId])
+}

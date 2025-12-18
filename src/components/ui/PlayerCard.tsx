@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Player } from "@/types";
 import { useDraggable } from "@dnd-kit/core";
+import { RoleBadge } from "./RoleBadge";
 
 interface PlayerCardProps {
     player: Player;
@@ -114,9 +115,7 @@ export default function PlayerCard({
             </p>
 
             {player.role && (
-                <span className="px-2 py-1 text-[10px] font-bold text-primary bg-primary/10 rounded uppercase tracking-widest border border-primary/20">
-                    {player.role}
-                </span>
+                <RoleBadge role={player.role} size="sm" />
             )}
         </div>
     );

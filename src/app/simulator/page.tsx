@@ -19,6 +19,7 @@ import { Team, Player, Transfer } from "@/types";
 import PlayerSearchSidebar from "@/components/ui/PlayerSearchSidebar";
 import TeamManagementModal from "@/components/ui/TeamManagementModal";
 import OnboardingModal from "@/components/simulator/OnboardingModal";
+import { RoleBadge } from "@/components/ui/RoleBadge";
 import { VideoGameSlug } from "@/infrastructure/pandascore/constants";
 import { Users, UserMinus, Armchair, History, Trash2, Camera, Download, RotateCcw, Search, Settings } from "lucide-react";
 
@@ -70,9 +71,7 @@ const DraggablePlayer = memo(function DraggablePlayer({
                     {player.name}
                 </span>
                 {player.role && (
-                    <span className="block text-[10px] text-muted-foreground font-medium truncate uppercase tracking-wide">
-                        {player.role}
-                    </span>
+                    <RoleBadge role={player.role} size="sm" showLabel={true} />
                 )}
             </div>
         </div>
