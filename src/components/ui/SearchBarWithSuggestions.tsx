@@ -47,7 +47,7 @@ export default function SearchBarWithSuggestions() {
     });
     const inputRef = useRef<HTMLInputElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
-    const debounceRef = useRef<NodeJS.Timeout>();
+    const debounceRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     // Fetch live events on focus (before typing)
     const fetchLiveEvents = useCallback(async () => {
