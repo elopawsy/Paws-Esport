@@ -61,6 +61,14 @@ export class ApiClient {
     return this.fetch<any>(`/teams/${id}`);
   }
 
+  async getGlobalTeams(params: any = {}) {
+    return this.fetch<any[]>('/teams', params);
+  }
+
+  async getTeamMatches(id: number, params: any = {}) {
+    return this.fetch<any[]>(`/teams/${id}/matches`, params);
+  }
+
   /**
    * Get players
    */

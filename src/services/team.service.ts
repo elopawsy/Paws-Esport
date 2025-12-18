@@ -4,12 +4,13 @@
  * Business logic for team-related operations.
  */
 
-import type { Team } from '@/types';
+import type { Team, Match } from '@/types';
 import {
   isSDKConfigured,
   getFromCache,
   setInCache,
   mapTeam,
+  mapMatch,
   MOCK_TEAMS,
   getApiId,
 } from '@/infrastructure/pandascore';
@@ -133,6 +134,72 @@ export async function searchTeams(query: string, videogame: VideoGameSlug = 'cs-
 }
 
 /**
+ * Get related teams by name (cross-game)
+ */
+export async function getRelatedTeams(name: string, currentId: number): Promise<Team[]> {
+  const cacheKey = `related-teams-${currentId}-v1`;
+  const cached = getFromCache<Team[]>(cacheKey);
+  if (cached) return cached;
+
+  if (!isSDKConfigured()) return [];
+
+  try {
+    const response = await apiClient.getGlobalTeams({
+      'search[name]': name,
+      'page[size]': 20
+    });
+
+    // Filter different games and not same ID
+    const teams = response.data
+      .filter((t: any) => t.id !== currentId && t.current_videogame)
+      .map(mapTeam);
+
+    setInCache(cacheKey, teams);
+    return teams;
+  } catch (error) {
+    console.error('Failed to fetch related teams:', error);
+    return [];
+  }
+}
+
+/**
+ * Get upcoming and past matches for a team
+ */
+export async function getTeamMatches(teamId: number): Promise<{ upcoming: Match[], past: Match[] }> {
+  const cacheKey = `team-matches-${teamId}-v1`;
+  const cached = getFromCache<{ upcoming: Match[], past: Match[] }>(cacheKey);
+  if (cached) return cached;
+
+  if (!isSDKConfigured()) return { upcoming: [], past: [] };
+
+  try {
+    const [upcomingRes, pastRes] = await Promise.all([
+      apiClient.getTeamMatches(teamId, {
+        'filter[status]': 'not_started',
+        'sort': 'begin_at',
+        'page[size]': 5
+      }),
+      apiClient.getTeamMatches(teamId, {
+        'filter[status]': 'finished',
+        'sort': '-begin_at',
+        'page[size]': 10
+      })
+    ]);
+
+    const result = {
+      upcoming: upcomingRes.data.map(mapMatch),
+      past: pastRes.data.map(mapMatch)
+    };
+
+    setInCache(cacheKey, result);
+    return result;
+  } catch (error) {
+    console.error('Failed to fetch team matches:', error);
+    return { upcoming: [], past: [] };
+  }
+}
+
+/**
  * Team Service Object
  * Exported for backward compatibility with older consumers.
  */
@@ -140,4 +207,6 @@ export const TeamService = {
   getTopTeams,
   getTeamById,
   searchTeams,
+  getRelatedTeams,
+  getTeamMatches,
 };
