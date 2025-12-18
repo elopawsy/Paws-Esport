@@ -14,6 +14,18 @@ type SDKMatch = any;
 /**
  * Map SDK player to App player type
  */
+function calculateAge(birthday: string | null): number | null {
+  if (!birthday) return null;
+  const birthDate = new Date(birthday);
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  return age;
+}
+
 export function mapPlayer(sdkPlayer: SDKPlayer): Player {
   return {
     id: sdkPlayer.id,
@@ -24,6 +36,7 @@ export function mapPlayer(sdkPlayer: SDKPlayer): Player {
     nationality: sdkPlayer.nationality ?? null,
     image_url: sdkPlayer.image_url ?? null,
     role: sdkPlayer.role ?? null,
+    age: calculateAge(sdkPlayer.birthday),
   };
 }
 
@@ -52,7 +65,7 @@ export function mapTeam(sdkTeam: SDKTeam): Team {
  */
 export function classifyTier(sdkMatch: SDKMatch): Tier {
   const tournamentTier = sdkMatch.tournament?.tier?.toLowerCase() || '';
-  
+
   // Direct tier mapping from PandaScore
   if (tournamentTier === 's' || tournamentTier === 'a') return 'Tier 1';
   if (tournamentTier === 'b' || tournamentTier === 'c') return 'Tier 2';
@@ -83,8 +96,8 @@ export function classifyTier(sdkMatch: SDKMatch): Tier {
     if (fullName.includes(keyword)) return 'Tier 2';
   }
 
-  if (fullName.includes('league') || fullName.includes('championship') || 
-      fullName.includes('cup') || fullName.includes('open')) {
+  if (fullName.includes('league') || fullName.includes('championship') ||
+    fullName.includes('cup') || fullName.includes('open')) {
     return 'Tier 2';
   }
 

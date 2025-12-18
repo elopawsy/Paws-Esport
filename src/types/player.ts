@@ -11,6 +11,7 @@ export interface Player {
   nationality: string | null;
   image_url: string | null;
   role: string | null;
+  age?: number | null;
 }
 
 export interface PlayerWithTeam extends Player {

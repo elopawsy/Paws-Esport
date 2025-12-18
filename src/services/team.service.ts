@@ -16,9 +16,9 @@ import {
 import { apiClient } from '../infrastructure/pandascore/ApiClient';
 import type { VideoGameSlug } from '@/infrastructure/pandascore/gameSlugMapper';
 
-const CACHE_KEY_TOP_TEAMS = (game: VideoGameSlug) => `${game}-top-teams-v9`;
-const CACHE_KEY_TEAM = (id: number) => `team-${id}`;
-const CACHE_KEY_SEARCH = (game: VideoGameSlug, query: string) => `${game}-search-${query.toLowerCase()}-v4`;
+const CACHE_KEY_TOP_TEAMS = (game: VideoGameSlug) => `${game}-top-teams-v10`;
+const CACHE_KEY_TEAM = (id: number) => `team-${id}-v2`;
+const CACHE_KEY_SEARCH = (game: VideoGameSlug, query: string) => `${game}-search-${query.toLowerCase()}-v5`;
 
 /**
  * Get top teams for a specific game
@@ -35,35 +35,42 @@ export async function getTopTeams(videogame: VideoGameSlug = 'cs-2'): Promise<Te
   }
 
   try {
-    // Fetch recent matches for this game to find active teams
-    // Using ApiClient directly hitting /<game>/matches
+    // 1. Fetch recent matches to find active team IDs
+    // Filter by Tier S and A to get major teams
     const response = await apiClient.getMatches(videogame, {
-      'page[size]': 50,
+      'page[size]': 100, // Fetch more to ensuring finding enough teams
       sort: '-begin_at',
+      'filter[tournament.tier]': 's,a',
     });
 
-    // Extract unique teams from matches
-    const teamsMap = new Map<number, Team>();
     const matches = response.data;
+    const activeTeamIds = new Set<number>();
 
     matches.forEach((m: any) => {
       if (m.opponents && Array.isArray(m.opponents)) {
         m.opponents.forEach((op: any) => {
-           if (op.type === 'Team' && op.opponent) {
-             const teamData = op.opponent;
-             if (!teamsMap.has(teamData.id)) {
-               // Inject current_videogame if missing
-               if (!teamData.current_videogame) {
-                 teamData.current_videogame = { id: getApiId(videogame), slug: videogame, name: videogame }; 
-               }
-               teamsMap.set(teamData.id, mapTeam(teamData));
-             }
-           }
+          if (op.type === 'Team' && op.opponent && op.opponent.id) {
+            activeTeamIds.add(op.opponent.id);
+          }
         });
       }
     });
 
-    const teams = Array.from(teamsMap.values()).slice(0, 50);
+    // Take top 30 active teams to avoid too large URL/requests
+    const teamIdsToFetch = Array.from(activeTeamIds).slice(0, 30);
+
+    if (teamIdsToFetch.length === 0) return MOCK_TEAMS;
+
+    // 2. Fetch full details for these teams (including players)
+    // Using filter[id] to batch fetch
+    const teamsResponse = await apiClient.getTeams(videogame, {
+      'filter[id]': teamIdsToFetch.join(','),
+      'page[size]': 100
+    });
+
+    const teamsData = teamsResponse.data;
+    const teams = teamsData.map(mapTeam);
+
     setInCache(CACHE_KEY_TOP_TEAMS(videogame), teams);
     return teams;
   } catch (error) {
@@ -87,7 +94,7 @@ export async function getTeamById(teamId: number): Promise<Team | null> {
     const response = await apiClient.getTeamById(teamId);
     // Handle single object vs array
     const teamRaw = Array.isArray(response.data) ? response.data[0] : response.data;
-    
+
     const team = mapTeam(teamRaw);
     setInCache(CACHE_KEY_TEAM(teamId), team);
     return team;

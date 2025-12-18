@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
+import { PANDASCORE_GAMES, VideoGameSlug } from "@/infrastructure/pandascore/gameSlugMapper";
 
 const PANDASCORE_BASE_URL = "https://api.pandascore.co";
+
+// Helper to get API slug from app slug
+function getApiSlug(appSlug: string): string {
+  const game = PANDASCORE_GAMES[appSlug as VideoGameSlug];
+  return game ? game.slug : appSlug;
+}
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const query = searchParams.get("q");
+  const gameEncoded = searchParams.get("game");
   const apiKey = process.env.PANDASCORE_API_KEY;
+
+  // Map "cs-2" to "csgo", etc.
+  const game = gameEncoded ? getApiSlug(gameEncoded) : null;
 
   if (!query || query.length < 2) {
     return NextResponse.json(
@@ -22,9 +33,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Search players across ALL games using the global endpoint
+    // Search players, optionally filtered by game
+    const endpoint = game ? `/${game}/players` : `/players`;
     const res = await fetch(
-      `${PANDASCORE_BASE_URL}/players?search[name]=${encodeURIComponent(query)}&page[size]=20`,
+      `${PANDASCORE_BASE_URL}${endpoint}?search[name]=${encodeURIComponent(query)}&page[size]=20`,
       {
         headers: {
           Authorization: `Bearer ${apiKey}`,
@@ -40,6 +52,18 @@ export async function GET(request: NextRequest) {
 
     const players = await res.json();
 
+    const calculateAge = (birthday: string | null) => {
+      if (!birthday) return null;
+      const birthDate = new Date(birthday);
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const m = today.getMonth() - birthDate.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
+
     // Transform players
     const transformedPlayers = players.map((player: any) => ({
       id: player.id,
@@ -50,10 +74,12 @@ export async function GET(request: NextRequest) {
       nationality: player.nationality,
       image_url: player.image_url,
       role: player.role,
+      age: calculateAge(player.birthday),
       current_team: player.current_team ? {
         id: player.current_team.id,
         name: player.current_team.name,
         image_url: player.current_team.image_url,
+        location: player.current_team.location,
       } : null,
       current_videogame: player.current_videogame,
     }));
