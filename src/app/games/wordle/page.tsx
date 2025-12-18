@@ -46,6 +46,26 @@ const GAME_NAMES: Record<VideoGameSlug, string> = {
     ow: "Overwatchle",
 };
 
+const getRegion = (countryCode?: string | null): string => {
+    if (!countryCode) return "?";
+    const code = countryCode.toUpperCase();
+
+    // Americas
+    if (["US", "CA", "MX"].includes(code)) return "NA";
+    if (["BR", "AR", "CL", "PE", "CO", "UY"].includes(code)) return "SA";
+
+    // Asia / Oceania
+    if (["CN", "KR", "JP", "MN", "TH", "VN", "SG", "MY", "ID", "PH", "IN", "PK", "BD"].includes(code)) return "ASIA";
+    if (["AU", "NZ"].includes(code)) return "OCE";
+
+    // CIS (often grouped with EU in some contexts, but let's keep it if distinctive, otherwise EU)
+    // For "Region of play", usually we have EU, NA, SA, ASIA. CIS teams play in EU often.
+    // Let's verify common requests. Keeping CIS separate might be better or merging.
+    // Let's go with broad regions: EU (includes CIS/TR/IL), NA, SA, ASIA, OCE.
+
+    return "EU"; // Default to EU as it covers most remaining active CS countries (FR, DE, DK, SE, PL, UA, RU, KZ, etc.)
+};
+
 export default function WordlePage() {
     const [selectedGame, setSelectedGame] = useState<VideoGameSlug>("cs-2");
     const [players, setPlayers] = useState<Player[]>([]);
@@ -145,12 +165,13 @@ export default function WordlePage() {
             }
 
             const getInitial = (name?: string | null) => name ? name.charAt(0).toUpperCase() : "?";
+            const teamRegion = (p: Player) => getRegion(p.current_team?.location);
 
             return {
                 name: guessedPlayer.id === mysteryPlayer.id ? "correct" : "wrong",
                 team: guessedPlayer.current_team?.name === mysteryPlayer.current_team?.name ? "correct" : "wrong",
                 nationality: guessedPlayer.nationality === mysteryPlayer.nationality ? "correct" : "wrong",
-                team_nationality: guessedPlayer.current_team?.location === mysteryPlayer.current_team?.location ? "correct" : "wrong",
+                team_nationality: teamRegion(guessedPlayer) === teamRegion(mysteryPlayer) ? "correct" : "wrong",
                 initial: getInitial(guessedPlayer.first_name) === getInitial(mysteryPlayer.first_name) ? "correct" : "wrong",
             };
         },
@@ -390,7 +411,7 @@ export default function WordlePage() {
                                     <div className="text-center">Name</div>
                                     <div className="text-center">Team</div>
                                     <div className="text-center">Nat</div>
-                                    <div className="text-center">Team Loc</div>
+                                    <div className="text-center">Region</div>
                                     <div className="text-center">Initial</div>
                                 </div>
 
@@ -426,15 +447,11 @@ export default function WordlePage() {
                                             )}
                                         </div>
                                         <div
-                                            className={`rounded-lg p-3 flex items-center justify-center ${getHintClass(
+                                            className={`rounded-lg p-3 text-center text-sm font-bold flex items-center justify-center ${getHintClass(
                                                 guess.results.team_nationality
                                             )}`}
                                         >
-                                            {guess.player.current_team?.location ? (
-                                                <CountryFlag code={guess.player.current_team.location} size="md" />
-                                            ) : (
-                                                "?"
-                                            )}
+                                            {getRegion(guess.player.current_team?.location)}
                                         </div>
                                         <div
                                             className={`rounded-lg p-3 text-center text-sm font-bold flex items-center justify-center ${getHintClass(
@@ -485,7 +502,7 @@ export default function WordlePage() {
                                 </div>
                                 <p className="mt-4 text-muted-foreground">
                                     You have {MAX_GUESSES} tries to guess the player.
-                                    Hints include Team, Nationality, Team Location, and First Name Initial.
+                                    Hints include Team, Nationality, Team Region, and First Name Initial.
                                 </p>
                             </div>
                         </div>
