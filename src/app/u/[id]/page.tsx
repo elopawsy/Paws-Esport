@@ -7,9 +7,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { User, Coins, Heart, Trophy, Calendar, Check, UserPlus, Clock } from "lucide-react";
 
-export default async function PublicProfilePage({ params }: { params: { id: string } }) {
-    // Await params as per Next.js 15+ requirements if applicable, or safe access
-    const { id } = await Promise.resolve(params);
+export default async function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
+    // Await params as per Next.js 15+ requirements
+    const { id } = await params;
 
     const session = await auth.api.getSession({
         headers: await headers(),
