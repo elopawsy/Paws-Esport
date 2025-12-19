@@ -5,11 +5,13 @@ import Link from "next/link";
 import Image from "next/image";
 import {
     Calendar, Clock, Trophy, Map, Users, Tv, Swords, Activity, ArrowLeft,
-    CheckCircle, XCircle, PlayCircle
+    CheckCircle, XCircle, PlayCircle, TrendingUp, Coins
 } from "lucide-react";
 
 import { StreamPlayer } from "@/components/match/StreamPlayer";
 import { RoleBadge } from "@/components/ui/RoleBadge";
+import { BetModal } from "@/components/betting";
+import { useSession } from "@/lib/auth-client";
 import type { Match } from "@/types";
 
 
@@ -21,6 +23,8 @@ function formatDuration(seconds: number): string {
 
 export default function MatchDetailsClient({ match: initialMatch }: { match: Match | any }) {
     const [match, setMatch] = useState(initialMatch);
+    const [showBetModal, setShowBetModal] = useState(false);
+    const { data: session } = useSession();
 
     // Polling logic for live matches could go here if needed
     // For SEO purposes, initialMatch is critical.
@@ -48,6 +52,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
     const score2 = match.results.find((r: any) => r.team_id === team2?.id)?.score ?? 0;
     const isLive = match.status === "running";
     const isFinished = match.status === "finished";
+    const isBettable = match.status === "not_started" && team1 && team2;
 
     const statusColors: Record<string, { bg: string; text: string; label: string, icon: any }> = {
         running: { bg: "bg-red-500/10", text: "text-red-500", label: "EN DIRECT", icon: Activity },
@@ -230,6 +235,24 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                             <span className="inline-flex items-center gap-2">
                                 <Trophy className="w-4 h-4 text-yellow-500" />
                                 {match.tournament.prizepool}
+                            </span>
+                        )}
+
+                        {/* Bet Button */}
+                        {isBettable && session?.user && (
+                            <button
+                                onClick={() => setShowBetModal(true)}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold rounded-lg transition-all hover:scale-105 shadow-lg shadow-yellow-500/20"
+                            >
+                                <TrendingUp className="w-4 h-4" />
+                                Parier
+                                <Coins className="w-4 h-4" />
+                            </button>
+                        )}
+                        {isBettable && !session?.user && (
+                            <span className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-lg text-xs">
+                                <TrendingUp className="w-4 h-4" />
+                                Connecte-toi pour parier
                             </span>
                         )}
                     </div>
@@ -535,6 +558,25 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                     </div>
                 )}
             </div>
+
+            {/* Bet Modal */}
+            {isBettable && (
+                <BetModal
+                    isOpen={showBetModal}
+                    onClose={() => setShowBetModal(false)}
+                    matchId={match.id}
+                    teams={[
+                        { id: team1.id, name: team1.name, acronym: team1.acronym, image_url: team1.image_url },
+                        { id: team2.id, name: team2.name, acronym: team2.acronym, image_url: team2.image_url },
+                    ]}
+                    matchName={`${team1.name || team1.acronym} vs ${team2.name || team2.acronym}`}
+                    onBetPlaced={() => {
+                        // Could update local state or refresh session here
+                        window.location.reload();
+                    }}
+                />
+            )}
         </div>
     );
 }
+

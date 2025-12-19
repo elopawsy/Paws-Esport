@@ -23,6 +23,109 @@ model VideoGame {
 }
 
 // ============================================
+// Better Auth - User
+// ============================================
+model User {
+  id              String         @id
+  email           String         @unique
+  emailVerified   Boolean        @default(false)
+  name            String?
+  image           String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  // Custom fields
+  coins           Int            @default(1000)
+  favoriteTeamId  Int?
+  favoriteTeam    Team?          @relation(fields: [favoriteTeamId], references: [id])
+  
+  sessions        Session[]
+  accounts        Account[]
+  bets            Bet[]
+  
+  // Friend system
+  sentFriendRequests     Friendship[]  @relation("SentFriendRequests")
+  receivedFriendRequests Friendship[]  @relation("ReceivedFriendRequests")
+  
+  @@index([favoriteTeamId])
+}
+
+// ============================================
+// Better Auth - Session
+// ============================================
+model Session {
+  id           String   @id
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token        String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+// ============================================
+// Better Auth - Account (OAuth providers)
+// ============================================
+model Account {
+  id                    String    @id
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId             String
+  providerId            String
+  accessToken           String?
+  accessTokenExpiresAt  DateTime?
+  refreshToken          String?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  @@index([userId])
+}
+
+// ============================================
+// Better Auth - Verification (email, etc.)
+// ============================================
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ============================================
+// Friendship System
+// ============================================
+model Friendship {
+  id          String           @id @default(cuid())
+  senderId    String
+  sender      User             @relation("SentFriendRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId  String
+  receiver    User             @relation("ReceivedFriendRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  @@unique([senderId, receiverId])
+  @@index([senderId])
+  @@index([receiverId])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// ============================================
 // Team
 // ============================================
 model Team {
@@ -36,6 +139,7 @@ model Team {
   videogame       VideoGame?      @relation(fields: [videogameId], references: [id])
   players         Player[]
   matchOpponents  MatchOpponent[]
+  favoriteOf      User[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -181,3 +285,33 @@ model MatchStream {
 
   @@index([matchId])
 }
+
+// ============================================
+// Bet (User betting on matches)
+// ============================================
+model Bet {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  matchId       Int       // PandaScore match ID
+  teamId        Int       // Team the user bet on
+  amount        Int       // Amount of coins bet
+  odds          Float     @default(2.0) // Default 2x odds
+  status        BetStatus @default(PENDING)
+  potentialWin  Int       // amount * odds
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([userId, matchId]) // One bet per match per user
+  @@index([userId])
+  @@index([matchId])
+  @@index([status])
+}
+
+enum BetStatus {
+  PENDING   // Match not finished
+  WON       // User's team won
+  LOST      // User's team lost
+  CANCELED  // Match was canceled/refunded
+}
+
