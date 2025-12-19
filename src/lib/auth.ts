@@ -14,7 +14,16 @@ const prisma = new PrismaClient({
     accelerateUrl: process.env.DATABASE_URL,
 });
 
+// Base URL for production/development
+const baseURL = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const auth = betterAuth({
+    baseURL,
+    trustedOrigins: [
+        "http://localhost:3000",
+        "https://paws-esport.com",
+        "https://www.paws-esport.com",
+    ],
     database: prismaAdapter(prisma, {
         provider: "postgresql",
     }),

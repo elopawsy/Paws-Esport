@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { User, Coins, Heart, Users, Search, Check, X, Loader2, UserPlus, Camera, Trash2, Mail, AlertTriangle } from "lucide-react";
+import { User, Coins, Heart, Users, Search, Check, X, Loader2, UserPlus, Camera, Trash2, Mail, AlertTriangle, Settings } from "lucide-react";
 import { BetHistory } from "@/components/betting";
-import DataManagement from "@/components/user/DataManagement";
+import SettingsModal from "@/components/user/SettingsModal";
 import { sendVerificationEmail } from "@/lib/auth-client";
 
 interface Team {
@@ -65,6 +65,9 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
     // Email verification state
     const [isSendingVerification, setIsSendingVerification] = useState(false);
     const [verificationSent, setVerificationSent] = useState(false);
+
+    // Settings modal state
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     const displayName = user.name || user.email.split("@")[0];
 
@@ -563,11 +566,36 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                     )}
                 </div>
 
+                {/* Settings Button */}
+                <div className="bg-card border border-card-border rounded-lg p-6 lg:col-span-2">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Settings className="w-5 h-5 text-primary" />
+                            <h3 className="text-lg font-bold">Account Settings</h3>
+                        </div>
+                        <button
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground font-medium rounded-md transition-colors flex items-center gap-2"
+                        >
+                            <Settings className="w-4 h-4" />
+                            Open Settings
+                        </button>
+                    </div>
+                    <p className="text-muted-foreground mt-2 text-sm">
+                        Change your password, update your profile information, and manage your account settings.
+                    </p>
+                </div>
+
+                {/* Settings Modal */}
+                <SettingsModal
+                    isOpen={isSettingsOpen}
+                    onClose={() => setIsSettingsOpen(false)}
+                    userName={user.name}
+                    userEmail={user.email}
+                />
+
                 {/* Bet History */}
                 <BetHistory />
-
-                {/* Data Management (GDPR) */}
-                <DataManagement />
             </div>
         </div>
     );
