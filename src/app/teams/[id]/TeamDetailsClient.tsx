@@ -7,6 +7,7 @@ import { ArrowLeft, MapPin, Hash, Users, Swords, Calendar, Gamepad2, Monitor } f
 import PlayerCard from "@/components/ui/PlayerCard";
 import MatchCard from "@/components/ui/MatchCard";
 import FollowTeamButton from "@/components/ui/FollowTeamButton";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { Team, Match } from "@/types";
 import { VIDEO_GAMES, VideoGameSlug } from "@/types/videogame";
 
@@ -36,14 +37,13 @@ export default function TeamDetailsClient({ team, matches, relatedTeams }: TeamD
             {/* Header Banner */}
             <div className="bg-card/30 border-b border-card-border">
                 <div className="container-custom py-8">
-                    {/* Back Link */}
-                    <Link
-                        href="/"
-                        className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary mb-8 text-sm font-medium transition-colors group"
-                    >
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Back to Database
-                    </Link>
+                    <Breadcrumbs
+                        items={[
+                            { label: "Teams", href: "/#teams" }, // Assuming home has teams or there is a listing. We can just say "Database" or "Home"
+                            { label: team.name }
+                        ]}
+                        className="mb-8"
+                    />
 
                     {/* Team Header */}
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-8">

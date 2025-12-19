@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Trophy, Calendar, Coins, Play, Clock, CheckCircle, GitMerge } from "lucide-react";
 import { BracketView } from "@/components/tournament/BracketView";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import type { TournamentFull, Match } from "@/types";
 
 function getTournamentDisplayName(tournament: TournamentFull | null) {
@@ -114,6 +115,9 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
         return m.status === "finished";
     });
 
+    // Extract unique teams
+    const participatingTeams = Array.from(new Set(matches.flatMap(m => m.opponents.map(o => JSON.stringify(o.opponent))))).map(s => JSON.parse(s)).filter(t => t);
+
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -126,10 +130,13 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
         <div className="min-h-screen bg-background">
             <div className="bg-card/30 border-b border-card-border sticky top-16 z-30 backdrop-blur-sm">
                 <div className="container-custom py-6">
-                    <Link href="/tournaments" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm font-medium mb-6 group">
-                        <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Back to tournaments
-                    </Link>
+                    <Breadcrumbs
+                        items={[
+                            { label: "Tournaments", href: "/tournaments" },
+                            { label: getTournamentDisplayName(tournament) }
+                        ]}
+                        className="mb-6"
+                    />
 
                     <div className="flex flex-col md:flex-row md:items-start gap-6">
                         <div className="relative w-24 h-24 flex-shrink-0 bg-secondary/50 rounded-2xl border border-card-border p-4">
@@ -207,6 +214,34 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
             </div>
 
             <div className="container-custom py-8">
+                {/* Participating Teams */}
+                {participatingTeams.length > 0 && (
+                    <div className="mb-12">
+                        <h3 className="text-lg font-bold font-display uppercase mb-4 flex items-center gap-2">
+                            <Trophy className="w-5 h-5 text-primary" />
+                            Participating Teams
+                        </h3>
+                        <div className="flex flex-wrap gap-4">
+                            {participatingTeams.map((team: any) => (
+                                <Link
+                                    key={team.id}
+                                    href={`/teams/${team.id}`}
+                                    className="flex items-center gap-3 p-3 bg-card border border-card-border rounded-xl hover:border-primary/50 transition-all group min-w-[200px]"
+                                >
+                                    <div className="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center p-1">
+                                        {(team.dark_image_url || team.image_url) ? (
+                                            <Image src={team.dark_image_url || team.image_url} alt={team.name} width={32} height={32} className="object-contain" />
+                                        ) : (
+                                            <span className="font-bold text-muted-foreground text-xs">{team.acronym}</span>
+                                        )}
+                                    </div>
+                                    <span className="font-bold text-foreground group-hover:text-primary transition-colors">{team.name}</span>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
                 {/* View Toggles */}
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

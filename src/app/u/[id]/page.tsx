@@ -98,10 +98,10 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
                             {user.favoriteTeam && (
-                                <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary/50 rounded-full border border-card-border text-sm">
+                                <Link href={`/teams/${user.favoriteTeam.id}`} className="flex items-center gap-2 px-3 py-1.5 bg-secondary/50 rounded-full border border-card-border text-sm hover:border-primary/50 transition-colors">
                                     <Heart className="w-4 h-4 text-primary" />
                                     <span>Fan of <span className="font-bold">{user.favoriteTeam.name}</span></span>
-                                </div>
+                                </Link>
                             )}
 
                             <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 text-yellow-500 rounded-full border border-yellow-500/20 text-sm font-bold">
@@ -169,7 +169,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                             </h3>
                             <div className="space-y-2">
                                 {user.trackedTeams.map((tracked) => (
-                                    <div key={tracked.id} className="flex items-center gap-3 p-2 bg-secondary/20 rounded-lg">
+                                    <Link key={tracked.id} href={`/teams/${tracked.team.id}`} className="flex items-center gap-3 p-2 bg-secondary/20 rounded-lg hover:bg-secondary/40 transition-colors">
                                         {tracked.team.imageUrl ? (
                                             <Image
                                                 src={tracked.team.imageUrl}
@@ -184,7 +184,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                                             </div>
                                         )}
                                         <span className="text-sm font-medium">{tracked.team.name}</span>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         </div>
@@ -199,7 +199,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                             </h3>
                             <div className="space-y-2">
                                 {user.favoritePlayers.map((player) => (
-                                    <div key={player.id} className="flex items-center gap-3 p-2 bg-secondary/20 rounded-lg">
+                                    <Link key={player.id} href={`/players/${player.playerId}`} className="flex items-center gap-3 p-2 bg-secondary/20 rounded-lg hover:bg-secondary/40 transition-colors">
                                         {player.playerImage ? (
                                             <Image
                                                 src={player.playerImage}
@@ -219,7 +219,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                                                 <span className="text-xs text-muted-foreground">{player.teamName}</span>
                                             )}
                                         </div>
-                                    </div>
+                                    </Link>
                                 ))}
                             </div>
                         </div>

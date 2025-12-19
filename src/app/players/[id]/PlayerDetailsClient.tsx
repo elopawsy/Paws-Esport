@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, MapPin, User, Users, Shield, Trophy } from "lucide-react";
 import CountryFlag from "@/components/ui/CountryFlag";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 
 interface Player {
     id: number;
@@ -30,14 +31,13 @@ export default function PlayerDetailsClient({ player }: Props) {
 
     return (
         <div className="container-custom py-8">
-            {/* Back Button */}
-            <Link
-                href="/"
-                className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8 group"
-            >
-                <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                <span className="text-sm font-medium">Back</span>
-            </Link>
+            <Breadcrumbs
+                items={[
+                    { label: "Players" }, // Or Teams -> Team -> Player? Usually players are distinct.
+                    { label: player.name }
+                ]}
+                className="mb-8"
+            />
 
             {/* Player Header */}
             <div className="bg-card border border-card-border rounded-2xl overflow-hidden mb-8">

@@ -13,6 +13,8 @@ import { RoleBadge } from "@/components/ui/RoleBadge";
 import { BetModal, CurrentBetDisplay } from "@/components/betting";
 import { useSession } from "@/lib/auth-client";
 import type { Match } from "@/types";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import MatchCard from "@/components/ui/MatchCard";
 
 
 function formatDuration(seconds: number): string {
@@ -63,6 +65,21 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
     const statusInfo = statusColors[match.status] || statusColors.not_started;
     const StatusIcon = statusInfo.icon;
 
+    // Filter related matches (same tournament)
+    // In a real app, this might be a separate prop or fetch, but we can assume we might have it or just hide it if not present.
+    // For now, let's pretend we might have them or just leave it blank if not.
+    // Actually, usually `match` detail doesn't come with `related`. We might need to fetch them.
+    // For now, let's just use the `match.tournament.matches` if it existed, but it likely doesn't.
+    // Let's skip fetching for now and focus on the UI changes requested: Clickable Header & Lists.
+
+    const breadcrumbItems = [
+        { label: "Tournaments", href: "/tournaments" },
+        ...(match.tournament ? [{ label: match.tournament.name || "Tournament", href: `/tournaments/${match.tournament.id}` }] : []),
+        { label: `${team1?.name || "TBD"} vs ${team2?.name || "TBD"}` }
+    ];
+
+    // Fix: Find best stream
+
     // Fix: Find best stream
     // Prioritize: Official Main > Official English > Official Other > Non-official Main
     // Or just Official > others.
@@ -89,6 +106,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
             {/* Header */}
             <div className="bg-card/50 border-b border-card-border">
                 <div className="container-custom py-8">
+                    <Breadcrumbs items={breadcrumbItems} className="mb-6" />
                     {/* Stream Embed - Only if Live */}
                     {isLive && activeStream && (
                         <div className="mb-6 animate-in fade-in zoom-in duration-500">
@@ -133,7 +151,9 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                         )}
                         <div>
                             <p className="text-sm font-medium text-muted-foreground">{match.league?.name}</p>
-                            <h2 className="text-xl font-display font-bold text-foreground">{match.serie?.full_name || match.serie?.name}</h2>
+                            <Link href={`/tournaments/${match.tournament?.id || ""}`} className="hover:text-primary transition-colors">
+                                <h2 className="text-xl font-display font-bold text-foreground">{match.serie?.full_name || match.serie?.name}</h2>
+                            </Link>
                         </div>
                         <div className="ml-auto flex items-center gap-3">
                             <span className={`inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full border ${statusInfo.bg} ${statusInfo.text} border-current/20 ${isLive ? "animate-pulse" : ""}`}>
@@ -156,8 +176,8 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                             {team1 ? (
                                 <Link href={`/teams/${team1.id}`} className="group flex flex-col items-center gap-4 transition-transform hover:scale-105">
                                     <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border group-hover:border-primary/50 transition-colors shadow-lg group-hover:shadow-primary/10">
-                                        {team1.image_url ? (
-                                            <Image src={team1.image_url} alt={team1.name} width={80} height={80} className="object-contain" />
+                                        {(team1.dark_image_url || team1.image_url) ? (
+                                            <Image src={team1.dark_image_url || team1.image_url!} alt={team1.name} width={80} height={80} className="object-contain" />
                                         ) : (
                                             <span className="text-3xl font-bold text-muted-foreground">?</span>
                                         )}
@@ -199,8 +219,8 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                             {team2 ? (
                                 <Link href={`/teams/${team2.id}`} className="group flex flex-col items-center gap-4 transition-transform hover:scale-105">
                                     <div className="w-24 h-24 bg-secondary/30 rounded-2xl flex items-center justify-center p-4 border border-card-border group-hover:border-primary/50 transition-colors shadow-lg group-hover:shadow-primary/10">
-                                        {team2.image_url ? (
-                                            <Image src={team2.image_url} alt={team2.name} width={80} height={80} className="object-contain" />
+                                        {(team2.dark_image_url || team2.image_url) ? (
+                                            <Image src={team2.dark_image_url || team2.image_url!} alt={team2.name} width={80} height={80} className="object-contain" />
                                         ) : (
                                             <span className="text-3xl font-bold text-muted-foreground">?</span>
                                         )}
@@ -484,11 +504,11 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                     </div>
                                     <div className="space-y-2">
                                         {form.map((m: any) => (
-                                            <div key={m.id} className="flex items-center justify-between p-2 bg-background/30 rounded text-sm">
+                                            <Link href={`/match/${m.id}`} key={m.id} className="flex items-center justify-between p-2 bg-background/30 rounded text-sm hover:bg-background/80 transition-colors group">
                                                 <span className="text-xs text-muted-foreground w-20">{new Date(m.scheduled_at).toLocaleDateString("en-US")}</span>
-                                                <span className="font-medium truncate flex-1 mx-2">{m.opponent_name}</span>
+                                                <span className="font-medium truncate flex-1 mx-2 group-hover:text-primary transition-colors">{m.opponent_name}</span>
                                                 <span className={`font-mono font-bold ${m.won ? "text-green-500" : "text-red-500"}`}>{m.score}-{m.opponent_score}</span>
-                                            </div>
+                                            </Link>
                                         ))}
                                     </div>
                                 </div>
@@ -511,17 +531,17 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                 const t1Won = h2h.winner_id === team1?.id;
                                 const t2Won = h2h.winner_id === team2?.id;
                                 return (
-                                    <div key={h2h.id} className="flex items-center justify-between p-3 bg-background/50 border border-card-border rounded-lg text-sm hover:border-primary/30 transition-colors">
+                                    <Link href={`/match/${h2h.id}`} key={h2h.id} className="flex items-center justify-between p-3 bg-background/50 border border-card-border rounded-lg text-sm hover:border-primary/50 hover:bg-background transition-colors group">
                                         <div className="flex items-center gap-3">
                                             <span className="text-xs text-muted-foreground">{new Date(h2h.scheduled_at).toLocaleDateString("en-US")}</span>
                                             <span className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide px-2 py-0.5 bg-secondary rounded">{h2h.league_name}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className={t1Won ? "text-primary font-bold" : "text-foreground"}>{team1?.acronym || "T1"}</span>
+                                            <span className={`${t1Won ? "text-primary font-bold" : "text-foreground"} group-hover:text-primary transition-colors`}>{team1?.acronym || "T1"}</span>
                                             <span className="font-mono font-bold px-2 py-0.5 bg-secondary rounded">{t1Score} - {t2Score}</span>
-                                            <span className={t2Won ? "text-primary font-bold" : "text-foreground"}>{team2?.acronym || "T2"}</span>
+                                            <span className={`${t2Won ? "text-primary font-bold" : "text-foreground"} group-hover:text-primary transition-colors`}>{team2?.acronym || "T2"}</span>
                                         </div>
-                                    </div>
+                                    </Link>
                                 );
                             })}
                         </div>

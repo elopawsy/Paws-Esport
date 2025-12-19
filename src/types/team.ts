@@ -10,6 +10,7 @@ export interface Team {
   name: string;
   acronym: string | null;
   image_url: string | null;
+  dark_image_url?: string | null;
   location: string | null;
   players: Player[];
   current_videogame?: {
