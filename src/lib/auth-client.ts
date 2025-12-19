@@ -17,4 +17,11 @@ export const {
     signOut,
     useSession,
     getSession,
+    // Password reset
+    requestPasswordReset,
+    resetPassword,
+    // Email verification
+    sendVerificationEmail,
 } = authClient;
+
+

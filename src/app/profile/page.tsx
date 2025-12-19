@@ -70,6 +70,7 @@ export default async function ProfilePage() {
                 id: userData!.id,
                 name: userData!.name,
                 email: userData!.email,
+                emailVerified: userData!.emailVerified,
                 image: userData!.image,
                 coins: userData!.coins,
                 favoriteTeam: userData!.favoriteTeam,

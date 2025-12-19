@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { signIn, signUp } from "@/lib/auth-client";
 import { X, Mail, Lock, User, Loader2 } from "lucide-react";
+import Link from "next/link";
 
 interface AuthModalProps {
     isOpen: boolean;
@@ -215,6 +216,18 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                 className="w-full pl-10 pr-4 py-3 bg-background border border-card-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                             />
                         </div>
+                        {/* Forgot Password link (login only) */}
+                        {activeTab === "login" && (
+                            <div className="text-right">
+                                <Link
+                                    href="/auth/forgot-password"
+                                    onClick={onClose}
+                                    className="text-sm text-primary hover:underline"
+                                >
+                                    Forgot password?
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                     {/* Confirm password (register only) */}

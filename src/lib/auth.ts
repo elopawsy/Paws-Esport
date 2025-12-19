@@ -1,12 +1,14 @@
 /**
  * Better Auth Configuration
  * 
- * Server-side auth instance with Prisma adapter
+ * Server-side auth instance with Prisma adapter and email support
  */
 
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { PrismaClient } from "@/generated/prisma";
+import { sendEmail } from "./resend";
+import { verificationEmailTemplate, passwordResetEmailTemplate } from "./email-templates";
 
 const prisma = new PrismaClient({
     accelerateUrl: process.env.DATABASE_URL,
@@ -20,6 +22,32 @@ export const auth = betterAuth({
         enabled: true,
         // Minimum password length
         minPasswordLength: 8,
+        // Password reset handler
+        sendResetPassword: async ({ user, url }) => {
+            void sendEmail({
+                to: user.email,
+                subject: "Reset your password - Paws Esport",
+                html: passwordResetEmailTemplate({
+                    url,
+                    userName: user.name || user.email.split("@")[0],
+                }),
+            });
+        },
+    },
+    emailVerification: {
+        // Send verification email on signup
+        sendVerificationEmail: async ({ user, url }) => {
+            void sendEmail({
+                to: user.email,
+                subject: "Verify your email - Paws Esport",
+                html: verificationEmailTemplate({
+                    url,
+                    userName: user.name || user.email.split("@")[0],
+                }),
+            });
+        },
+        // Auto sign in after email verification
+        autoSignInAfterVerification: true,
     },
     session: {
         // Session expires after 7 days
@@ -47,3 +75,4 @@ export const auth = betterAuth({
 
 export type Session = typeof auth.$Infer.Session;
 export type User = typeof auth.$Infer.Session.user;
+

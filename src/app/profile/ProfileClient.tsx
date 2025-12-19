@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { User, Coins, Heart, Users, Search, Check, X, Loader2, UserPlus, Camera, Trash2 } from "lucide-react";
+import { User, Coins, Heart, Users, Search, Check, X, Loader2, UserPlus, Camera, Trash2, Mail, AlertTriangle } from "lucide-react";
 import { BetHistory } from "@/components/betting";
 import DataManagement from "@/components/user/DataManagement";
+import { sendVerificationEmail } from "@/lib/auth-client";
 
 interface Team {
     id: number;
@@ -16,6 +17,7 @@ interface UserProfile {
     id: string;
     name: string | null;
     email: string;
+    emailVerified: boolean;
     image: string | null;
     coins: number;
     favoriteTeam: Team | null;
@@ -59,6 +61,10 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
     const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
     const [avatarError, setAvatarError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Email verification state
+    const [isSendingVerification, setIsSendingVerification] = useState(false);
+    const [verificationSent, setVerificationSent] = useState(false);
 
     const displayName = user.name || user.email.split("@")[0];
 
@@ -236,9 +242,60 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
         }
     };
 
+    const handleResendVerification = async () => {
+        setIsSendingVerification(true);
+        try {
+            await sendVerificationEmail({
+                email: user.email,
+            });
+            setVerificationSent(true);
+        } catch (error) {
+            console.error("Error sending verification email:", error);
+        } finally {
+            setIsSendingVerification(false);
+        }
+    };
+
     return (
         <div className="container-custom py-8">
             <h1 className="text-3xl font-display font-bold mb-8">My Profile</h1>
+
+            {/* Email Verification Banner */}
+            {!user.emailVerified && (
+                <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg flex items-start gap-3">
+                    <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                        <p className="font-medium text-yellow-500">Email not verified</p>
+                        <p className="text-sm text-muted-foreground mt-1">
+                            Please verify your email address to secure your account and unlock all features.
+                        </p>
+                        {verificationSent ? (
+                            <p className="text-sm text-green-500 mt-2 flex items-center gap-1">
+                                <Check className="w-4 h-4" />
+                                Verification email sent! Check your inbox.
+                            </p>
+                        ) : (
+                            <button
+                                onClick={handleResendVerification}
+                                disabled={isSendingVerification}
+                                className="mt-3 inline-flex items-center gap-2 px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-black font-medium text-sm rounded-md transition-colors disabled:opacity-50"
+                            >
+                                {isSendingVerification ? (
+                                    <>
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                        Sending...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Mail className="w-4 h-4" />
+                                        Resend verification email
+                                    </>
+                                )}
+                            </button>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* User Info Card */}
