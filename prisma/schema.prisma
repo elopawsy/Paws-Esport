@@ -48,6 +48,10 @@ model User {
   sentFriendRequests     Friendship[]  @relation("SentFriendRequests")
   receivedFriendRequests Friendship[]  @relation("ReceivedFriendRequests")
   
+  // Tracking & Favorites
+  trackedTeams     TrackedTeam[]
+  favoritePlayers  FavoritePlayer[]
+  
   @@index([favoriteTeamId])
 }
 
@@ -167,10 +171,45 @@ model Team {
   players         Player[]
   matchOpponents  MatchOpponent[]
   favoriteOf      User[]
+  trackedBy       TrackedTeam[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
   @@index([videogameId])
+}
+
+// ============================================
+// Tracked Teams (users can follow multiple teams)
+// ============================================
+model TrackedTeam {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  teamId    Int
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  
+  @@unique([userId, teamId])
+  @@index([userId])
+  @@index([teamId])
+}
+
+// ============================================
+// Favorite Players
+// ============================================
+model FavoritePlayer {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  playerId    Int
+  playerSlug  String
+  playerName  String
+  playerImage String?
+  teamName    String?
+  createdAt   DateTime @default(now())
+  
+  @@unique([userId, playerId])
+  @@index([userId])
 }
 
 // ============================================

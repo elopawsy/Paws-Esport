@@ -7,6 +7,7 @@ import { VIDEO_GAMES } from "@/types";
 import type { VideoGameSlug } from "@/types";
 import { Calendar, Trophy, Coins, ArrowRight, Gamepad2, AlertCircle } from "lucide-react";
 import { getTournamentDisplayName } from "@/lib/tournament-utils";
+import TrackedTeamsMatches from "@/components/home/TrackedTeamsMatches";
 
 interface Tournament {
   id: number;
@@ -260,6 +261,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Tracked Teams Matches Section */}
+      <TrackedTeamsMatches />
 
       {/* Tournaments Section */}
       <section>

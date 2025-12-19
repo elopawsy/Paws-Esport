@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { User, Coins, Heart, Trophy, Calendar, Check, UserPlus, Clock } from "lucide-react";
+import { User, Coins, Heart, Trophy, Calendar, Check, UserPlus, Clock, Users, Star } from "lucide-react";
 
 export default async function PublicProfilePage({ params }: { params: Promise<{ id: string }> }) {
     // Await params as per Next.js 15+ requirements
@@ -23,6 +23,24 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                 orderBy: { createdAt: "desc" },
                 take: 10,
                 where: { status: { in: ["WON", "LOST", "PENDING"] } }
+            },
+            trackedTeams: {
+                include: {
+                    team: {
+                        select: {
+                            id: true,
+                            name: true,
+                            acronym: true,
+                            imageUrl: true,
+                        }
+                    }
+                },
+                take: 10,
+                orderBy: { createdAt: "desc" }
+            },
+            favoritePlayers: {
+                take: 10,
+                orderBy: { createdAt: "desc" }
             }
         },
     });
@@ -141,6 +159,71 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
                             </div>
                         </div>
                     </div>
+
+                    {/* Tracked Teams */}
+                    {user.trackedTeams.length > 0 && (
+                        <div className="bg-card border border-card-border rounded-xl p-6">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <Users className="w-5 h-5 text-primary" />
+                                Tracked Teams
+                            </h3>
+                            <div className="space-y-2">
+                                {user.trackedTeams.map((tracked) => (
+                                    <div key={tracked.id} className="flex items-center gap-3 p-2 bg-secondary/20 rounded-lg">
+                                        {tracked.team.imageUrl ? (
+                                            <Image
+                                                src={tracked.team.imageUrl}
+                                                alt={tracked.team.name}
+                                                width={24}
+                                                height={24}
+                                                className="rounded"
+                                            />
+                                        ) : (
+                                            <div className="w-6 h-6 bg-card-border rounded flex items-center justify-center text-xs">
+                                                {tracked.team.acronym?.[0] || tracked.team.name[0]}
+                                            </div>
+                                        )}
+                                        <span className="text-sm font-medium">{tracked.team.name}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Favorite Players */}
+                    {user.favoritePlayers.length > 0 && (
+                        <div className="bg-card border border-card-border rounded-xl p-6">
+                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                                <Star className="w-5 h-5 text-primary" />
+                                Favorite Players
+                            </h3>
+                            <div className="space-y-2">
+                                {user.favoritePlayers.map((player) => (
+                                    <div key={player.id} className="flex items-center gap-3 p-2 bg-secondary/20 rounded-lg">
+                                        {player.playerImage ? (
+                                            <Image
+                                                src={player.playerImage}
+                                                alt={player.playerName}
+                                                width={24}
+                                                height={24}
+                                                className="rounded-full"
+                                            />
+                                        ) : (
+                                            <div className="w-6 h-6 bg-card-border rounded-full flex items-center justify-center text-xs">
+                                                {player.playerName[0]}
+                                            </div>
+                                        )}
+                                        <div>
+                                            <span className="text-sm font-medium block">{player.playerName}</span>
+                                            {player.teamName && (
+                                                <span className="text-xs text-muted-foreground">{player.teamName}</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Recent Activity */}
@@ -195,3 +278,4 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
 
 // Client Component for Add Friend Button
 import AddFriendButton from "@/components/ui/AddFriendButton";
+

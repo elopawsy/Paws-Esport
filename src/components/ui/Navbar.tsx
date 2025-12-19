@@ -19,7 +19,6 @@ export default function Navbar() {
     const links = [
         { href: "/", label: "Home" },
         { href: "/tournaments", label: "Tournaments" },
-        { href: "/teams", label: "Teams" },
         { href: "/leaderboard", label: "Leaderboard" },
         { href: "/simulator", label: "Simulator" },
     ];

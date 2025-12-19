@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { User, Coins, Heart, Users, Search, Check, X, Loader2, UserPlus, Camera, Trash2, Mail, AlertTriangle, Settings } from "lucide-react";
 import { BetHistory } from "@/components/betting";
 import SettingsModal from "@/components/user/SettingsModal";
+import FavoritesSection from "@/components/user/FavoritesSection";
 import { sendVerificationEmail } from "@/lib/auth-client";
 
 interface Team {
@@ -593,6 +594,9 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                     userName={user.name}
                     userEmail={user.email}
                 />
+
+                {/* Favorites Section */}
+                <FavoritesSection />
 
                 {/* Bet History */}
                 <BetHistory />

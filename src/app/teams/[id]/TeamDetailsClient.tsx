@@ -6,6 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, MapPin, Hash, Users, Swords, Calendar, Gamepad2, Monitor } from "lucide-react";
 import PlayerCard from "@/components/ui/PlayerCard";
 import MatchCard from "@/components/ui/MatchCard";
+import FollowTeamButton from "@/components/ui/FollowTeamButton";
 import { Team, Match } from "@/types";
 import { VIDEO_GAMES, VideoGameSlug } from "@/types/videogame";
 
@@ -107,6 +108,16 @@ export default function TeamDetailsClient({ team, matches, relatedTeams }: TeamD
                                 </div>
                             )}
                         </div>
+
+                        {/* Follow Button */}
+                        <div className="flex-shrink-0">
+                            <FollowTeamButton
+                                teamId={team.id}
+                                teamName={team.name}
+                                teamAcronym={team.acronym}
+                                teamImageUrl={team.image_url}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -117,8 +128,8 @@ export default function TeamDetailsClient({ team, matches, relatedTeams }: TeamD
                     <button
                         onClick={() => setActiveTab("roster")}
                         className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors font-medium ${activeTab === "roster"
-                                ? "border-primary text-primary"
-                                : "border-transparent text-muted-foreground hover:text-foreground"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                     >
                         <Users className="w-4 h-4" />
@@ -127,8 +138,8 @@ export default function TeamDetailsClient({ team, matches, relatedTeams }: TeamD
                     <button
                         onClick={() => setActiveTab("matches")}
                         className={`flex items-center gap-2 px-6 py-3 border-b-2 transition-colors font-medium ${activeTab === "matches"
-                                ? "border-primary text-primary"
-                                : "border-transparent text-muted-foreground hover:text-foreground"
+                            ? "border-primary text-primary"
+                            : "border-transparent text-muted-foreground hover:text-foreground"
                             }`}
                     >
                         <Swords className="w-4 h-4" />
