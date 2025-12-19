@@ -2,10 +2,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 
-// POST: Upload avatar
+// POST: Upload avatar (stores as base64 data URL in database)
 export async function POST(request: Request) {
     try {
         const session = await auth.api.getSession({
@@ -29,33 +27,24 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Format invalide. Utilisez JPG, PNG, GIF ou WebP" }, { status: 400 });
         }
 
-        // Validate file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            return NextResponse.json({ error: "Fichier trop volumineux. Maximum 2 Mo" }, { status: 400 });
+        // Validate file size (max 500KB for base64 storage)
+        if (file.size > 500 * 1024) {
+            return NextResponse.json({ error: "Fichier trop volumineux. Maximum 500 Ko" }, { status: 400 });
         }
 
-        // Create unique filename
-        const ext = file.name.split(".").pop() || "jpg";
-        const filename = `${session.user.id}-${Date.now()}.${ext}`;
-
-        // Create directory if doesn't exist
-        const avatarsDir = path.join(process.cwd(), "public", "avatars");
-        await mkdir(avatarsDir, { recursive: true });
-
-        // Write file
+        // Convert to base64 data URL
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const filepath = path.join(avatarsDir, filename);
-        await writeFile(filepath, buffer);
+        const base64 = buffer.toString("base64");
+        const dataUrl = `data:${file.type};base64,${base64}`;
 
         // Update user's image in database
-        const imageUrl = `/avatars/${filename}`;
         await prisma.user.update({
             where: { id: session.user.id },
-            data: { image: imageUrl },
+            data: { image: dataUrl },
         });
 
-        return NextResponse.json({ success: true, imageUrl });
+        return NextResponse.json({ success: true, imageUrl: dataUrl });
     } catch (error) {
         console.error("Error uploading avatar:", error);
         return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

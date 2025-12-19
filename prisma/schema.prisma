@@ -42,6 +42,7 @@ model User {
   sessions        Session[]
   accounts        Account[]
   bets            Bet[]
+  notifications   Notification[]
   
   // Friend system
   sentFriendRequests     Friendship[]  @relation("SentFriendRequests")
@@ -123,6 +124,32 @@ enum FriendshipStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+// ============================================
+// Notification
+// ============================================
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  link      String?          // Optional link to navigate to
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  
+  @@index([userId])
+  @@index([userId, read])
+}
+
+enum NotificationType {
+  FRIEND_REQUEST
+  FRIEND_ACCEPTED
+  BET_WON
+  BET_LOST
+  SYSTEM
 }
 
 // ============================================

@@ -7,6 +7,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import SearchBarWithSuggestions from "./SearchBarWithSuggestions";
 import { ChevronDown, Gamepad, LogIn } from "lucide-react";
 import { AuthModal, UserMenu } from "@/components/auth";
+import { NotificationCenter } from "@/components/notifications";
 import { useSession } from "@/lib/auth-client";
 
 export default function Navbar() {
@@ -98,7 +99,10 @@ export default function Navbar() {
                         {/* Auth - Show UserMenu if logged in, otherwise login button */}
                         {!isPending && (
                             session?.user ? (
-                                <UserMenu />
+                                <>
+                                    <NotificationCenter />
+                                    <UserMenu />
+                                </>
                             ) : (
                                 <button
                                     onClick={() => setShowAuthModal(true)}

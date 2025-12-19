@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { User, Coins, Heart, Users, Search, Check, X, Loader2, UserPlus, Camera, Trash2 } from "lucide-react";
 import { BetHistory } from "@/components/betting";
 
@@ -44,7 +44,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
     const [teamSearch, setTeamSearch] = useState("");
     const [showTeamDropdown, setShowTeamDropdown] = useState(false);
 
-    const [friendEmail, setFriendEmail] = useState("");
+    const [friendUsername, setFriendUsername] = useState("");
     const [isAddingFriend, setIsAddingFriend] = useState(false);
     const [friendError, setFriendError] = useState<string | null>(null);
     const [friendSuccess, setFriendSuccess] = useState<string | null>(null);
@@ -61,11 +61,45 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
 
     const displayName = user.name || user.email.split("@")[0];
 
-    const filteredTeams = teams.filter(
-        (team) =>
-            team.name.toLowerCase().includes(teamSearch.toLowerCase()) ||
-            team.acronym?.toLowerCase().includes(teamSearch.toLowerCase())
-    );
+    // Dynamic team search state
+    const [searchedTeams, setSearchedTeams] = useState<Team[]>(teams);
+    const [isSearchingTeams, setIsSearchingTeams] = useState(false);
+
+    // Debounced team search from PandaScore API
+    const searchTeams = useCallback(async (query: string) => {
+        if (query.length < 2) {
+            setSearchedTeams(teams);
+            return;
+        }
+
+        setIsSearchingTeams(true);
+        try {
+            const res = await fetch(`/api/teams/search?q=${encodeURIComponent(query)}`);
+            if (res.ok) {
+                const data = await res.json();
+                // Transform API response to match Team interface
+                const apiTeams = (Array.isArray(data) ? data : data.teams || []).map((t: any) => ({
+                    id: t.id,
+                    name: t.name,
+                    acronym: t.acronym,
+                    imageUrl: t.image_url || t.imageUrl,
+                }));
+                setSearchedTeams(apiTeams);
+            }
+        } catch (error) {
+            console.error("Error searching teams:", error);
+        } finally {
+            setIsSearchingTeams(false);
+        }
+    }, [teams]);
+
+    // Debounce team search
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            searchTeams(teamSearch);
+        }, 300);
+        return () => clearTimeout(timeout);
+    }, [teamSearch, searchTeams]);
 
     const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -127,11 +161,19 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
             const res = await fetch("/api/user/favorite-team", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ teamId: team.id }),
+                body: JSON.stringify({
+                    teamId: team.id,
+                    teamName: team.name,
+                    teamAcronym: team.acronym,
+                    teamImageUrl: team.imageUrl,
+                }),
             });
 
             if (res.ok) {
                 setSelectedTeam(team);
+            } else {
+                const data = await res.json();
+                console.error("Error updating favorite team:", data.error);
             }
         } catch (error) {
             console.error("Error updating favorite team:", error);
@@ -150,7 +192,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
             const res = await fetch("/api/friends", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: friendEmail }),
+                body: JSON.stringify({ username: friendUsername }),
             });
 
             const data = await res.json();
@@ -159,7 +201,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                 setFriendError(data.error || "Une erreur est survenue");
             } else {
                 setFriendSuccess("Demande d'ami envoyée !");
-                setFriendEmail("");
+                setFriendUsername("");
             }
         } catch {
             setFriendError("Une erreur est survenue");
@@ -312,10 +354,16 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
 
                         {showTeamDropdown && (
                             <div className="absolute top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-card border border-card-border rounded-lg shadow-xl z-10">
-                                {filteredTeams.length === 0 ? (
-                                    <p className="px-4 py-3 text-muted-foreground text-sm">Aucune équipe trouvée</p>
+                                {isSearchingTeams ? (
+                                    <div className="flex items-center justify-center py-4">
+                                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                    </div>
+                                ) : searchedTeams.length === 0 ? (
+                                    <p className="px-4 py-3 text-muted-foreground text-sm">
+                                        {teamSearch.length >= 2 ? "Aucune équipe trouvée" : "Tape au moins 2 caractères..."}
+                                    </p>
                                 ) : (
-                                    filteredTeams.map((team) => (
+                                    searchedTeams.map((team: Team) => (
                                         <button
                                             key={team.id}
                                             onClick={() => handleSelectTeam(team)}
@@ -351,16 +399,16 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                         <div className="relative flex-1">
                             <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <input
-                                type="email"
-                                value={friendEmail}
-                                onChange={(e) => setFriendEmail(e.target.value)}
-                                placeholder="Email de l'ami à ajouter..."
+                                type="text"
+                                value={friendUsername}
+                                onChange={(e) => setFriendUsername(e.target.value)}
+                                placeholder="Pseudo du joueur à ajouter..."
                                 className="w-full pl-10 pr-4 py-2 bg-background border border-card-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
                             />
                         </div>
                         <button
                             type="submit"
-                            disabled={isAddingFriend || !friendEmail}
+                            disabled={isAddingFriend || !friendUsername.trim()}
                             className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground font-medium rounded-md transition-colors disabled:opacity-50"
                         >
                             {isAddingFriend ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ajouter"}

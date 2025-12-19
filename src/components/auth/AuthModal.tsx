@@ -46,15 +46,20 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 password,
             });
 
+            console.log("Sign in result:", result);
+
             if (result.error) {
-                setError(result.error.message || "Une erreur est survenue");
+                const errorMessage = result.error.message || result.error.code || "Une erreur est survenue";
+                console.error("Sign in error:", result.error);
+                setError(errorMessage);
             } else {
                 onClose();
                 resetForm();
                 // Force refresh to update UI
                 window.location.reload();
             }
-        } catch {
+        } catch (err) {
+            console.error("Sign in exception:", err);
             setError("Une erreur est survenue lors de la connexion");
         } finally {
             setIsLoading(false);
@@ -124,8 +129,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <button
                         onClick={() => handleTabChange("login")}
                         className={`flex-1 py-4 text-sm font-medium tracking-wide transition-colors ${activeTab === "login"
-                                ? "text-primary border-b-2 border-primary"
-                                : "text-muted-foreground hover:text-foreground"
+                            ? "text-primary border-b-2 border-primary"
+                            : "text-muted-foreground hover:text-foreground"
                             }`}
                     >
                         Connexion
@@ -133,8 +138,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     <button
                         onClick={() => handleTabChange("register")}
                         className={`flex-1 py-4 text-sm font-medium tracking-wide transition-colors ${activeTab === "register"
-                                ? "text-primary border-b-2 border-primary"
-                                : "text-muted-foreground hover:text-foreground"
+                            ? "text-primary border-b-2 border-primary"
+                            : "text-muted-foreground hover:text-foreground"
                             }`}
                     >
                         Inscription
