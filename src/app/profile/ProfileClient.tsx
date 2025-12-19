@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { User, Coins, Heart, Users, Search, Check, X, Loader2, UserPlus, Camera, Trash2 } from "lucide-react";
+import { BetHistory } from "@/components/betting";
 
 interface Team {
     id: number;
@@ -455,7 +456,11 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                         </div>
                     )}
                 </div>
+
+                {/* Bet History */}
+                <BetHistory />
             </div>
         </div>
     );
 }
+

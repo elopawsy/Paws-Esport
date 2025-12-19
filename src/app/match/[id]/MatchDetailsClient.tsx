@@ -10,7 +10,7 @@ import {
 
 import { StreamPlayer } from "@/components/match/StreamPlayer";
 import { RoleBadge } from "@/components/ui/RoleBadge";
-import { BetModal } from "@/components/betting";
+import { BetModal, CurrentBetDisplay } from "@/components/betting";
 import { useSession } from "@/lib/auth-client";
 import type { Match } from "@/types";
 
@@ -260,6 +260,17 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
             </div>
 
             <div className="container-custom py-8 space-y-8">
+                {/* Current Bet Display */}
+                {team1 && team2 && (
+                    <CurrentBetDisplay
+                        matchId={match.id}
+                        teams={[
+                            { id: team1.id, name: team1.name, acronym: team1.acronym, image_url: team1.image_url },
+                            { id: team2.id, name: team2.name, acronym: team2.acronym, image_url: team2.image_url },
+                        ]}
+                    />
+                )}
+
                 {/* Games with Stats */}
                 {match.gamesWithStats && match.gamesWithStats.length > 0 ? (
                     <div className="space-y-6">
@@ -570,6 +581,8 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                         { id: team2.id, name: team2.name, acronym: team2.acronym, image_url: team2.image_url },
                     ]}
                     matchName={`${team1.name || team1.acronym} vs ${team2.name || team2.acronym}`}
+                    matchTier={match.tier}
+                    tournamentTier={match.tournament?.tier}
                     onBetPlaced={() => {
                         // Could update local state or refresh session here
                         window.location.reload();

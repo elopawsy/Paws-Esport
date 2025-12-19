@@ -43,7 +43,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
         }
 
-        const { matchId, teamId, amount } = await request.json();
+        const { matchId, teamId, amount, odds: providedOdds } = await request.json();
 
         // Validate inputs
         if (!matchId || typeof matchId !== "number") {
@@ -87,8 +87,10 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Tu as déjà parié sur ce match" }, { status: 400 });
         }
 
-        // Default odds (can be made dynamic based on team rankings later)
-        const odds = 2.0;
+        // Use provided odds or default to 2.0
+        const odds = typeof providedOdds === "number" && providedOdds >= 1.1 && providedOdds <= 10.0
+            ? Math.round(providedOdds * 100) / 100
+            : 2.0;
         const potentialWin = Math.floor(amount * odds);
 
         // Create bet and deduct coins in a transaction

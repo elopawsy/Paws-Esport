@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { X, Coins, Loader2, TrendingUp, AlertCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { X, Coins, Loader2, TrendingUp, AlertCircle, Star } from "lucide-react";
 import { useSession } from "@/lib/auth-client";
 
 interface Team {
@@ -17,22 +17,80 @@ interface BetModalProps {
     matchId: number;
     teams: Team[];
     matchName: string;
+    matchTier?: string;
+    tournamentTier?: string;
     onBetPlaced?: (newBalance: number) => void;
 }
 
-export default function BetModal({ isOpen, onClose, matchId, teams, matchName, onBetPlaced }: BetModalProps) {
+interface TeamOdds {
+    team1Odds: number;
+    team2Odds: number;
+}
+
+export default function BetModal({
+    isOpen,
+    onClose,
+    matchId,
+    teams,
+    matchName,
+    matchTier,
+    tournamentTier,
+    onBetPlaced
+}: BetModalProps) {
     const { data: session } = useSession();
     const [selectedTeam, setSelectedTeam] = useState<Team | null>(null);
     const [amount, setAmount] = useState<number>(100);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [odds, setOdds] = useState<TeamOdds>({ team1Odds: 2.0, team2Odds: 2.0 });
+    const [isLoadingOdds, setIsLoadingOdds] = useState(true);
 
     const userCoins = (session?.user as { coins?: number })?.coins ?? 0;
-    const odds = 2.0; // Default odds
-    const potentialWin = Math.floor(amount * odds);
+
+    // Get current odds for selected team
+    const currentOdds = selectedTeam?.id === teams[0]?.id ? odds.team1Odds : odds.team2Odds;
+    const potentialWin = Math.floor(amount * currentOdds);
 
     const quickAmounts = [50, 100, 250, 500, 1000];
+
+    // Fetch dynamic odds when modal opens
+    useEffect(() => {
+        if (isOpen && teams.length >= 2) {
+            setIsLoadingOdds(true);
+            fetch(`/api/odds?matchTier=${matchTier || ''}&tournamentTier=${tournamentTier || ''}`)
+                .then(res => res.json())
+                .then(data => {
+                    setOdds({
+                        team1Odds: data.team1Odds || 2.0,
+                        team2Odds: data.team2Odds || 2.0,
+                    });
+                })
+                .catch(() => {
+                    // Keep default odds on error
+                })
+                .finally(() => {
+                    setIsLoadingOdds(false);
+                });
+        }
+    }, [isOpen, matchTier, tournamentTier, teams.length]);
+
+    // Get odds label based on value
+    const getOddsLabel = (oddsValue: number): string => {
+        if (oddsValue < 1.30) return "Grand favori";
+        if (oddsValue < 1.60) return "Favori";
+        if (oddsValue < 2.00) return "Léger favori";
+        if (oddsValue < 2.50) return "Équilibré";
+        if (oddsValue < 3.50) return "Outsider";
+        return "Gros outsider";
+    };
+
+    // Get color based on odds
+    const getOddsColor = (oddsValue: number): string => {
+        if (oddsValue < 1.60) return "text-green-500";
+        if (oddsValue < 2.20) return "text-yellow-500";
+        return "text-red-500";
+    };
 
     const handlePlaceBet = async () => {
         if (!selectedTeam) {
@@ -59,6 +117,7 @@ export default function BetModal({ isOpen, onClose, matchId, teams, matchName, o
                     matchId,
                     teamId: selectedTeam.id,
                     amount,
+                    odds: currentOdds,
                 }),
             });
 
@@ -122,7 +181,7 @@ export default function BetModal({ isOpen, onClose, matchId, teams, matchName, o
                             {amount} coins sur {selectedTeam?.name || selectedTeam?.acronym}
                         </p>
                         <p className="text-primary font-bold mt-2">
-                            Gain potentiel: {potentialWin} coins
+                            Gain potentiel: {potentialWin.toLocaleString()} coins (x{currentOdds.toFixed(2)})
                         </p>
                     </div>
                 ) : (
@@ -136,40 +195,63 @@ export default function BetModal({ isOpen, onClose, matchId, teams, matchName, o
                             </div>
                         </div>
 
-                        {/* Team selection */}
+                        {/* Team selection with odds */}
                         <div>
                             <label className="block text-sm text-muted-foreground mb-2">
                                 Choisis ton équipe
                             </label>
-                            <div className="grid grid-cols-2 gap-3">
-                                {teams.map((team) => (
-                                    <button
-                                        key={team.id}
-                                        onClick={() => setSelectedTeam(team)}
-                                        className={`flex flex-col items-center gap-2 p-4 rounded-lg border transition-all ${selectedTeam?.id === team.id
-                                                ? "border-primary bg-primary/10"
-                                                : "border-card-border hover:border-primary/50"
-                                            }`}
-                                    >
-                                        <div className="w-12 h-12 flex items-center justify-center">
-                                            {team.image_url ? (
-                                                <img
-                                                    src={team.image_url}
-                                                    alt={team.name}
-                                                    className="w-full h-full object-contain"
-                                                />
-                                            ) : (
-                                                <span className="text-lg font-bold text-muted">
-                                                    {team.acronym || team.name.charAt(0)}
+                            {isLoadingOdds ? (
+                                <div className="flex items-center justify-center py-8">
+                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-2 gap-3">
+                                    {teams.map((team, index) => {
+                                        const teamOdds = index === 0 ? odds.team1Odds : odds.team2Odds;
+                                        const isFavorite = teamOdds < 2.0;
+                                        return (
+                                            <button
+                                                key={team.id}
+                                                onClick={() => setSelectedTeam(team)}
+                                                className={`relative flex flex-col items-center gap-2 p-4 rounded-lg border transition-all ${selectedTeam?.id === team.id
+                                                        ? "border-primary bg-primary/10"
+                                                        : "border-card-border hover:border-primary/50"
+                                                    }`}
+                                            >
+                                                {isFavorite && (
+                                                    <div className="absolute -top-1 -right-1">
+                                                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                                    </div>
+                                                )}
+                                                <div className="w-12 h-12 flex items-center justify-center">
+                                                    {team.image_url ? (
+                                                        <img
+                                                            src={team.image_url}
+                                                            alt={team.name}
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-lg font-bold text-muted">
+                                                            {team.acronym || team.name.charAt(0)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <span className="text-sm font-medium truncate w-full text-center">
+                                                    {team.acronym || team.name}
                                                 </span>
-                                            )}
-                                        </div>
-                                        <span className="text-sm font-medium truncate w-full text-center">
-                                            {team.acronym || team.name}
-                                        </span>
-                                    </button>
-                                ))}
-                            </div>
+                                                <div className="flex flex-col items-center gap-0.5">
+                                                    <span className={`text-lg font-bold ${getOddsColor(teamOdds)}`}>
+                                                        x{teamOdds.toFixed(2)}
+                                                    </span>
+                                                    <span className="text-[10px] text-muted-foreground">
+                                                        {getOddsLabel(teamOdds)}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
 
                         {/* Amount input */}
@@ -211,7 +293,9 @@ export default function BetModal({ isOpen, onClose, matchId, teams, matchName, o
                             </div>
                             <div className="text-right">
                                 <span className="text-xs text-muted-foreground block">Cote</span>
-                                <span className="text-lg font-bold text-foreground">x{odds}</span>
+                                <span className={`text-lg font-bold ${selectedTeam ? getOddsColor(currentOdds) : 'text-foreground'}`}>
+                                    x{currentOdds.toFixed(2)}
+                                </span>
                             </div>
                         </div>
 
@@ -247,3 +331,4 @@ export default function BetModal({ isOpen, onClose, matchId, teams, matchName, o
         </div>
     );
 }
+
