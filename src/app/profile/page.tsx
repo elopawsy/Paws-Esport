@@ -38,7 +38,7 @@ export default async function ProfilePage() {
 
     // Get list of teams for favorite selector
     const teams = await prisma.team.findMany({
-        select: { id: true, name: true, acronym: true, imageUrl: true },
+        select: { id: true, name: true, acronym: true, imageUrl: true, slug: true, location: true },
         orderBy: { name: "asc" },
         take: 100,
     });
@@ -64,6 +64,19 @@ export default async function ProfilePage() {
             user: f.sender,
         }));
 
+    // Map Prisma teams to client Team type
+    const mappedTeams = teams.map(t => ({
+        ...t,
+        image_url: t.imageUrl,
+        players: [], // Required by Team interface
+    }));
+
+    const mappedFavoriteTeam = userData!.favoriteTeam ? {
+        ...userData!.favoriteTeam,
+        image_url: userData!.favoriteTeam.imageUrl,
+        players: [], // Required by Team interface
+    } : null;
+
     return (
         <ProfileClient
             user={{
@@ -73,9 +86,9 @@ export default async function ProfilePage() {
                 emailVerified: userData!.emailVerified,
                 image: userData!.image,
                 coins: userData!.coins,
-                favoriteTeam: userData!.favoriteTeam,
+                favoriteTeam: mappedFavoriteTeam,
             }}
-            teams={teams}
+            teams={mappedTeams}
             friends={acceptedFriends}
             pendingRequests={pendingRequests}
         />
