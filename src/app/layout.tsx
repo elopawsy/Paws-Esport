@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Oswald, Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/ui/Navbar";
+import Footer from "@/components/ui/Footer";
+import CookieBanner from "@/components/compliance/CookieBanner";
 import { ThemeProvider } from "@/components/theme-provider";
 
 const oswald = Oswald({
@@ -77,7 +79,11 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <Navbar />
-          <main className="pt-16 min-h-screen">{children}</main>
+          <main className="pt-16 min-h-screen pb-10 flex flex-col">
+            <div className="flex-1">{children}</div>
+          </main>
+          <Footer />
+          <CookieBanner />
         </ThemeProvider>
       </body>
     </html>
