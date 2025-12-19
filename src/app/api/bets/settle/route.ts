@@ -17,8 +17,20 @@ export async function POST(request: Request) {
         const apiSecret = searchParams.get("secret");
         const isManualAuth = apiSecret === process.env.CRON_SECRET || apiSecret === "manual";
 
-        // In production, require proper auth (unless it's Vercel Cron which doesn't need secret)
-        if (process.env.NODE_ENV === "production" && !isVercelCron && !isManualAuth) {
+        // Check for authenticated user session
+        /*
+         * Allow authenticated users to trigger settlement.
+         * This enables "lazy" updates when users visit their profile,
+         * compensating for the daily-only cron limitation on Hobby plan.
+        */
+        const { auth } = await import("@/lib/auth");
+        const { headers } = await import("next/headers");
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+
+        // In production, require proper auth (Vercel Cron, Manual Secret, or User Session)
+        if (process.env.NODE_ENV === "production" && !isVercelCron && !isManualAuth && !session?.user) {
             return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
         }
 

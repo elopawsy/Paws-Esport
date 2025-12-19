@@ -21,21 +21,45 @@ export default function BetHistory() {
     const [filter, setFilter] = useState<"all" | "PENDING" | "WON" | "LOST">("all");
 
     useEffect(() => {
+        let mounted = true;
+
+        async function checkAndFetch() {
+            try {
+                // 1. Fetch current state immediately
+                await fetchBets();
+
+                // 2. Trigger settlement in background (lazy update)
+                const settleRes = await fetch("/api/bets/settle", { method: "POST" });
+                if (settleRes.ok && mounted) {
+                    const settleData = await settleRes.json();
+                    // 3. If bets were actually settled, refresh the list
+                    if (settleData.settled > 0) {
+                        await fetchBets();
+                    }
+                }
+            } catch (error) {
+                console.error("Error in auto-settlement:", error);
+            }
+        }
+
         async function fetchBets() {
             try {
                 const statusParam = filter !== "all" ? `?status=${filter}` : "";
                 const res = await fetch(`/api/bets${statusParam}`);
-                if (res.ok) {
+                if (res.ok && mounted) {
                     const data = await res.json();
                     setBets(data.bets || []);
                 }
             } catch (error) {
                 console.error("Error fetching bets:", error);
             } finally {
-                setIsLoading(false);
+                if (mounted) setIsLoading(false);
             }
         }
-        fetchBets();
+
+        checkAndFetch();
+
+        return () => { mounted = false; };
     }, [filter]);
 
     const getStatusInfo = (status: Bet["status"]) => {
