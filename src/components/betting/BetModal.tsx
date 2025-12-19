@@ -77,12 +77,12 @@ export default function BetModal({
 
     // Get odds label based on value
     const getOddsLabel = (oddsValue: number): string => {
-        if (oddsValue < 1.30) return "Grand favori";
-        if (oddsValue < 1.60) return "Favori";
-        if (oddsValue < 2.00) return "Léger favori";
-        if (oddsValue < 2.50) return "Équilibré";
-        if (oddsValue < 3.50) return "Outsider";
-        return "Gros outsider";
+        if (oddsValue < 1.30) return "Huge Favorite";
+        if (oddsValue < 1.60) return "Favorite";
+        if (oddsValue < 2.00) return "Slight Favorite";
+        if (oddsValue < 2.50) return "Balanced";
+        if (oddsValue < 3.50) return "Underdog";
+        return "Huge Underdog";
     };
 
     // Get color based on odds
@@ -94,15 +94,15 @@ export default function BetModal({
 
     const handlePlaceBet = async () => {
         if (!selectedTeam) {
-            setError("Choisis une équipe");
+            setError("Choose a team");
             return;
         }
         if (amount < 10) {
-            setError("Mise minimum: 10 coins");
+            setError("Minimum bet: 10 coins");
             return;
         }
         if (amount > userCoins) {
-            setError("Solde insuffisant");
+            setError("Insufficient balance");
             return;
         }
 
@@ -124,7 +124,7 @@ export default function BetModal({
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.error || "Une erreur est survenue");
+                setError(data.error || "An error occurred");
             } else {
                 setSuccess(true);
                 if (onBetPlaced) {
@@ -139,7 +139,7 @@ export default function BetModal({
                 }, 2000);
             }
         } catch {
-            setError("Une erreur est survenue");
+            setError("An error occurred");
         } finally {
             setIsLoading(false);
         }
@@ -167,7 +167,7 @@ export default function BetModal({
 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-card-border">
-                    <h2 className="text-lg font-bold font-display uppercase">Placer un Pari</h2>
+                    <h2 className="text-lg font-bold font-display uppercase">Place a Bet</h2>
                     <p className="text-sm text-muted-foreground truncate">{matchName}</p>
                 </div>
 
@@ -176,19 +176,19 @@ export default function BetModal({
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
                             <TrendingUp className="w-8 h-8 text-primary" />
                         </div>
-                        <h3 className="text-xl font-bold mb-2">Pari placé !</h3>
+                        <h3 className="text-xl font-bold mb-2">Bet Placed!</h3>
                         <p className="text-muted-foreground">
-                            {amount} coins sur {selectedTeam?.name || selectedTeam?.acronym}
+                            {amount} coins on {selectedTeam?.name || selectedTeam?.acronym}
                         </p>
                         <p className="text-primary font-bold mt-2">
-                            Gain potentiel: {potentialWin.toLocaleString()} coins (x{currentOdds.toFixed(2)})
+                            Potential Win: {potentialWin.toLocaleString()} coins (x{currentOdds.toFixed(2)})
                         </p>
                     </div>
                 ) : (
                     <div className="p-6 space-y-6">
                         {/* Balance display */}
                         <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg">
-                            <span className="text-sm text-muted-foreground">Ton solde</span>
+                            <span className="text-sm text-muted-foreground">Your Balance</span>
                             <div className="flex items-center gap-2">
                                 <Coins className="w-5 h-5 text-yellow-500" />
                                 <span className="font-bold text-yellow-500">{userCoins.toLocaleString()}</span>
@@ -198,7 +198,7 @@ export default function BetModal({
                         {/* Team selection with odds */}
                         <div>
                             <label className="block text-sm text-muted-foreground mb-2">
-                                Choisis ton équipe
+                                Choose your team
                             </label>
                             {isLoadingOdds ? (
                                 <div className="flex items-center justify-center py-8">
@@ -214,8 +214,8 @@ export default function BetModal({
                                                 key={team.id}
                                                 onClick={() => setSelectedTeam(team)}
                                                 className={`relative flex flex-col items-center gap-2 p-4 rounded-lg border transition-all ${selectedTeam?.id === team.id
-                                                        ? "border-primary bg-primary/10"
-                                                        : "border-card-border hover:border-primary/50"
+                                                    ? "border-primary bg-primary/10"
+                                                    : "border-card-border hover:border-primary/50"
                                                     }`}
                                             >
                                                 {isFavorite && (
@@ -257,7 +257,7 @@ export default function BetModal({
                         {/* Amount input */}
                         <div>
                             <label className="block text-sm text-muted-foreground mb-2">
-                                Montant du pari
+                                Bet Amount
                             </label>
                             <input
                                 type="number"
@@ -274,8 +274,8 @@ export default function BetModal({
                                         onClick={() => setAmount(quickAmount)}
                                         disabled={quickAmount > userCoins}
                                         className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${amount === quickAmount
-                                                ? "bg-primary text-primary-foreground"
-                                                : "bg-card-border hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            ? "bg-primary text-primary-foreground"
+                                            : "bg-card-border hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                             }`}
                                     >
                                         {quickAmount}
@@ -287,12 +287,12 @@ export default function BetModal({
                         {/* Potential win */}
                         <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20">
                             <div>
-                                <span className="text-xs text-muted-foreground block">Gain potentiel</span>
+                                <span className="text-xs text-muted-foreground block">Potential Win</span>
                                 <span className="text-2xl font-bold text-primary">{potentialWin.toLocaleString()}</span>
                                 <span className="text-sm text-primary ml-1">coins</span>
                             </div>
                             <div className="text-right">
-                                <span className="text-xs text-muted-foreground block">Cote</span>
+                                <span className="text-xs text-muted-foreground block">Odds</span>
                                 <span className={`text-lg font-bold ${selectedTeam ? getOddsColor(currentOdds) : 'text-foreground'}`}>
                                     x{currentOdds.toFixed(2)}
                                 </span>
@@ -316,12 +316,12 @@ export default function BetModal({
                             {isLoading ? (
                                 <>
                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                    Placement...
+                                    Placing...
                                 </>
                             ) : (
                                 <>
                                     <TrendingUp className="w-4 h-4" />
-                                    Parier {amount} coins
+                                    Bet {amount} coins
                                 </>
                             )}
                         </button>

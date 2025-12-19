@@ -115,7 +115,7 @@ export default function Navbar() {
                                     className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-md transition-colors"
                                 >
                                     <LogIn className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Connexion</span>
+                                    <span className="hidden sm:inline">Login</span>
                                 </button>
                             )
                         )}
@@ -180,7 +180,7 @@ export default function Navbar() {
                                             className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
                                         >
                                             <User className="w-4 h-4 text-muted-foreground" />
-                                            Mon Profil
+                                            My Profile
                                         </Link>
                                         <Link
                                             href="/profile#favorite-team"
@@ -188,7 +188,7 @@ export default function Navbar() {
                                             className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
                                         >
                                             <Heart className="w-4 h-4 text-muted-foreground" />
-                                            Équipe Favorite
+                                            Favorite Team
                                         </Link>
                                         <Link
                                             href="/profile#friends"
@@ -196,7 +196,7 @@ export default function Navbar() {
                                             className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-foreground hover:bg-secondary/50 rounded-lg transition-colors"
                                         >
                                             <Users className="w-4 h-4 text-muted-foreground" />
-                                            Mes Amis
+                                            My Friends
                                         </Link>
                                     </div>
                                 </div>
@@ -226,7 +226,7 @@ export default function Navbar() {
                         {/* Mobile Footer Actions */}
                         <div className="pt-2 border-t border-card-border">
                             <div className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-secondary/50 transition-colors">
-                                <span className="text-sm font-medium text-foreground">Thème</span>
+                                <span className="text-sm font-medium text-foreground">Theme</span>
                                 <ThemeToggle />
                             </div>
 
@@ -239,7 +239,7 @@ export default function Navbar() {
                                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-colors mt-2"
                                 >
                                     <LogOut className="w-4 h-4" />
-                                    Se déconnecter
+                                    Logout
                                 </button>
                             )}
                         </div>
@@ -254,7 +254,7 @@ export default function Navbar() {
                                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-lg transition-colors"
                                 >
                                     <LogIn className="w-4 h-4" />
-                                    Connexion
+                                    Login
                                 </button>
                             </div>
                         )}

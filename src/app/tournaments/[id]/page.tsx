@@ -8,7 +8,7 @@ import { BracketView } from "@/components/tournament/BracketView";
 import type { TournamentFull, Match } from "@/types";
 
 function getTournamentDisplayName(tournament: TournamentFull | null) {
-    if (!tournament) return "Tournoi";
+    if (!tournament) return "Tournament";
     const parts = [];
     if (tournament.league?.name) parts.push(tournament.league.name);
     if (tournament.serie?.full_name) parts.push(tournament.serie.full_name);
@@ -41,12 +41,12 @@ function MatchCard({ match }: { match: Match }) {
         >
             <div className="flex items-center justify-between mb-4">
                 <span className={`px-2.5 py-0.5 text-[10px] uppercase font-bold tracking-wider rounded border ${statusColors[match.status] || "bg-secondary text-muted-foreground"}`}>
-                    {match.status === "running" ? "En Direct" : match.status === "finished" ? "Terminé" : "À venir"}
+                    {match.status === "running" ? "LIVE" : match.status === "finished" ? "Finished" : "Upcoming"}
                 </span>
                 {match.scheduled_at && (
                     <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                         <Calendar className="w-3 h-3" />
-                        {new Date(match.scheduled_at).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                        {new Date(match.scheduled_at).toLocaleString("en-US", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </div>
                 )}
             </div>
@@ -128,7 +128,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                 <div className="container-custom py-6">
                     <Link href="/tournaments" className="inline-flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors text-sm font-medium mb-6 group">
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Retour aux tournois
+                        Back to tournaments
                     </Link>
 
                     <div className="flex flex-col md:flex-row md:items-start gap-6">
@@ -179,7 +179,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                         <div className="mt-8 pt-4 border-t border-card-border/50">
                             <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-3 flex items-center gap-2">
                                 <GitMerge className="w-3.5 h-3.5" />
-                                Phases du tournoi
+                                Tournament Stages
                             </h3>
                             <div className="flex flex-wrap gap-2">
                                 {(tournament as any).phases.map((phase: any) => {
@@ -195,7 +195,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                                         >
                                             {phase.name}
                                             <span className={`ml-2 text-[10px] uppercase ${isActive ? "text-primary/70" : "text-muted-foreground/50"}`}>
-                                                {phase.status === "running" ? "Live" : phase.status === "finished" ? "Fin" : "Futur"}
+                                                {phase.status === "running" ? "Live" : phase.status === "finished" ? "Finished" : "Upcoming"}
                                             </span>
                                         </Link>
                                     );
@@ -211,10 +211,10 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                         {[
-                            { id: "all", label: "Tous", icon: Trophy, count: matches.length },
-                            { id: "running", label: "En cours", icon: Play, count: matches.filter(m => m.status === "running").length },
-                            { id: "upcoming", label: "À venir", icon: Clock, count: matches.filter(m => m.status === "not_started").length },
-                            { id: "finished", label: "Terminés", icon: CheckCircle, count: matches.filter(m => m.status === "finished").length },
+                            { id: "all", label: "All", icon: Trophy, count: matches.length },
+                            { id: "running", label: "Ongoing", icon: Play, count: matches.filter(m => m.status === "running").length },
+                            { id: "upcoming", label: "Upcoming", icon: Clock, count: matches.filter(m => m.status === "not_started").length },
+                            { id: "finished", label: "Finished", icon: CheckCircle, count: matches.filter(m => m.status === "finished").length },
                         ].map((item) => {
                             const Icon = item.icon;
                             const isActive = filter === item.id;
@@ -257,7 +257,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
                 {viewMode === 'list' ? (
                     filteredMatches.length === 0 ? (
                         <div className="py-20 text-center border border-dashed border-card-border rounded-xl">
-                            <p className="text-muted-foreground">Aucun match trouvé pour ce filtre</p>
+                            <p className="text-muted-foreground">No matches found for this filter</p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

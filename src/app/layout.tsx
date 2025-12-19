@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   creator: "PawsEsport",
   openGraph: {
     type: "website",
-    locale: "fr_FR",
+    locale: "en_US",
     url: "https://pawsesport.com",
     siteName: "PawsEsport",
     title: "PawsEsport | Transfer Market & Match Tracker",
@@ -66,7 +66,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${oswald.variable} ${inter.variable} antialiased bg-background text-foreground font-sans`}
       >

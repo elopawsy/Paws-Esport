@@ -48,10 +48,10 @@ export default function LeaderboardPage() {
     }, []);
 
     const tabs: { id: TabType; label: string; icon: React.ElementType; color: string }[] = [
-        { id: "coins", label: "Plus de Coins", icon: Coins, color: "text-yellow-500" },
-        { id: "winrate", label: "Meilleur Winrate", icon: Target, color: "text-green-500" },
-        { id: "earnings", label: "Plus de Gains", icon: TrendingUp, color: "text-blue-500" },
-        { id: "profit", label: "Meilleur Profit", icon: Trophy, color: "text-purple-500" },
+        { id: "coins", label: "Most Coins", icon: Coins, color: "text-yellow-500" },
+        { id: "winrate", label: "Highest Winrate", icon: Target, color: "text-green-500" },
+        { id: "earnings", label: "Most Earnings", icon: TrendingUp, color: "text-blue-500" },
+        { id: "profit", label: "Best Profit", icon: Trophy, color: "text-purple-500" },
     ];
 
     const getRankIcon = (rank: number) => {
@@ -132,8 +132,8 @@ export default function LeaderboardPage() {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${activeTab === tab.id
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-card border border-card-border hover:border-primary/50"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-card border border-card-border hover:border-primary/50"
                             }`}
                     >
                         <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? "" : tab.color}`} />
@@ -151,13 +151,13 @@ export default function LeaderboardPage() {
                 <div className="bg-card border border-card-border rounded-xl overflow-hidden">
                     {/* Header */}
                     <div className="grid grid-cols-12 gap-4 px-6 py-4 border-b border-card-border bg-secondary/30 text-sm font-medium text-muted-foreground">
-                        <div className="col-span-1">Rang</div>
-                        <div className="col-span-5 sm:col-span-6">Joueur</div>
-                        <div className="col-span-3 sm:col-span-2 text-center">Paris</div>
+                        <div className="col-span-1">Rank</div>
+                        <div className="col-span-5 sm:col-span-6">Player</div>
+                        <div className="col-span-3 sm:col-span-2 text-center">Bets</div>
                         <div className="col-span-3 text-right">
                             {activeTab === "coins" && "Coins"}
                             {activeTab === "winrate" && "Winrate"}
-                            {activeTab === "earnings" && "Gains"}
+                            {activeTab === "earnings" && "Earnings"}
                             {activeTab === "profit" && "Profit"}
                         </div>
                     </div>
@@ -165,7 +165,7 @@ export default function LeaderboardPage() {
                     {/* Rows */}
                     {getCurrentData().length === 0 ? (
                         <div className="px-6 py-12 text-center text-muted-foreground">
-                            Aucun joueur à afficher
+                            No players to display
                         </div>
                     ) : (
                         getCurrentData().map((user, index) => (
@@ -195,7 +195,7 @@ export default function LeaderboardPage() {
 
                                 {/* Total bets */}
                                 <div className="col-span-3 sm:col-span-2 flex items-center justify-center text-sm text-muted-foreground">
-                                    {user.stats.totalBets} paris
+                                    {user.stats.totalBets} bets
                                 </div>
 
                                 {/* Main stat */}
@@ -211,7 +211,7 @@ export default function LeaderboardPage() {
             {/* Legend */}
             {activeTab === "winrate" && (
                 <p className="mt-4 text-sm text-muted-foreground text-center">
-                    * Minimum 3 paris requis pour apparaître dans ce classement
+                    * Minimum 3 bets required to specific in this leaderboard
                 </p>
             )}
         </div>

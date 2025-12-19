@@ -57,7 +57,7 @@ export default function CurrentBetDisplay({ matchId, teams }: CurrentBetDisplayP
         switch (bet.status) {
             case "WON":
                 return {
-                    label: "Pari Gagné ! 🎉",
+                    label: "Bet Won! 🎉",
                     color: "text-green-500",
                     bg: "bg-green-500/10",
                     border: "border-green-500/30",
@@ -65,7 +65,7 @@ export default function CurrentBetDisplay({ matchId, teams }: CurrentBetDisplayP
                 };
             case "LOST":
                 return {
-                    label: "Pari Perdu",
+                    label: "Bet Lost",
                     color: "text-red-500",
                     bg: "bg-red-500/10",
                     border: "border-red-500/30",
@@ -73,7 +73,7 @@ export default function CurrentBetDisplay({ matchId, teams }: CurrentBetDisplayP
                 };
             default:
                 return {
-                    label: "Ton Pari",
+                    label: "Your Bet",
                     color: "text-yellow-500",
                     bg: "bg-yellow-500/10",
                     border: "border-yellow-500/30",
@@ -93,7 +93,7 @@ export default function CurrentBetDisplay({ matchId, teams }: CurrentBetDisplayP
                     <div>
                         <span className={`font-bold ${statusInfo.color}`}>{statusInfo.label}</span>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span>sur</span>
+                            <span>on</span>
                             {selectedTeam?.image_url ? (
                                 <img src={selectedTeam.image_url} alt="" className="w-4 h-4 object-contain" />
                             ) : null}
@@ -110,12 +110,12 @@ export default function CurrentBetDisplay({ matchId, teams }: CurrentBetDisplayP
                             <Coins className="w-4 h-4 text-yellow-500" />
                             <span>{bet.amount}</span>
                         </div>
-                        <span className="text-xs text-muted-foreground">Mise</span>
+                        <span className="text-xs text-muted-foreground">Bet</span>
                     </div>
 
                     <div className="text-center">
                         <span className="text-lg font-bold">x{bet.odds.toFixed(2)}</span>
-                        <span className="text-xs text-muted-foreground block">Cote</span>
+                        <span className="text-xs text-muted-foreground block">Odds</span>
                     </div>
 
                     <div className="text-center">
@@ -123,7 +123,7 @@ export default function CurrentBetDisplay({ matchId, teams }: CurrentBetDisplayP
                             {bet.status === "WON" ? "+" : ""}{bet.potentialWin}
                         </span>
                         <span className="text-xs text-muted-foreground block">
-                            {bet.status === "WON" ? "Gagné" : bet.status === "LOST" ? "Perdu" : "Gain potentiel"}
+                            {bet.status === "WON" ? "Won" : bet.status === "LOST" ? "Lost" : "Potential Win"}
                         </span>
                     </div>
                 </div>

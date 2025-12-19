@@ -55,10 +55,10 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
     const isBettable = match.status === "not_started" && team1 && team2;
 
     const statusColors: Record<string, { bg: string; text: string; label: string, icon: any }> = {
-        running: { bg: "bg-red-500/10", text: "text-red-500", label: "EN DIRECT", icon: Activity },
-        finished: { bg: "bg-secondary", text: "text-muted-foreground", label: "Terminé", icon: CheckCircle },
-        not_started: { bg: "bg-primary/10", text: "text-primary", label: "À venir", icon: Calendar },
-        canceled: { bg: "bg-secondary", text: "text-muted-foreground", label: "Annulé", icon: XCircle },
+        running: { bg: "bg-red-500/10", text: "text-red-500", label: "LIVE", icon: Activity },
+        finished: { bg: "bg-secondary", text: "text-muted-foreground", label: "Finished", icon: CheckCircle },
+        not_started: { bg: "bg-primary/10", text: "text-primary", label: "Upcoming", icon: Calendar },
+        canceled: { bg: "bg-secondary", text: "text-muted-foreground", label: "Canceled", icon: XCircle },
     };
     const statusInfo = statusColors[match.status] || statusColors.not_started;
     const StatusIcon = statusInfo.icon;
@@ -119,7 +119,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                     <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors mb-6 group">
 
                         <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                        Retour
+                        Back
                     </Link>
 
                     {/* League info */}
@@ -166,7 +166,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                         <p className="text-xl font-bold font-display tracking-wide group-hover:text-primary transition-colors">{team1.name}</p>
                                         {isFinished && match.winner_id === team1.id && (
                                             <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-1">
-                                                <Trophy className="w-3 h-3" /> Vainqueur
+                                                <Trophy className="w-3 h-3" /> Winner
                                             </span>
                                         )}
                                     </div>
@@ -190,7 +190,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full border border-card-border">
                                 <Clock className="w-3.5 h-3.5" />
-                                {match.scheduled_at && new Date(match.scheduled_at).toLocaleString("fr-FR", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                {match.scheduled_at && new Date(match.scheduled_at).toLocaleString("en-US", { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                             </div>
                         </div>
 
@@ -209,7 +209,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                         <p className="text-xl font-bold font-display tracking-wide group-hover:text-primary transition-colors">{team2.name}</p>
                                         {isFinished && match.winner_id === team2.id && (
                                             <span className="inline-flex items-center gap-1 text-xs font-bold text-primary mt-1">
-                                                <Trophy className="w-3 h-3" /> Vainqueur
+                                                <Trophy className="w-3 h-3" /> Winner
                                             </span>
                                         )}
                                     </div>
@@ -245,14 +245,14 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold rounded-lg transition-all hover:scale-105 shadow-lg shadow-yellow-500/20"
                             >
                                 <TrendingUp className="w-4 h-4" />
-                                Parier
+                                Place Bet
                                 <Coins className="w-4 h-4" />
                             </button>
                         )}
                         {isBettable && !session?.user && (
                             <span className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-lg text-xs">
                                 <TrendingUp className="w-4 h-4" />
-                                Connecte-toi pour parier
+                                Login to bet
                             </span>
                         )}
                     </div>
@@ -298,7 +298,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                                 )}
                                             </div>
                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${game.status === "finished" ? "bg-secondary text-muted-foreground border-card-border" : game.status === "running" ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-card border-card-border text-muted-foreground"}`}>
-                                                {game.status === "finished" ? "Terminé" : game.status === "running" ? "LIVE" : "-"}
+                                                {game.status === "finished" ? "Finished" : game.status === "running" ? "LIVE" : "-"}
                                             </span>
                                         </div>
 
@@ -407,7 +407,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                         <div className="flex items-center justify-between mb-3">
                                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Map {game.position}</span>
                                             <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${game.status === "finished" ? "bg-secondary text-muted-foreground border-card-border" : game.status === "running" ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-card border-card-border text-muted-foreground"}`}>
-                                                {game.status === "finished" ? "Terminé" : game.status === "running" ? "LIVE" : "-"}
+                                                {game.status === "finished" ? "Finished" : game.status === "running" ? "LIVE" : "-"}
                                             </span>
                                         </div>
                                         <div className="flex justify-between text-sm font-medium mb-1">
@@ -473,7 +473,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                 <div key={idx} className="bg-card border border-card-border rounded-xl p-6 shadow-sm">
                                     <h2 className="font-display font-bold text-lg mb-6 flex items-center gap-2">
                                         <Activity className="w-5 h-5 text-primary" />
-                                        Forme récente - {team?.name}
+                                        Recent Form - {team?.name}
                                     </h2>
                                     <div className="flex gap-2 mb-6">
                                         {form.map((m: any) => (
@@ -485,7 +485,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                     <div className="space-y-2">
                                         {form.map((m: any) => (
                                             <div key={m.id} className="flex items-center justify-between p-2 bg-background/30 rounded text-sm">
-                                                <span className="text-xs text-muted-foreground w-20">{new Date(m.scheduled_at).toLocaleDateString("fr-FR")}</span>
+                                                <span className="text-xs text-muted-foreground w-20">{new Date(m.scheduled_at).toLocaleDateString("en-US")}</span>
                                                 <span className="font-medium truncate flex-1 mx-2">{m.opponent_name}</span>
                                                 <span className={`font-mono font-bold ${m.won ? "text-green-500" : "text-red-500"}`}>{m.score}-{m.opponent_score}</span>
                                             </div>
@@ -502,7 +502,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                     <div className="bg-card border border-card-border rounded-xl p-6 shadow-sm">
                         <h2 className="font-display font-bold text-lg mb-6 flex items-center gap-2">
                             <Swords className="w-5 h-5 text-primary" />
-                            Face à Face ({match.headToHead.length} derniers matchs)
+                            Head to Head (Last {match.headToHead.length} matches)
                         </h2>
                         <div className="space-y-2">
                             {match.headToHead.map((h2h: any) => {
@@ -513,7 +513,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                 return (
                                     <div key={h2h.id} className="flex items-center justify-between p-3 bg-background/50 border border-card-border rounded-lg text-sm hover:border-primary/30 transition-colors">
                                         <div className="flex items-center gap-3">
-                                            <span className="text-xs text-muted-foreground">{new Date(h2h.scheduled_at).toLocaleDateString("fr-FR")}</span>
+                                            <span className="text-xs text-muted-foreground">{new Date(h2h.scheduled_at).toLocaleDateString("en-US")}</span>
                                             <span className="text-xs font-bold text-muted-foreground/70 uppercase tracking-wide px-2 py-0.5 bg-secondary rounded">{h2h.league_name}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -543,7 +543,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                     </div>
                                     <div>
                                         <p className="text-sm font-bold text-foreground">{stream.language?.toUpperCase()} {stream.main && "(Main)"}</p>
-                                        <p className="text-xs text-muted-foreground">{stream.official ? "Officiel" : "Non-officiel"}</p>
+                                        <p className="text-xs text-muted-foreground">{stream.official ? "Official" : "Unofficial"}</p>
                                     </div>
                                 </a>
                             ))}

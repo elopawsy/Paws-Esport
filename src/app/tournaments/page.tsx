@@ -3,8 +3,8 @@ import { TournamentService } from "@/services";
 import TournamentsClient from "./TournamentsClient";
 
 export const metadata: Metadata = {
-    title: "Tournois Esports - Calendrier et Résultats CS2, LoL, Valorant",
-    description: "Découvrez tous les tournois esports en cours et à venir. Calendrier complet, résultats en direct et classements pour Counter-Strike 2, League of Legends et Valorant.",
+    title: "Esports Tournaments - Calendar and Results CS2, LoL, Valorant",
+    description: "Discover all ongoing and upcoming esports tournaments. Complete calendar, live results, and rankings for Counter-Strike 2, League of Legends, and Valorant.",
 };
 
 export default async function TournamentsPage() {
@@ -25,8 +25,8 @@ export default async function TournamentsPage() {
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "CollectionPage",
-        "name": "Tournois Esports CS2",
-        "description": "Liste des tournois esports Counter-Strike 2 en cours et à venir.",
+        "name": "CS2 Esports Tournaments",
+        "description": "List of ongoing and upcoming Counter-Strike 2 esports tournaments.",
         "hasPart": [
             ...running.map((t: any) => ({
                 "@type": "SportsEvent",

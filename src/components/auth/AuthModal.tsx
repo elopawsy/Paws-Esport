@@ -60,7 +60,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             }
         } catch (err) {
             console.error("Sign in exception:", err);
-            setError("Une erreur est survenue lors de la connexion");
+            setError("An error occurred during login");
         } finally {
             setIsLoading(false);
         }
@@ -71,12 +71,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         setError(null);
 
         if (password !== confirmPassword) {
-            setError("Les mots de passe ne correspondent pas");
+            setError("Passwords do not match");
             return;
         }
 
         if (password.length < 8) {
-            setError("Le mot de passe doit contenir au moins 8 caractères");
+            setError("Password must be at least 8 characters");
             return;
         }
 
@@ -98,7 +98,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 window.location.reload();
             }
         } catch {
-            setError("Une erreur est survenue lors de l'inscription");
+            setError("An error occurred during registration");
         } finally {
             setIsLoading(false);
         }
@@ -133,7 +133,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             : "text-muted-foreground hover:text-foreground"
                             }`}
                     >
-                        Connexion
+                        Login
                     </button>
                     <button
                         onClick={() => handleTabChange("register")}
@@ -142,7 +142,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             : "text-muted-foreground hover:text-foreground"
                             }`}
                     >
-                        Inscription
+                        Register
                     </button>
                 </div>
 
@@ -162,7 +162,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     {activeTab === "register" && (
                         <div className="space-y-2">
                             <label htmlFor="name" className="block text-sm text-muted-foreground">
-                                Pseudo (optionnel)
+                                Username (optional)
                             </label>
                             <div className="relative">
                                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -171,7 +171,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    placeholder="Ton pseudo"
+                                    placeholder="Your username"
                                     className="w-full pl-10 pr-4 py-3 bg-background border border-card-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                                 />
                             </div>
@@ -190,7 +190,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="ton@email.com"
+                                placeholder="your@email.com"
                                 required
                                 className="w-full pl-10 pr-4 py-3 bg-background border border-card-border rounded-md text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
                             />
@@ -200,7 +200,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     {/* Password field */}
                     <div className="space-y-2">
                         <label htmlFor="password" className="block text-sm text-muted-foreground">
-                            Mot de passe
+                            Password
                         </label>
                         <div className="relative">
                             <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -221,7 +221,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     {activeTab === "register" && (
                         <div className="space-y-2">
                             <label htmlFor="confirmPassword" className="block text-sm text-muted-foreground">
-                                Confirmer le mot de passe
+                                Confirm Password
                             </label>
                             <div className="relative">
                                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -248,12 +248,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                         {isLoading ? (
                             <>
                                 <Loader2 className="w-4 h-4 animate-spin" />
-                                Chargement...
+                                Loading...
                             </>
                         ) : activeTab === "login" ? (
-                            "Se connecter"
+                            "Login"
                         ) : (
-                            "S'inscrire"
+                            "Register"
                         )}
                     </button>
                 </form>

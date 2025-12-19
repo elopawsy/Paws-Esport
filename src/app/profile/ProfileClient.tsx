@@ -120,12 +120,12 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
             const data = await res.json();
 
             if (!res.ok) {
-                setAvatarError(data.error || "Erreur lors de l'upload");
+                setAvatarError(data.error || "Upload error");
             } else {
                 setCurrentImage(data.imageUrl);
             }
         } catch {
-            setAvatarError("Erreur lors de l'upload");
+            setAvatarError("Upload error");
         } finally {
             setIsUploadingAvatar(false);
             if (fileInputRef.current) {
@@ -147,7 +147,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                 setCurrentImage(null);
             }
         } catch {
-            setAvatarError("Erreur lors de la suppression");
+            setAvatarError("Deletion error");
         } finally {
             setIsUploadingAvatar(false);
         }
@@ -198,13 +198,13 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
             const data = await res.json();
 
             if (!res.ok) {
-                setFriendError(data.error || "Une erreur est survenue");
+                setFriendError(data.error || "An error occurred");
             } else {
-                setFriendSuccess("Demande d'ami envoyée !");
+                setFriendSuccess("Friend request sent!");
                 setFriendUsername("");
             }
         } catch {
-            setFriendError("Une erreur est survenue");
+            setFriendError("An error occurred");
         } finally {
             setIsAddingFriend(false);
         }
@@ -237,7 +237,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
 
     return (
         <div className="container-custom py-8">
-            <h1 className="text-3xl font-display font-bold mb-8">Mon Profil</h1>
+            <h1 className="text-3xl font-display font-bold mb-8">My Profile</h1>
 
             <div className="grid gap-6 lg:grid-cols-2">
                 {/* User Info Card */}
@@ -259,7 +259,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                                     onClick={() => fileInputRef.current?.click()}
                                     disabled={isUploadingAvatar}
                                     className="p-1.5 bg-primary/80 hover:bg-primary text-white rounded-full transition-colors"
-                                    title="Changer la photo"
+                                    title="Change photo"
                                 >
                                     {isUploadingAvatar ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -272,7 +272,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                                         onClick={handleRemoveAvatar}
                                         disabled={isUploadingAvatar}
                                         className="p-1.5 bg-destructive/80 hover:bg-destructive text-white rounded-full transition-colors"
-                                        title="Supprimer la photo"
+                                        title="Delete photo"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -301,7 +301,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                     <div className="flex items-center gap-3 p-4 bg-yellow-500/10 rounded-lg mb-6">
                         <Coins className="w-8 h-8 text-yellow-500" />
                         <div>
-                            <p className="text-sm text-muted-foreground">Solde</p>
+                            <p className="text-sm text-muted-foreground">Balance</p>
                             <p className="text-2xl font-bold text-yellow-500">{user.coins.toLocaleString()} coins</p>
                         </div>
                     </div>
@@ -311,7 +311,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                 <div id="favorite-team" className="bg-card border border-card-border rounded-lg p-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Heart className="w-5 h-5 text-primary" />
-                        <h3 className="text-lg font-bold">Équipe Favorite</h3>
+                        <h3 className="text-lg font-bold">Favorite Team</h3>
                     </div>
 
                     {selectedTeam ? (
@@ -335,7 +335,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                             </div>
                         </div>
                     ) : (
-                        <p className="text-muted-foreground mb-4">Aucune équipe sélectionnée</p>
+                        <p className="text-muted-foreground mb-4">No team selected</p>
                     )}
 
                     {/* Team Selector */}
@@ -347,7 +347,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                                 value={teamSearch}
                                 onChange={(e) => setTeamSearch(e.target.value)}
                                 onFocus={() => setShowTeamDropdown(true)}
-                                placeholder="Rechercher une équipe..."
+                                placeholder="Search for a team..."
                                 className="w-full pl-10 pr-4 py-2 bg-background border border-card-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
                             />
                         </div>
@@ -360,7 +360,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                                     </div>
                                 ) : searchedTeams.length === 0 ? (
                                     <p className="px-4 py-3 text-muted-foreground text-sm">
-                                        {teamSearch.length >= 2 ? "Aucune équipe trouvée" : "Tape au moins 2 caractères..."}
+                                        {teamSearch.length >= 2 ? "No team found" : "Type at least 2 characters..."}
                                     </p>
                                 ) : (
                                     searchedTeams.map((team: Team) => (
@@ -391,7 +391,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                 <div id="friends" className="bg-card border border-card-border rounded-lg p-6 lg:col-span-2">
                     <div className="flex items-center gap-2 mb-4">
                         <Users className="w-5 h-5 text-primary" />
-                        <h3 className="text-lg font-bold">Mes Amis</h3>
+                        <h3 className="text-lg font-bold">My Friends</h3>
                     </div>
 
                     {/* Add Friend Form */}
@@ -402,7 +402,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                                 type="text"
                                 value={friendUsername}
                                 onChange={(e) => setFriendUsername(e.target.value)}
-                                placeholder="Pseudo du joueur à ajouter..."
+                                placeholder="Username of player to add..."
                                 className="w-full pl-10 pr-4 py-2 bg-background border border-card-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50"
                             />
                         </div>
@@ -411,7 +411,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                             disabled={isAddingFriend || !friendUsername.trim()}
                             className="px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground font-medium rounded-md transition-colors disabled:opacity-50"
                         >
-                            {isAddingFriend ? <Loader2 className="w-4 h-4 animate-spin" /> : "Ajouter"}
+                            {isAddingFriend ? <Loader2 className="w-4 h-4 animate-spin" /> : "Add"}
                         </button>
                     </form>
 
@@ -430,7 +430,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                     {currentPendingRequests.length > 0 && (
                         <div className="mb-6">
                             <h4 className="font-medium text-sm text-muted-foreground mb-3">
-                                Demandes en attente ({currentPendingRequests.length})
+                                Pending Requests ({currentPendingRequests.length})
                             </h4>
                             <div className="space-y-2">
                                 {currentPendingRequests.map(({ friendshipId, user: friend }) => (
@@ -476,7 +476,7 @@ export default function ProfileClient({ user, teams, friends, pendingRequests }:
                     {/* Friends List */}
                     {currentFriends.length === 0 ? (
                         <p className="text-muted-foreground text-center py-8">
-                            Tu n&apos;as pas encore d&apos;amis. Ajoute quelqu&apos;un avec son email !
+                            You don&apos;t have any friends yet. Add someone by username!
                         </p>
                     ) : (
                         <div className="grid gap-3 sm:grid-cols-2">

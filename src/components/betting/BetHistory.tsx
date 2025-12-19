@@ -41,13 +41,13 @@ export default function BetHistory() {
     const getStatusInfo = (status: Bet["status"]) => {
         switch (status) {
             case "WON":
-                return { label: "Gagné", icon: Trophy, color: "text-green-500", bg: "bg-green-500/10" };
+                return { label: "Won", icon: Trophy, color: "text-green-500", bg: "bg-green-500/10" };
             case "LOST":
-                return { label: "Perdu", icon: XCircle, color: "text-red-500", bg: "bg-red-500/10" };
+                return { label: "Lost", icon: XCircle, color: "text-red-500", bg: "bg-red-500/10" };
             case "CANCELED":
-                return { label: "Annulé", icon: XCircle, color: "text-muted-foreground", bg: "bg-secondary" };
+                return { label: "Canceled", icon: XCircle, color: "text-muted-foreground", bg: "bg-secondary" };
             default:
-                return { label: "En cours", icon: Clock, color: "text-yellow-500", bg: "bg-yellow-500/10" };
+                return { label: "Ongoing", icon: Clock, color: "text-yellow-500", bg: "bg-yellow-500/10" };
         }
     };
 
@@ -62,7 +62,7 @@ export default function BetHistory() {
         <div className="bg-card border border-card-border rounded-lg p-6">
             <div className="flex items-center gap-2 mb-6">
                 <TrendingUp className="w-5 h-5 text-primary" />
-                <h3 className="text-lg font-bold">Mes Paris</h3>
+                <h3 className="text-lg font-bold">My Bets</h3>
             </div>
 
             {/* Stats Summary */}
@@ -73,21 +73,21 @@ export default function BetHistory() {
                 </div>
                 <div className="p-3 bg-green-500/10 rounded-lg text-center">
                     <p className="text-2xl font-bold text-green-500">{wonBets}</p>
-                    <p className="text-xs text-muted-foreground">Gagnés</p>
+                    <p className="text-xs text-muted-foreground">Won</p>
                 </div>
                 <div className="p-3 bg-red-500/10 rounded-lg text-center">
                     <p className="text-2xl font-bold text-red-500">{lostBets}</p>
-                    <p className="text-xs text-muted-foreground">Perdus</p>
+                    <p className="text-xs text-muted-foreground">Lost</p>
                 </div>
                 <div className="p-3 bg-yellow-500/10 rounded-lg text-center">
                     <p className="text-2xl font-bold text-yellow-500">{pendingBets}</p>
-                    <p className="text-xs text-muted-foreground">En cours</p>
+                    <p className="text-xs text-muted-foreground">Ongoing</p>
                 </div>
             </div>
 
             {/* Profit/Loss Summary */}
             <div className="flex items-center justify-between p-3 bg-secondary/20 rounded-lg mb-6">
-                <span className="text-sm text-muted-foreground">Bilan total</span>
+                <span className="text-sm text-muted-foreground">Total Balance</span>
                 <span className={`font-bold text-lg ${totalEarnings - totalLosses >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                     {totalEarnings - totalLosses >= 0 ? '+' : ''}{(totalEarnings - totalLosses).toLocaleString()} coins
                 </span>
@@ -100,11 +100,11 @@ export default function BetHistory() {
                         key={f}
                         onClick={() => setFilter(f)}
                         className={`px-3 py-1.5 text-sm rounded-md transition-colors ${filter === f
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary hover:bg-secondary/80"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-secondary hover:bg-secondary/80"
                             }`}
                     >
-                        {f === "all" ? "Tous" : f === "PENDING" ? "En cours" : f === "WON" ? "Gagnés" : "Perdus"}
+                        {f === "all" ? "All" : f === "PENDING" ? "Ongoing" : f === "WON" ? "Won" : "Lost"}
                     </button>
                 ))}
             </div>
@@ -116,7 +116,7 @@ export default function BetHistory() {
                 </div>
             ) : bets.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                    {filter === "all" ? "Tu n'as pas encore placé de paris" : "Aucun pari dans cette catégorie"}
+                    {filter === "all" ? "You haven't placed any bets yet" : "No bets in this category"}
                 </p>
             ) : (
                 <div className="space-y-3 max-h-[400px] overflow-y-auto">
@@ -143,7 +143,7 @@ export default function BetHistory() {
                                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                             <span>x{bet.odds.toFixed(2)}</span>
                                             <span>•</span>
-                                            <span>{new Date(bet.createdAt).toLocaleDateString('fr-FR')}</span>
+                                            <span>{new Date(bet.createdAt).toLocaleDateString('en-US')}</span>
                                         </div>
                                     </div>
                                 </div>

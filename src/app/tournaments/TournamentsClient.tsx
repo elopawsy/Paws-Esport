@@ -131,7 +131,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
                     <Calendar className="w-3.5 h-3.5 mr-2 text-primary" />
                     {tournament.begin_at && (
                         <span>
-                            {new Date(tournament.begin_at).toLocaleDateString("fr-FR", {
+                            {new Date(tournament.begin_at).toLocaleDateString("en-US", {
                                 day: "numeric",
                                 month: "short",
                             })}
@@ -140,7 +140,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
                     {tournament.begin_at && tournament.end_at && <span className="mx-1">→</span>}
                     {tournament.end_at && (
                         <span>
-                            {new Date(tournament.end_at).toLocaleDateString("fr-FR", {
+                            {new Date(tournament.end_at).toLocaleDateString("en-US", {
                                 day: "numeric",
                                 month: "short",
                                 year: "numeric",

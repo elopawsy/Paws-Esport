@@ -102,7 +102,7 @@ const TeamCard = memo(function TeamCard({
                 <button
                     onClick={onRemove}
                     className="absolute top-2 right-2 text-muted-foreground hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-1 bg-background/80 rounded"
-                    title="Supprimer l'équipe"
+                    title="Delete team"
                 >
                     <Trash2 className="w-4 h-4" />
                 </button>
@@ -371,14 +371,14 @@ const TransferItem = memo(function TransferItem({
             <div className="flex-1 min-w-0">
                 <span className="block text-sm font-bold text-foreground truncate">{transfer.player.name}</span>
                 <span className="text-[10px] text-muted-foreground font-medium">
-                    {new Date(transfer.timestamp).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
+                    {new Date(transfer.timestamp).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                 </span>
             </div>
 
             <button
                 onClick={onUndo}
                 className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 bg-background border border-card-border rounded-md hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all text-muted-foreground shadow-sm"
-                title="Annuler le transfert"
+                title="Undo transfer"
             >
                 <RotateCcw className="w-3.5 h-3.5" />
             </button>
@@ -709,7 +709,7 @@ export default function SimulatorPage() {
             link.click();
         } catch (error) {
             console.error('Error exporting image:', error);
-            alert('Erreur lors de l\'exportation.');
+            alert('Error exporting image.');
         }
     }
 
@@ -728,7 +728,7 @@ export default function SimulatorPage() {
             link.click();
         } catch (error) {
             console.error('Error exporting image:', error);
-            alert('Erreur lors de l\'exportation.');
+            alert('Error exporting image.');
         }
     }
 

@@ -103,7 +103,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
 
           {tournament.begin_at && (
             <span>
-              {new Date(tournament.begin_at).toLocaleDateString("fr-FR", {
+              {new Date(tournament.begin_at).toLocaleDateString("en-US", {
                 day: "numeric",
                 month: "short",
               })}
@@ -114,7 +114,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
 
           {tournament.end_at && (
             <span>
-              {new Date(tournament.end_at).toLocaleDateString("fr-FR", {
+              {new Date(tournament.end_at).toLocaleDateString("en-US", {
                 day: "numeric",
                 month: "short",
               })}

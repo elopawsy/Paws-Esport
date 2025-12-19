@@ -9,7 +9,7 @@ interface TournamentLike {
 }
 
 export function getTournamentDisplayName(tournament: TournamentLike | null): string {
-    if (!tournament) return "Tournoi";
+    if (!tournament) return "Tournament";
 
     const parts = [];
     if (tournament.league?.name) parts.push(tournament.league.name);

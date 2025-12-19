@@ -97,7 +97,7 @@ export default function UserMenu() {
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
                         >
                             <User className="w-4 h-4 text-muted-foreground" />
-                            Mon Profil
+                            My Profile
                         </Link>
                         <Link
                             href="/profile#favorite-team"
@@ -105,7 +105,7 @@ export default function UserMenu() {
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
                         >
                             <Heart className="w-4 h-4 text-muted-foreground" />
-                            Équipe Favorite
+                            Favorite Team
                         </Link>
                         <Link
                             href="/profile#friends"
@@ -113,14 +113,14 @@ export default function UserMenu() {
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
                         >
                             <Users className="w-4 h-4 text-muted-foreground" />
-                            Mes Amis
+                            Friends
                         </Link>
                     </div>
 
                     {/* Settings */}
                     <div className="border-t border-card-border py-1">
                         <div className="flex items-center justify-between px-4 py-2.5 text-sm text-foreground">
-                            <span className="font-medium">Thème</span>
+                            <span className="font-medium">Theme</span>
                             <ThemeToggle />
                         </div>
                     </div>
@@ -132,7 +132,7 @@ export default function UserMenu() {
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors w-full"
                         >
                             <LogOut className="w-4 h-4" />
-                            Se déconnecter
+                            Log Out
                         </button>
                     </div>
                 </div>

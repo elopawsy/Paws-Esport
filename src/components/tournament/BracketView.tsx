@@ -34,7 +34,7 @@ function BracketMatchCard({ match, isWinner, hasLineRight, lineType }: { match: 
             <Link href={`/match/${match.id}`} className="block h-full bg-card border border-card-border rounded-lg overflow-hidden hover:border-primary/50 transition-colors flex flex-col">
                 {/* Header */}
                 <div className="bg-secondary/30 px-3 py-1 text-[10px] text-muted-foreground flex justify-between items-center border-b border-card-border h-[26px]">
-                    <span>{match.status === 'running' ? 'LIVE' : match.begin_at ? new Date(match.begin_at).toLocaleDateString() : 'TBD'}</span>
+                    <span>{match.status === 'running' ? 'LIVE' : match.begin_at ? new Date(match.begin_at).toLocaleDateString("en-US") : 'TBD'}</span>
                     {match.status === 'running' && <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
                 </div>
 
