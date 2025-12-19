@@ -184,9 +184,9 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                         {/* Score */}
                         <div className="flex flex-col items-center gap-2">
                             <div className="flex items-center gap-6">
-                                <span className={`text-6xl font-display font-bold ${match.winner_id === team1?.id ? "text-primary" : "text-foreground"}`}>{score1}</span>
-                                <span className="text-2xl text-muted-foreground/50 font-light">vs</span>
-                                <span className={`text-6xl font-display font-bold ${match.winner_id === team2?.id ? "text-primary" : "text-foreground"}`}>{score2}</span>
+                                <span className={`text-4xl md:text-6xl font-display font-bold ${match.winner_id === team1?.id ? "text-primary" : "text-foreground"}`}>{score1}</span>
+                                <span className="text-xl md:text-2xl text-muted-foreground/50 font-light">vs</span>
+                                <span className={`text-4xl md:text-6xl font-display font-bold ${match.winner_id === team2?.id ? "text-primary" : "text-foreground"}`}>{score2}</span>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary/50 px-3 py-1 rounded-full border border-card-border">
                                 <Clock className="w-3.5 h-3.5" />

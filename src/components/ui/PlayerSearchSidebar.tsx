@@ -163,8 +163,8 @@ export default function PlayerSearchSidebar({
     const displayResults = browseMode ? browseResults : results;
 
     return (
-        <div className="w-80 flex-shrink-0 hidden lg:block">
-            <div className="sticky top-32 bg-card border border-card-border rounded-xl shadow-sm overflow-hidden">
+        <div className="w-full lg:w-80 flex-shrink-0">
+            <div className="lg:sticky lg:top-32 bg-card border border-card-border rounded-xl shadow-sm overflow-hidden">
                 {/* Header */}
                 <div className="px-4 py-4 border-b border-card-border flex items-center justify-between bg-primary/5">
                     <h3 className="font-display font-bold text-sm uppercase tracking-wide text-foreground flex items-center gap-2">

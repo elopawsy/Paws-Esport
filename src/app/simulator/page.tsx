@@ -830,27 +830,32 @@ export default function SimulatorPage() {
                 )}
             </div>
 
-            <div className="min-h-screen bg-background relative z-0">
+            <div className="pt-8 pb-4 bg-background z-0 relative">
+                <div className="container-custom flex items-center gap-4">
+                    <h1 className="text-xl font-display font-bold uppercase tracking-wide text-foreground">
+                        Transfer <span className="text-primary">Simulator</span>
+                    </h1>
+                </div>
+            </div>
+
+            <div className="bg-background relative z-0">
                 <DndContext
                     sensors={sensors}
                     collisionDetection={closestCenter}
                     onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
                 >
-                    <header className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-b border-card-border py-4 shadow-sm">
+                    <header className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-y border-card-border py-4 shadow-sm">
                         <div className="container-custom flex items-center gap-6">
                             <div className="flex-1 flex items-center gap-4">
-                                <h1 className="text-xl font-display font-bold uppercase tracking-wide text-foreground hidden md:block">
-                                    Transfer <span className="text-primary">Simulator</span>
-                                </h1>
-                                <div className="relative group">
+                                <div className="relative group flex-1 max-w-md">
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                                     <input
                                         type="text"
                                         placeholder="Filter teams..."
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        className="w-48 md:w-64 pl-9 pr-4 py-2 bg-secondary/50 border border-card-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+                                        className="w-full pl-9 pr-4 py-2 bg-secondary/50 border border-card-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
                                     />
                                 </div>
                             </div>
@@ -861,7 +866,7 @@ export default function SimulatorPage() {
                                 <Settings className="w-3.5 h-3.5" />
                                 <span className="hidden sm:inline">Manage Teams</span>
                             </button>
-                            <span className="text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Transfers</span>
+                            <span className="hidden md:inline text-[9px] text-muted-foreground uppercase tracking-widest font-bold">Transfers</span>
                             <div className="flex gap-2">
                                 <button
                                     onClick={resetAll}
@@ -874,8 +879,9 @@ export default function SimulatorPage() {
                         </div>
                     </header>
 
-                    <div className="container-custom py-8">
-                        <div className="flex flex-col xl:flex-row gap-8">
+
+                    <div className="container-custom py-4 md:py-8">
+                        <div className="flex flex-col lg:flex-row gap-8">
                             <PlayerSearchSidebar
                                 freeAgents={freeAgents}
                                 teams={displayTeams}
@@ -884,8 +890,8 @@ export default function SimulatorPage() {
                                 onAddFreeAgent={(p: any) => setFreeAgents(prev => [p, ...prev])}
                                 onRemoveFreeAgent={(pid) => setFreeAgents(prev => prev.filter(p => p.id !== pid))}
                             />
-                            <div className="flex-1 min-w-0">
-                                <div ref={teamsGridRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6 bg-secondary/10 rounded-2xl border border-card-border">
+                            <div className="flex-1 min-w-0 order-last lg:order-none">
+                                <div ref={teamsGridRef} className="grid grid-cols-1 xl:grid-cols-2 gap-4 md:gap-6 p-3 md:p-6 bg-secondary/10 rounded-2xl border border-card-border">
                                     {displayTeams.map((team) => (
                                         <TeamCard
                                             key={team.id}

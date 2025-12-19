@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { User, LogOut, Coins, Heart, Users, ChevronDown, Loader2 } from "lucide-react";
 
 export default function UserMenu() {
@@ -114,6 +115,14 @@ export default function UserMenu() {
                             <Users className="w-4 h-4 text-muted-foreground" />
                             Mes Amis
                         </Link>
+                    </div>
+
+                    {/* Settings */}
+                    <div className="border-t border-card-border py-1">
+                        <div className="flex items-center justify-between px-4 py-2.5 text-sm text-foreground">
+                            <span className="font-medium">Thème</span>
+                            <ThemeToggle />
+                        </div>
                     </div>
 
                     {/* Logout */}

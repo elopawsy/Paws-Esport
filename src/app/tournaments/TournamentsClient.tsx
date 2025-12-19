@@ -247,34 +247,34 @@ export default function TournamentsClient({ initialData }: { initialData?: Tourn
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
-            <div className="bg-card/30 border-b border-card-border backdrop-blur-sm sticky top-16 z-40">
-                <div className="container-custom py-6">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                        <div>
-                            <h1 className="text-3xl font-display font-bold text-foreground mb-2 uppercase tracking-wide">
-                                Esports Tournaments
-                            </h1>
-                            <p className="text-muted-foreground">
-                                All running and upcoming major esports events
-                            </p>
-                        </div>
+            <div className="pt-8 pb-4 bg-background">
+                <div className="container-custom">
+                    <h1 className="text-3xl font-display font-bold text-foreground mb-2 uppercase tracking-wide">
+                        Esports Tournaments
+                    </h1>
+                    <p className="text-muted-foreground">
+                        All running and upcoming major esports events
+                    </p>
+                </div>
+            </div>
 
-                        {/* Game Selector */}
-                        <div className="flex gap-2 flex-wrap">
-                            {Object.entries(VIDEO_GAMES).map(([slug, game]) => (
-                                <button
-                                    key={slug}
-                                    onClick={() => setSelectedGame(slug as VideoGameSlug)}
-                                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-all ${selectedGame === slug
-                                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                                        : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-card-border"
-                                        }`}
-                                >
-                                    <Gamepad2 className="w-4 h-4" />
-                                    {game.name}
-                                </button>
-                            ))}
-                        </div>
+            {/* Game Selector Sticky */}
+            <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-y border-card-border shadow-sm">
+                <div className="container-custom py-3">
+                    <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0 lg:flex-wrap scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0">
+                        {Object.entries(VIDEO_GAMES).map(([slug, game]) => (
+                            <button
+                                key={slug}
+                                onClick={() => setSelectedGame(slug as VideoGameSlug)}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold uppercase tracking-wide transition-all whitespace-nowrap ${selectedGame === slug
+                                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                                    : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80 border border-card-border"
+                                    }`}
+                            >
+                                <Gamepad2 className="w-4 h-4" />
+                                {game.name}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
