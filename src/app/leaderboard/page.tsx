@@ -1,13 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Trophy, Coins, TrendingUp, Target, Crown, Medal, Award, Loader2 } from "lucide-react";
+import AddFriendButton from "@/components/ui/AddFriendButton";
+import { useSession } from "@/lib/auth-client";
 
 interface LeaderboardUser {
     id: string;
     name: string;
     image: string | null;
     coins: number;
+    friendshipStatus?: "NONE" | "FRIEND" | "PENDING" | "SELF";
     stats: {
         totalBets: number;
         wonBets: number;
@@ -21,6 +25,7 @@ interface LeaderboardUser {
 type TabType = "coins" | "winrate" | "earnings" | "profit";
 
 export default function LeaderboardPage() {
+    const { data: session } = useSession();
     const [activeTab, setActiveTab] = useState<TabType>("coins");
     const [data, setData] = useState<{
         byCoins: LeaderboardUser[];
@@ -181,16 +186,25 @@ export default function LeaderboardPage() {
 
                                 {/* User */}
                                 <div className="col-span-5 sm:col-span-6 flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                        {user.image ? (
-                                            <img src={user.image} alt="" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-sm font-bold text-primary">
-                                                {user.name.charAt(0).toUpperCase()}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <span className="font-medium truncate">{user.name}</span>
+                                    <Link href={`/u/${user.id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity min-w-0">
+                                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                            {user.image ? (
+                                                <img src={user.image} alt="" className="w-full h-full object-cover" />
+                                            ) : (
+                                                <span className="text-sm font-bold text-primary">
+                                                    {user.name.charAt(0).toUpperCase()}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="font-medium truncate">{user.name}</span>
+                                    </Link>
+                                    {user.friendshipStatus === "NONE" && session?.user?.id !== user.id && (
+                                        <AddFriendButton userId={user.id} minimal className="ml-2" />
+                                    )}
+                                    {/* Optional: Show status icons */}
+                                    {user.friendshipStatus === "FRIEND" && (
+                                        <span className="ml-2 text-green-500 text-xs" title="Friend">●</span>
+                                    )}
                                 </div>
 
                                 {/* Total bets */}

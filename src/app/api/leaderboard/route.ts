@@ -4,6 +4,13 @@ import { NextResponse } from "next/server";
 // GET: Get leaderboard data
 export async function GET() {
     try {
+        const { auth } = await import("@/lib/auth");
+        const { headers } = await import("next/headers");
+        const session = await auth.api.getSession({
+            headers: await headers()
+        });
+        const currentUserId = session?.user?.id;
+
         // Get all users with their bet statistics
         const users = await prisma.user.findMany({
             select: {
@@ -21,6 +28,30 @@ export async function GET() {
                 },
             },
         });
+
+        // Pre-fetch friendships if logged in
+        const friendIds = new Set<string>();
+        const pendingIds = new Set<string>(); // IDs where I sent request or received one
+
+        if (currentUserId) {
+            const friendships = await prisma.friendship.findMany({
+                where: {
+                    OR: [
+                        { senderId: currentUserId },
+                        { receiverId: currentUserId },
+                    ],
+                },
+            });
+
+            for (const f of friendships) {
+                const otherId = f.senderId === currentUserId ? f.receiverId : f.senderId;
+                if (f.status === "ACCEPTED") {
+                    friendIds.add(otherId);
+                } else if (f.status === "PENDING") {
+                    pendingIds.add(otherId);
+                }
+            }
+        }
 
         // Calculate statistics for each user
         const leaderboardData = users.map((user) => {
@@ -42,11 +73,24 @@ export async function GET() {
 
             const netProfit = totalEarnings - totalLosses;
 
+            // Determine friendship status
+            let friendshipStatus: "NONE" | "FRIEND" | "PENDING" | "SELF" = "NONE";
+            if (currentUserId) {
+                if (user.id === currentUserId) {
+                    friendshipStatus = "SELF";
+                } else if (friendIds.has(user.id)) {
+                    friendshipStatus = "FRIEND";
+                } else if (pendingIds.has(user.id)) {
+                    friendshipStatus = "PENDING";
+                }
+            }
+
             return {
                 id: user.id,
                 name: user.name || user.email.split("@")[0],
                 image: user.image,
                 coins: user.coins,
+                friendshipStatus,
                 stats: {
                     totalBets,
                     wonBets,

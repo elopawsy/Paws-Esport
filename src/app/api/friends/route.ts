@@ -58,21 +58,29 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
         }
 
-        const { username } = await request.json();
+        const { username, userId } = await request.json();
 
-        if (!username || typeof username !== "string" || username.trim().length < 2) {
-            return NextResponse.json({ error: "Pseudo invalide (min 2 caractères)" }, { status: 400 });
+        if ((!username || typeof username !== "string" || username.trim().length < 2) && (!userId || typeof userId !== "string")) {
+            return NextResponse.json({ error: "Pseudo ou ID invalide" }, { status: 400 });
         }
 
-        // Find user by name (case-insensitive)
-        const targetUser = await prisma.user.findFirst({
-            where: {
-                name: {
-                    equals: username.trim(),
-                    mode: "insensitive"
-                }
-            },
-        });
+        let targetUser;
+
+        if (userId) {
+            targetUser = await prisma.user.findUnique({
+                where: { id: userId },
+            });
+        } else {
+            // Find user by name (case-insensitive)
+            targetUser = await prisma.user.findFirst({
+                where: {
+                    name: {
+                        equals: username.trim(),
+                        mode: "insensitive"
+                    }
+                },
+            });
+        }
 
         if (!targetUser) {
             return NextResponse.json({ error: "Joueur non trouvé" }, { status: 404 });
