@@ -116,7 +116,7 @@ export default function TrackedTeamsMatches() {
                     {matches.slice(0, 6).map((match) => (
                         <Link
                             key={match.id}
-                            href={`/matches/${match.id}`}
+                            href={`/match/${match.id}`}
                             className="block bg-card hover:bg-card/80 border border-card-border hover:border-primary/30 rounded-xl p-4 transition-all group"
                         >
                             {/* League/Tournament */}
