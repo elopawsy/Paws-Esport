@@ -5,9 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { VIDEO_GAMES } from "@/types";
 import type { VideoGameSlug } from "@/types";
-import { Calendar, Trophy, Coins, ArrowRight, Gamepad2, AlertCircle } from "lucide-react";
+import { Calendar, Trophy, Coins, ArrowRight, AlertCircle } from "lucide-react";
 import { getTournamentDisplayName } from "@/lib/tournament-utils";
 import TrackedTeamsMatches from "@/components/home/TrackedTeamsMatches";
+import AvailableBetsSection from "@/components/home/AvailableBetsSection";
 
 interface Tournament {
   id: number;
@@ -264,6 +265,9 @@ export default function HomePage() {
 
       {/* Tracked Teams Matches Section */}
       <TrackedTeamsMatches />
+
+      {/* Available Bets Section */}
+      <AvailableBetsSection />
 
       {/* Tournaments Section */}
       <section>

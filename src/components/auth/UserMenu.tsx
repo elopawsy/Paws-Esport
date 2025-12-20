@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { signOut, useSession } from "@/lib/auth-client";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { User, LogOut, Coins, Heart, Users, ChevronDown, Loader2 } from "lucide-react";
+import { User, LogOut, Coins, Heart, Users, ChevronDown, Loader2, Shield, TrendingUp } from "lucide-react";
 
 export default function UserMenu() {
     const { data: session, isPending } = useSession();
@@ -43,6 +43,10 @@ export default function UserMenu() {
     const user = session.user;
     const displayName = user.name || user.email?.split("@")[0] || "User";
     const coins = (user as { coins?: number }).coins ?? 1000;
+    const userRole = (user as { role?: string }).role || "user";
+    const isAdmin = userRole === "admin";
+    const isBetManager = userRole === "bet_manager";
+    const hasAdminAccess = isAdmin || isBetManager;
 
     return (
         <div ref={menuRef} className="relative">
@@ -78,7 +82,14 @@ export default function UserMenu() {
                 <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-card-border rounded-lg shadow-xl overflow-hidden z-50">
                     {/* User info header */}
                     <div className="px-4 py-3 border-b border-card-border">
-                        <p className="font-medium text-foreground truncate">{displayName}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="font-medium text-foreground truncate">{displayName}</p>
+                            {hasAdminAccess && (
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isAdmin ? "bg-purple-500/20 text-purple-500" : "bg-blue-500/20 text-blue-500"}`}>
+                                    {isAdmin ? "ADMIN" : "BET MGR"}
+                                </span>
+                            )}
+                        </div>
                         <p className="text-sm text-muted-foreground truncate">{user.email}</p>
 
                         {/* Coins */}
@@ -117,6 +128,32 @@ export default function UserMenu() {
                         </Link>
                     </div>
 
+                    {/* Admin Section */}
+                    {hasAdminAccess && (
+                        <div className="border-t border-card-border py-1">
+                            {isBetManager && !isAdmin && (
+                                <Link
+                                    href="/admin/bets"
+                                    onClick={() => setIsOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-blue-500 hover:bg-blue-500/10 transition-colors"
+                                >
+                                    <TrendingUp className="w-4 h-4" />
+                                    Gérer les Paris
+                                </Link>
+                            )}
+                            {isAdmin && (
+                                <Link
+                                    href="/admin"
+                                    onClick={() => setIsOpen(false)}
+                                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-purple-500 hover:bg-purple-500/10 transition-colors"
+                                >
+                                    <Shield className="w-4 h-4" />
+                                    Panel Admin
+                                </Link>
+                            )}
+                        </div>
+                    )}
+
                     {/* Settings */}
                     <div className="border-t border-card-border py-1">
                         <div className="flex items-center justify-between px-4 py-2.5 text-sm text-foreground">
@@ -140,3 +177,4 @@ export default function UserMenu() {
         </div>
     );
 }
+

@@ -45,6 +45,7 @@ export default function BetModal({
     const [success, setSuccess] = useState(false);
     const [odds, setOdds] = useState<TeamOdds>({ team1Odds: 2.0, team2Odds: 2.0 });
     const [isLoadingOdds, setIsLoadingOdds] = useState(true);
+    const [hasBetOption, setHasBetOption] = useState(false);
 
     const userCoins = (session?.user as { coins?: number })?.coins ?? 0;
 
@@ -54,26 +55,33 @@ export default function BetModal({
 
     const quickAmounts = [50, 100, 250, 500, 1000];
 
-    // Fetch dynamic odds when modal opens
+    // Fetch admin-defined odds only - no fallback
     useEffect(() => {
         if (isOpen && teams.length >= 2) {
             setIsLoadingOdds(true);
-            fetch(`/api/odds?matchTier=${matchTier || ''}&tournamentTier=${tournamentTier || ''}`)
+            setHasBetOption(false);
+
+            fetch(`/api/bets/available?matchId=${matchId}`)
                 .then(res => res.json())
                 .then(data => {
-                    setOdds({
-                        team1Odds: data.team1Odds || 2.0,
-                        team2Odds: data.team2Odds || 2.0,
-                    });
+                    if (data.betOption) {
+                        setOdds({
+                            team1Odds: data.betOption.team1Odds,
+                            team2Odds: data.betOption.team2Odds,
+                        });
+                        setHasBetOption(true);
+                    } else {
+                        setHasBetOption(false);
+                    }
                 })
                 .catch(() => {
-                    // Keep default odds on error
+                    setHasBetOption(false);
                 })
                 .finally(() => {
                     setIsLoadingOdds(false);
                 });
         }
-    }, [isOpen, matchTier, tournamentTier, teams.length]);
+    }, [isOpen, matchId, teams.length]);
 
     // Get odds label based on value
     const getOddsLabel = (oddsValue: number): string => {
@@ -186,149 +194,161 @@ export default function BetModal({
                     </div>
                 ) : (
                     <div className="p-6 space-y-6">
-                        {/* Balance display */}
-                        <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg">
-                            <span className="text-sm text-muted-foreground">Your Balance</span>
-                            <div className="flex items-center gap-2">
-                                <Coins className="w-5 h-5 text-yellow-500" />
-                                <span className="font-bold text-yellow-500">{userCoins.toLocaleString()}</span>
+                        {/* No bet available message */}
+                        {!isLoadingOdds && !hasBetOption ? (
+                            <div className="text-center py-8">
+                                <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                                <h3 className="text-lg font-bold mb-2">Pari non disponible</h3>
+                                <p className="text-muted-foreground text-sm">
+                                    Les paris ne sont pas encore ouverts pour ce match.
+                                </p>
                             </div>
-                        </div>
-
-                        {/* Team selection with odds */}
-                        <div>
-                            <label className="block text-sm text-muted-foreground mb-2">
-                                Choose your team
-                            </label>
-                            {isLoadingOdds ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        ) : (
+                            <>
+                                {/* Balance display */}
+                                <div className="flex items-center justify-between p-3 bg-yellow-500/10 rounded-lg">
+                                    <span className="text-sm text-muted-foreground">Your Balance</span>
+                                    <div className="flex items-center gap-2">
+                                        <Coins className="w-5 h-5 text-yellow-500" />
+                                        <span className="font-bold text-yellow-500">{userCoins.toLocaleString()}</span>
+                                    </div>
                                 </div>
-                            ) : (
-                                <div className="grid grid-cols-2 gap-3">
-                                    {teams.map((team, index) => {
-                                        const teamOdds = index === 0 ? odds.team1Odds : odds.team2Odds;
-                                        const isFavorite = teamOdds < 2.0;
-                                        return (
+
+                                {/* Team selection with odds */}
+                                <div>
+                                    <label className="block text-sm text-muted-foreground mb-2">
+                                        Choose your team
+                                    </label>
+                                    {isLoadingOdds ? (
+                                        <div className="flex items-center justify-center py-8">
+                                            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {teams.map((team, index) => {
+                                                const teamOdds = index === 0 ? odds.team1Odds : odds.team2Odds;
+                                                const isFavorite = teamOdds < 2.0;
+                                                return (
+                                                    <button
+                                                        key={team.id}
+                                                        onClick={() => setSelectedTeam(team)}
+                                                        className={`relative flex flex-col items-center gap-2 p-4 rounded-lg border transition-all ${selectedTeam?.id === team.id
+                                                            ? "border-primary bg-primary/10"
+                                                            : "border-card-border hover:border-primary/50"
+                                                            }`}
+                                                    >
+                                                        {isFavorite && (
+                                                            <div className="absolute -top-1 -right-1">
+                                                                <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                                                            </div>
+                                                        )}
+                                                        <div className="w-12 h-12 flex items-center justify-center">
+                                                            {team.image_url ? (
+                                                                <img
+                                                                    src={team.image_url}
+                                                                    alt={team.name}
+                                                                    className="w-full h-full object-contain"
+                                                                />
+                                                            ) : (
+                                                                <span className="text-lg font-bold text-muted">
+                                                                    {team.acronym || team.name.charAt(0)}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <span className="text-sm font-medium truncate w-full text-center">
+                                                            {team.acronym || team.name}
+                                                        </span>
+                                                        <div className="flex flex-col items-center gap-0.5">
+                                                            <span className={`text-lg font-bold ${getOddsColor(teamOdds)}`}>
+                                                                x{teamOdds.toFixed(2)}
+                                                            </span>
+                                                            <span className="text-[10px] text-muted-foreground">
+                                                                {getOddsLabel(teamOdds)}
+                                                            </span>
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Amount input */}
+                                <div>
+                                    <label className="block text-sm text-muted-foreground mb-2">
+                                        Bet Amount
+                                    </label>
+                                    <input
+                                        type="number"
+                                        value={amount}
+                                        onChange={(e) => setAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                                        min={10}
+                                        max={10000}
+                                        className="w-full px-4 py-3 bg-background border border-card-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-center text-xl font-bold"
+                                    />
+                                    <div className="flex gap-2 mt-2">
+                                        {quickAmounts.map((quickAmount) => (
                                             <button
-                                                key={team.id}
-                                                onClick={() => setSelectedTeam(team)}
-                                                className={`relative flex flex-col items-center gap-2 p-4 rounded-lg border transition-all ${selectedTeam?.id === team.id
-                                                    ? "border-primary bg-primary/10"
-                                                    : "border-card-border hover:border-primary/50"
+                                                key={quickAmount}
+                                                onClick={() => setAmount(quickAmount)}
+                                                disabled={quickAmount > userCoins}
+                                                className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${amount === quickAmount
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "bg-card-border hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                                     }`}
                                             >
-                                                {isFavorite && (
-                                                    <div className="absolute -top-1 -right-1">
-                                                        <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                                    </div>
-                                                )}
-                                                <div className="w-12 h-12 flex items-center justify-center">
-                                                    {team.image_url ? (
-                                                        <img
-                                                            src={team.image_url}
-                                                            alt={team.name}
-                                                            className="w-full h-full object-contain"
-                                                        />
-                                                    ) : (
-                                                        <span className="text-lg font-bold text-muted">
-                                                            {team.acronym || team.name.charAt(0)}
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <span className="text-sm font-medium truncate w-full text-center">
-                                                    {team.acronym || team.name}
-                                                </span>
-                                                <div className="flex flex-col items-center gap-0.5">
-                                                    <span className={`text-lg font-bold ${getOddsColor(teamOdds)}`}>
-                                                        x{teamOdds.toFixed(2)}
-                                                    </span>
-                                                    <span className="text-[10px] text-muted-foreground">
-                                                        {getOddsLabel(teamOdds)}
-                                                    </span>
-                                                </div>
+                                                {quickAmount}
                                             </button>
-                                        );
-                                    })}
+                                        ))}
+                                    </div>
                                 </div>
-                            )}
-                        </div>
 
-                        {/* Amount input */}
-                        <div>
-                            <label className="block text-sm text-muted-foreground mb-2">
-                                Bet Amount
-                            </label>
-                            <input
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(Math.max(0, parseInt(e.target.value) || 0))}
-                                min={10}
-                                max={10000}
-                                className="w-full px-4 py-3 bg-background border border-card-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors text-center text-xl font-bold"
-                            />
-                            <div className="flex gap-2 mt-2">
-                                {quickAmounts.map((quickAmount) => (
-                                    <button
-                                        key={quickAmount}
-                                        onClick={() => setAmount(quickAmount)}
-                                        disabled={quickAmount > userCoins}
-                                        className={`flex-1 py-1.5 text-xs font-medium rounded transition-colors ${amount === quickAmount
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-card-border hover:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            }`}
-                                    >
-                                        {quickAmount}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
+                                {/* Potential win */}
+                                <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20">
+                                    <div>
+                                        <span className="text-xs text-muted-foreground block">Potential Win</span>
+                                        <span className="text-2xl font-bold text-primary">{potentialWin.toLocaleString()}</span>
+                                        <span className="text-sm text-primary ml-1">coins</span>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-xs text-muted-foreground block">Odds</span>
+                                        <span className={`text-lg font-bold ${selectedTeam ? getOddsColor(currentOdds) : 'text-foreground'}`}>
+                                            x{currentOdds.toFixed(2)}
+                                        </span>
+                                    </div>
+                                </div>
 
-                        {/* Potential win */}
-                        <div className="flex items-center justify-between p-4 bg-primary/10 rounded-lg border border-primary/20">
-                            <div>
-                                <span className="text-xs text-muted-foreground block">Potential Win</span>
-                                <span className="text-2xl font-bold text-primary">{potentialWin.toLocaleString()}</span>
-                                <span className="text-sm text-primary ml-1">coins</span>
-                            </div>
-                            <div className="text-right">
-                                <span className="text-xs text-muted-foreground block">Odds</span>
-                                <span className={`text-lg font-bold ${selectedTeam ? getOddsColor(currentOdds) : 'text-foreground'}`}>
-                                    x{currentOdds.toFixed(2)}
-                                </span>
-                            </div>
-                        </div>
+                                {/* Error message */}
+                                {error && (
+                                    <div className="flex items-center gap-2 px-4 py-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-md">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                        {error}
+                                    </div>
+                                )}
 
-                        {/* Error message */}
-                        {error && (
-                            <div className="flex items-center gap-2 px-4 py-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-md">
-                                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                                {error}
-                            </div>
+                                {/* Submit button */}
+                                <button
+                                    onClick={handlePlaceBet}
+                                    disabled={isLoading || !selectedTeam || amount < 10 || amount > userCoins}
+                                    className="w-full py-3 bg-primary hover:bg-primary-hover text-primary-foreground font-bold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                >
+                                    {isLoading ? (
+                                        <>
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            Placing...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <TrendingUp className="w-4 h-4" />
+                                            Bet {amount} coins
+                                        </>
+                                    )}
+                                </button>
+                            </>
                         )}
-
-                        {/* Submit button */}
-                        <button
-                            onClick={handlePlaceBet}
-                            disabled={isLoading || !selectedTeam || amount < 10 || amount > userCoins}
-                            className="w-full py-3 bg-primary hover:bg-primary-hover text-primary-foreground font-bold rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                    Placing...
-                                </>
-                            ) : (
-                                <>
-                                    <TrendingUp className="w-4 h-4" />
-                                    Bet {amount} coins
-                                </>
-                            )}
-                        </button>
                     </div>
                 )}
             </div>
         </div>
     );
 }
-

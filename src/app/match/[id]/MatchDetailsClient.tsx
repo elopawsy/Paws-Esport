@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import {
     Calendar, Clock, Trophy, Map, Users, Tv, Swords, Activity, ArrowLeft,
-    CheckCircle, XCircle, PlayCircle, TrendingUp, Coins
+    CheckCircle, XCircle, PlayCircle, TrendingUp, Coins, Settings
 } from "lucide-react";
 
 import { StreamPlayer } from "@/components/match/StreamPlayer";
@@ -14,7 +14,7 @@ import { BetModal, CurrentBetDisplay } from "@/components/betting";
 import { useSession } from "@/lib/auth-client";
 import type { Match } from "@/types";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
-import MatchCard from "@/components/ui/MatchCard";
+import ManageBetButton from "@/components/admin/ManageBetButton";
 
 
 function formatDuration(seconds: number): string {
@@ -26,7 +26,24 @@ function formatDuration(seconds: number): string {
 export default function MatchDetailsClient({ match: initialMatch }: { match: Match | any }) {
     const [match, setMatch] = useState(initialMatch);
     const [showBetModal, setShowBetModal] = useState(false);
+    const [hasBetOption, setHasBetOption] = useState(false);
     const { data: session } = useSession();
+
+    // Check if user can manage bets (admin or bet_manager)
+    const userRole = (session?.user as { role?: string })?.role;
+    const canManageBets = userRole === "admin" || userRole === "bet_manager";
+
+    // Check if admin bet exists for this match
+    useEffect(() => {
+        if (match.id && match.status === "not_started") {
+            fetch(`/api/bets/available?matchId=${match.id}`)
+                .then(res => res.json())
+                .then(data => {
+                    setHasBetOption(!!data.betOption);
+                })
+                .catch(() => setHasBetOption(false));
+        }
+    }, [match.id, match.status]);
 
     // Polling logic for live matches could go here if needed
     // For SEO purposes, initialMatch is critical.
@@ -65,13 +82,6 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
     const statusInfo = statusColors[match.status] || statusColors.not_started;
     const StatusIcon = statusInfo.icon;
 
-    // Filter related matches (same tournament)
-    // In a real app, this might be a separate prop or fetch, but we can assume we might have it or just hide it if not present.
-    // For now, let's pretend we might have them or just leave it blank if not.
-    // Actually, usually `match` detail doesn't come with `related`. We might need to fetch them.
-    // For now, let's just use the `match.tournament.matches` if it existed, but it likely doesn't.
-    // Let's skip fetching for now and focus on the UI changes requested: Clickable Header & Lists.
-
     const breadcrumbItems = [
         { label: "Tournaments", href: "/tournaments" },
         ...(match.tournament ? [{ label: match.tournament.name || "Tournament", href: `/tournaments/${match.tournament.id}` }] : []),
@@ -79,10 +89,7 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
     ];
 
     // Fix: Find best stream
-
-    // Fix: Find best stream
     // Prioritize: Official Main > Official English > Official Other > Non-official Main
-    // Or just Official > others.
     const getBestStream = (streams: any[]) => {
         if (!streams || streams.length === 0) return null;
         return streams.sort((a: any, b: any) => {
@@ -258,8 +265,8 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                             </span>
                         )}
 
-                        {/* Bet Button */}
-                        {isBettable && session?.user && (
+                        {/* Bet Button - only show if admin bet exists */}
+                        {isBettable && hasBetOption && session?.user && (
                             <button
                                 onClick={() => setShowBetModal(true)}
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold rounded-lg transition-all hover:scale-105 shadow-lg shadow-yellow-500/20"
@@ -269,11 +276,23 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
                                 <Coins className="w-4 h-4" />
                             </button>
                         )}
-                        {isBettable && !session?.user && (
+                        {isBettable && hasBetOption && !session?.user && (
                             <span className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-lg text-xs">
                                 <TrendingUp className="w-4 h-4" />
                                 Login to bet
                             </span>
+                        )}
+
+                        {/* Admin/Bet Manager Button */}
+                        {canManageBets && team1 && team2 && (
+                            <ManageBetButton
+                                matchId={match.id}
+                                matchName={`${team1.name} vs ${team2.name}`}
+                                matchSlug={match.slug}
+                                team1={{ id: team1.id, name: team1.name, logo: team1.image_url }}
+                                team2={{ id: team2.id, name: team2.name, logo: team2.image_url }}
+                                scheduledAt={match.scheduled_at}
+                            />
                         )}
                     </div>
                 </div>
@@ -612,4 +631,3 @@ export default function MatchDetailsClient({ match: initialMatch }: { match: Mat
         </div>
     );
 }
-

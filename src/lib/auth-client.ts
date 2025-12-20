@@ -5,9 +5,13 @@
  */
 
 import { createAuthClient } from "better-auth/react";
+import { adminClient } from "better-auth/client/plugins";
 
 export const authClient = createAuthClient({
     // No baseURL needed since we're on the same domain
+    plugins: [
+        adminClient()
+    ]
 });
 
 // Export commonly used hooks and methods

@@ -6,6 +6,7 @@
 
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
+import { admin } from "better-auth/plugins";
 import { PrismaClient } from "@/generated/prisma";
 import { sendEmail } from "./resend";
 import { verificationEmailTemplate, passwordResetEmailTemplate } from "./email-templates";
@@ -80,6 +81,12 @@ export const auth = betterAuth({
             },
         },
     },
+    plugins: [
+        admin({
+            defaultRole: "user",
+            adminRoles: ["admin"],
+        })
+    ],
 });
 
 export type Session = typeof auth.$Infer.Session;

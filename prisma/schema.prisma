@@ -39,10 +39,17 @@ model User {
   favoriteTeamId  Int?
   favoriteTeam    Team?          @relation(fields: [favoriteTeamId], references: [id])
   
+  // Admin fields (Better Auth admin plugin)
+  role            String         @default("user") // user, admin
+  banned          Boolean        @default(false)
+  banReason       String?
+  banExpires      DateTime?
+  
   sessions        Session[]
   accounts        Account[]
   bets            Bet[]
   notifications   Notification[]
+  createdBetOptions BetOption[]
   
   // Friend system
   sentFriendRequests     Friendship[]  @relation("SentFriendRequests")
@@ -53,21 +60,23 @@ model User {
   favoritePlayers  FavoritePlayer[]
   
   @@index([favoriteTeamId])
+  @@index([role])
 }
 
 // ============================================
 // Better Auth - Session
 // ============================================
 model Session {
-  id           String   @id
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  token        String   @unique
-  expiresAt    DateTime
-  ipAddress    String?
-  userAgent    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token           String    @unique
+  expiresAt       DateTime
+  ipAddress       String?
+  userAgent       String?
+  impersonatedBy  String?   // Admin user ID if impersonating
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   
   @@index([userId])
 }
@@ -379,5 +388,34 @@ enum BetStatus {
   WON       // User's team won
   LOST      // User's team lost
   CANCELED  // Match was canceled/refunded
+}
+
+// ============================================
+// Bet Options (Admin-created betting opportunities)
+// ============================================
+model BetOption {
+  id            String    @id @default(cuid())
+  matchId       Int       @unique // PandaScore match ID
+  matchName     String    // For display purposes
+  matchSlug     String?   // For linking to match page
+  team1Id       Int
+  team1Name     String
+  team1Logo     String?
+  team1Odds     Float     @default(2.0)
+  team2Id       Int
+  team2Name     String
+  team2Logo     String?
+  team2Odds     Float     @default(2.0)
+  isActive      Boolean   @default(true)
+  scheduledAt   DateTime? // Match scheduled time
+  expiresAt     DateTime? // Auto-close betting before match
+  createdById   String
+  createdBy     User      @relation(fields: [createdById], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([isActive])
+  @@index([scheduledAt])
+  @@index([createdById])
 }
 
