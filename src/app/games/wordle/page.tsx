@@ -41,10 +41,6 @@ const GAME_NAMES: Record<VideoGameSlug, string> = {
     "cs-2": "Counter-Strikle",
     valorant: "Valorantle",
     lol: "Legendle",
-    dota2: "Dotadle",
-    codmw: "Call of Duty-le",
-    r6siege: "Rainbow Sixle",
-    ow: "Overwatchle",
 };
 
 // Calculate relevance score based on how well the name matches the query

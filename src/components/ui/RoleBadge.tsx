@@ -81,12 +81,8 @@ function getRoleConfig(role: string, game?: VideoGameSlug) {
     switch (game) {
         case "lol":
             return LOL_ROLES[normalizedRole] || DEFAULT_ROLE;
-        case "dota2":
-            return DOTA_ROLES[normalizedRole] || DEFAULT_ROLE;
         case "valorant":
             return VALORANT_ROLES[normalizedRole] || DEFAULT_ROLE;
-        case "r6siege":
-            return R6_ROLES[normalizedRole] || DEFAULT_ROLE;
         case "cs-2":
         default:
             // CS2 is default since it's the main game of the app
