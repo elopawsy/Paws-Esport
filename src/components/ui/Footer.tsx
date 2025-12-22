@@ -14,6 +14,9 @@ export default function Footer() {
                     </div>
 
                     <nav aria-label="Footer navigation" className="flex items-center gap-6 text-sm text-muted-foreground">
+                        <Link href="/changelog" className="hover:text-primary transition-colors">
+                            Changelog
+                        </Link>
                         <Link href="/privacy" className="hover:text-primary transition-colors">
                             Privacy Policy
                         </Link>
