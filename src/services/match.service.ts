@@ -6,7 +6,6 @@
 
 import type { Match, MatchesResponse, TournamentTier } from '@/types';
 import {
-  isSDKConfigured,
   getFromCache,
   setInCache,
   mapMatch,
@@ -17,9 +16,14 @@ import {
   CACHE_TTL,
   cachedFetch,
 } from '@/infrastructure/pandascore/cache';
-import { pandaScoreSDK } from '@/infrastructure/pandascore/client';
 import { apiClient } from '../infrastructure/pandascore/ApiClient';
+import { env } from '../infrastructure/config/env';
 import type { VideoGameSlug } from '@/infrastructure/pandascore/gameSlugMapper';
+
+// Check if API is configured without importing the SDK
+function isSDKConfigured(): boolean {
+  return env.isApiKeyConfigured;
+}
 
 const CACHE_KEY_MATCHES = (game: VideoGameSlug) => `${game}-matches-v3`;
 const CACHE_TTL_DEFAULT = 5 * 60 * 1000; // 5 minutes
@@ -293,10 +297,8 @@ export async function getMatchDetails(id: string): Promise<Record<string, unknow
 
   if (!match) {
     try {
-      const response = await pandaScoreSDK.get_matches_matchIdOrSlug({
-        match_id_or_slug: id,
-      });
-      match = response.data as Record<string, unknown>;
+      const { data } = await apiClient.getMatchById(parseInt(id, 10));
+      match = data as Record<string, unknown>;
 
       // Cache with appropriate TTL based on match status
       const ttl = getMatchTTL(match.status as string);

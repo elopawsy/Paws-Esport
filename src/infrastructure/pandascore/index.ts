@@ -2,10 +2,13 @@
  * PandaScore Infrastructure Barrel Export
  */
 
-// Client - SDK
-// Client - SDK
-export { pandaScoreSDK, isSDKConfigured } from './client';
-export type { FetchResponse } from './client';
+import { env } from '../config/env';
+
+// SDK configuration check - defined here to avoid importing problematic SDK
+export function isSDKConfigured(): boolean {
+  return env.isApiKeyConfigured;
+}
+
 
 // Constants
 export { VIDEO_GAMES } from './constants';

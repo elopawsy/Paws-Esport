@@ -19,6 +19,7 @@ export default function Navbar() {
     const links = [
         { href: "/", label: "Home" },
         { href: "/tournaments", label: "Tournaments" },
+        { href: "/calendar", label: "Calendar" },
         { href: "/leaderboard", label: "Leaderboard" },
         { href: "/simulator", label: "Simulator" },
     ];
