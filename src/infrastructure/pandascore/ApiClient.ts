@@ -2,10 +2,39 @@
  * Custom PandaScore API Client
  * 
  * Direct fetch implementation to bypass SDK limitations and support all games.
+ * Implements intelligent caching based on data type.
  */
 import { env } from './../config/env';
 import { getApiSlug } from './gameSlugMapper';
 import type { VideoGameSlug } from './gameSlugMapper';
+
+/**
+ * Revalidation times in seconds for different data types
+ */
+const REVALIDATE = {
+  LIVE: 30,          // Running matches, live data
+  UPCOMING: 300,     // Upcoming matches, 5 minutes
+  PAST: 3600,        // Finished matches, 1 hour (they don't change)
+  TEAMS: 1800,       // Team data, 30 minutes
+  TOURNAMENTS: 600,  // Tournament info, 10 minutes
+  DEFAULT: 300,      // Default, 5 minutes
+} as const;
+
+/**
+ * Determine revalidation time based on endpoint and params
+ */
+function getRevalidateTime(path: string, params: Record<string, any>): number {
+  const status = params['filter[status]'];
+  
+  if (status === 'running') return REVALIDATE.LIVE;
+  if (status === 'finished') return REVALIDATE.PAST;
+  if (status === 'not_started') return REVALIDATE.UPCOMING;
+  
+  if (path.includes('/teams')) return REVALIDATE.TEAMS;
+  if (path.includes('/tournaments')) return REVALIDATE.TOURNAMENTS;
+  
+  return REVALIDATE.DEFAULT;
+}
 
 export class ApiClient {
   private baseUrl = 'https://api.pandascore.co';
@@ -32,12 +61,18 @@ export class ApiClient {
     const queryString = searchParams.toString();
     const url = `${this.baseUrl}${path}${queryString ? `?${queryString}` : ''}`;
 
+    // Determine optimal revalidation time based on endpoint
+    const revalidateTime = getRevalidateTime(path, params);
+
     const response = await fetch(url, {
       headers: {
         'Authorization': `Bearer ${this.apiKey}`,
         'Accept': 'application/json',
       },
-      next: { revalidate: 60 } // Default revalidation
+      next: { 
+        revalidate: revalidateTime,
+        tags: ['pandascore', path.split('/')[1] || 'api'],
+      }
     });
 
     if (!response.ok) {

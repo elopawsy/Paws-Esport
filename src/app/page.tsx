@@ -1,14 +1,14 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { VIDEO_GAMES } from "@/types";
 import type { VideoGameSlug } from "@/types";
 import { Calendar, Trophy, Coins, ArrowRight, AlertCircle } from "lucide-react";
 import { getTournamentDisplayName } from "@/lib/tournament-utils";
 import TrackedTeamsMatches from "@/components/home/TrackedTeamsMatches";
 import AvailableBetsSection from "@/components/home/AvailableBetsSection";
+import GameSelector from "@/components/home/GameSelector";
+import { TournamentService } from "@/services";
 
 interface Tournament {
   id: number;
@@ -44,14 +44,11 @@ const TIER_COLORS: Record<string, string> = {
   d: "from-gray-500/20 to-slate-600/20 text-gray-400 border-gray-500/50",
 };
 
-
-
 function TournamentCard({ tournament }: { tournament: Tournament }) {
   const tierClass = tournament.tier
     ? TIER_COLORS[tournament.tier.toLowerCase()] || "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700"
     : "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700";
 
-  // Prefer slug for cleaner URLs, fallback to id
   const tournamentUrl = tournament.slug ? `/tournaments/${tournament.slug}` : `/tournaments/${tournament.id}`;
 
   return (
@@ -62,7 +59,6 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
       <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20 pointer-events-none" />
 
       <div className="p-5 flex flex-col h-full relative z-10">
-        {/* Header with league logo */}
         <div className="flex items-start gap-4 mb-4">
           <div className="relative w-12 h-12 flex-shrink-0 bg-secondary/50 rounded-lg p-2 border border-card-border group-hover:border-primary/30 transition-colors">
             {tournament.league?.image_url ? (
@@ -84,7 +80,6 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
           </div>
         </div>
 
-        {/* Meta info */}
         <div className="flex items-center gap-2 flex-wrap mb-4">
           {tournament.tier && (
             <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border bg-gradient-to-r ${tierClass}`}>
@@ -99,10 +94,8 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
           )}
         </div>
 
-        {/* Footer: Dates */}
         <div className="mt-auto pt-4 border-t border-card-border flex items-center text-xs text-muted-foreground font-medium">
           <Calendar className="w-3.5 h-3.5 mr-2 text-primary" />
-
           {tournament.begin_at && (
             <span>
               {new Date(tournament.begin_at).toLocaleDateString("en-US", {
@@ -111,9 +104,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
               })}
             </span>
           )}
-
           {tournament.begin_at && tournament.end_at && <span className="mx-1">→</span>}
-
           {tournament.end_at && (
             <span>
               {new Date(tournament.end_at).toLocaleDateString("en-US", {
@@ -161,34 +152,66 @@ function TournamentSection({
   );
 }
 
-export default function HomePage() {
-  const [selectedGame, setSelectedGame] = useState<VideoGameSlug>("cs-2");
-  const [tournaments, setTournaments] = useState<TournamentsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+function TournamentsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {[...Array(8)].map((_, i) => (
+        <div
+          key={i}
+          className="h-[280px] bg-card border border-card-border animate-pulse rounded-xl"
+        />
+      ))}
+    </div>
+  );
+}
 
-  useEffect(() => {
-    async function fetchTournaments() {
-      setLoading(true);
-      setError(null);
+interface TournamentsContentProps {
+  tournaments: TournamentsData;
+  gameName: string;
+}
 
-      try {
-        const res = await fetch(`/api/tournaments?game=${selectedGame}`);
-        if (!res.ok) {
-          throw new Error("Failed to fetch tournaments");
-        }
-        const data = await res.json();
-        setTournaments(data);
-      } catch (err) {
-        console.error("Error:", err);
-        setError(err instanceof Error ? err.message : "Unknown error");
-      } finally {
-        setLoading(false);
-      }
-    }
+function TournamentsContent({ tournaments, gameName }: TournamentsContentProps) {
+  const { running, upcoming, past } = tournaments;
+  const hasNoTournaments = running.length === 0 && upcoming.length === 0 && past.length === 0;
 
-    fetchTournaments();
-  }, [selectedGame]);
+  return (
+    <>
+      <TournamentSection title="Live Now" tournaments={running} icon={Coins} />
+      <TournamentSection title="Upcoming" tournaments={upcoming} icon={Calendar} />
+      <TournamentSection title="Recently Finished" tournaments={past} icon={Trophy} />
+
+      {hasNoTournaments && (
+        <div className="py-32 text-center border border-dashed border-card-border rounded-xl">
+          <p className="text-muted-foreground text-sm uppercase tracking-widest">
+            No tournaments found for {gameName}
+          </p>
+        </div>
+      )}
+    </>
+  );
+}
+
+interface HomePageProps {
+  searchParams: Promise<{ game?: string }>;
+}
+
+/**
+ * Homepage - Server Component
+ * Fetches tournaments server-side for better caching and SEO
+ */
+export default async function HomePage({ searchParams }: HomePageProps) {
+  const params = await searchParams;
+  const selectedGame = (params.game as VideoGameSlug) || "cs-2";
+  
+  let tournaments: TournamentsData = { running: [], upcoming: [], past: [] };
+  let error: string | null = null;
+
+  try {
+    tournaments = await TournamentService.getAllTournaments(selectedGame);
+  } catch (e) {
+    console.error("Error fetching tournaments:", e);
+    error = e instanceof Error ? e.message : "Unknown error";
+  }
 
   return (
     <div className="container-custom py-12">
@@ -233,35 +256,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Game Selector */}
-      <section className="mb-12">
-        <div className="flex items-center gap-6 overflow-x-auto pb-4 scrollbar-hide">
-          <span className="text-muted-foreground text-xs font-bold uppercase tracking-widest whitespace-nowrap">select game</span>
-          <div className="h-8 w-px bg-card-border flex-shrink-0" />
-          <div className="flex gap-3">
-            {Object.entries(VIDEO_GAMES).map(([slug, game]) => (
-              <button
-                key={slug}
-                onClick={() => setSelectedGame(slug as VideoGameSlug)}
-                className={`flex items-center gap-2.5 px-5 py-2.5 text-sm font-bold uppercase tracking-wide rounded-lg transition-all whitespace-nowrap ${selectedGame === slug
-                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                  : "bg-secondary/50 border border-card-border text-muted-foreground hover:text-foreground hover:border-primary/30"
-                  }`}
-              >
-                <img
-                  src={game.logo}
-                  alt={game.name}
-                  width={20}
-                  height={20}
-                  className="object-contain w-5 h-5"
-                  style={{ filter: 'var(--logo-filter)' }}
-                />
-                {game.name}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Game Selector - Client Component */}
+      <Suspense fallback={<div className="h-16 animate-pulse bg-secondary/30 rounded-lg mb-12" />}>
+        <GameSelector currentGame={selectedGame} />
+      </Suspense>
 
       {/* Tracked Teams Matches Section */}
       <TrackedTeamsMatches />
@@ -277,18 +275,6 @@ export default function HomePage() {
           </h2>
         </div>
 
-        {/* Loading State */}
-        {loading && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="h-[280px] bg-card border border-card-border animate-pulse rounded-xl"
-              />
-            ))}
-          </div>
-        )}
-
         {/* Error State */}
         {error && (
           <div className="py-20 text-center bg-destructive/5 rounded-xl border border-destructive/20">
@@ -299,47 +285,15 @@ export default function HomePage() {
             <p className="text-muted-foreground text-sm mb-6">
               Please check your API key configuration.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="px-6 py-2 bg-secondary text-foreground text-sm font-medium rounded-lg hover:bg-secondary/80 transition-colors"
-            >
-              Retry
-            </button>
           </div>
         )}
 
         {/* Tournaments Content */}
-        {!loading && !error && tournaments && (
-          <>
-            <TournamentSection
-              title="Live Now"
-              tournaments={tournaments.running}
-              icon={Coins}
-            />
-            {/* Note: I used Coins icon for "Live" as a placeholder, maybe Radio matches better but Coins is in import. Let's start with Coins or import Radio. I'll import Radio implicitly via Lucide? No, I need to add it to imports.*/}
-
-            <TournamentSection
-              title="Upcoming"
-              tournaments={tournaments.upcoming}
-              icon={Calendar}
-            />
-            <TournamentSection
-              title="Recently Finished"
-              tournaments={tournaments.past}
-              icon={Trophy}
-            />
-
-            {/* Empty State */}
-            {tournaments.running.length === 0 &&
-              tournaments.upcoming.length === 0 &&
-              tournaments.past.length === 0 && (
-                <div className="py-32 text-center border border-dashed border-card-border rounded-xl">
-                  <p className="text-muted-foreground text-sm uppercase tracking-widest">
-                    No tournaments found for this game
-                  </p>
-                </div>
-              )}
-          </>
+        {!error && (
+          <TournamentsContent 
+            tournaments={tournaments} 
+            gameName={VIDEO_GAMES[selectedGame]?.name || "this game"} 
+          />
         )}
       </section>
     </div>

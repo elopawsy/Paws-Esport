@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCountryCode } from "@/utils";
-import { pandaScoreSDK, isSDKConfigured, MOCK_PLAYERS } from "@/infrastructure/pandascore";
+import { isSDKConfigured, MOCK_PLAYERS } from "@/infrastructure/pandascore";
+import { apiClient } from "@/infrastructure/pandascore/ApiClient";
+
+/**
+ * Cache headers for player list endpoint
+ */
+const CACHE_HEADERS = {
+  'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=3600',
+};
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -32,12 +40,12 @@ export async function GET(request: NextRequest) {
       total: results.length,
       page,
       pageSize,
-    });
+    }, { headers: CACHE_HEADERS });
   }
 
   try {
-    const response = await pandaScoreSDK.get_players({
-      'filter[videogame]': 'csgo',
+    // Use ApiClient instead of SDK
+    const response = await apiClient.getPlayers('cs-2', {
       'page[size]': String(pageSize),
       'page[number]': String(page),
       ...(nationality && nationality !== "ALL" ? { 'filter[nationality]': nationality } : {}),
@@ -72,7 +80,7 @@ export async function GET(request: NextRequest) {
       total: results.length,
       page,
       pageSize,
-    });
+    }, { headers: CACHE_HEADERS });
   } catch (error) {
     console.error("Error listing players:", error);
     return NextResponse.json(
@@ -81,3 +89,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

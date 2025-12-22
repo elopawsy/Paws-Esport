@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { apiClient } from "@/infrastructure/pandascore/ApiClient";
-import { isSDKConfigured } from "@/infrastructure/pandascore/client";
+import { isSDKConfigured } from "@/infrastructure/pandascore";
 
 export async function GET(
     request: Request,
