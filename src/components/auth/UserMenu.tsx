@@ -54,32 +54,35 @@ export default function UserMenu() {
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-2 px-3 py-2 rounded-md bg-card border border-card-border hover:border-primary/50 transition-colors"
+                aria-expanded={isOpen}
+                aria-haspopup="true"
+                aria-label={`User menu for ${displayName}, you have ${coins} coins`}
             >
                 {/* Avatar */}
                 <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center">
                     {user.image ? (
                         <img
                             src={user.image}
-                            alt={displayName}
+                            alt=""
                             className="w-full h-full rounded-full object-cover"
                         />
                     ) : (
-                        <User className="w-4 h-4 text-primary" />
+                        <User className="w-4 h-4 text-primary" aria-hidden="true" />
                     )}
                 </div>
 
                 {/* Coins display */}
-                <div className="hidden sm:flex items-center gap-1 text-sm">
+                <div className="hidden sm:flex items-center gap-1 text-sm" aria-hidden="true">
                     <Coins className="w-4 h-4 text-yellow-500" />
                     <span className="font-medium">{coins.toLocaleString()}</span>
                 </div>
 
-                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden="true" />
             </button>
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-card-border rounded-lg shadow-xl overflow-hidden z-50">
+                <div className="absolute right-0 top-full mt-2 w-64 bg-card border border-card-border rounded-lg shadow-xl overflow-hidden z-50" role="menu" aria-label="User menu">
                     {/* User info header */}
                     <div className="px-4 py-3 border-b border-card-border">
                         <div className="flex items-center gap-2">
@@ -101,29 +104,32 @@ export default function UserMenu() {
                     </div>
 
                     {/* Menu items */}
-                    <div className="py-1">
+                    <div className="py-1" role="group" aria-label="Profile options">
                         <Link
                             href="/profile"
                             onClick={() => setIsOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
+                            role="menuitem"
                         >
-                            <User className="w-4 h-4 text-muted-foreground" />
+                            <User className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                             My Profile
                         </Link>
                         <Link
                             href="/profile#favorite-team"
                             onClick={() => setIsOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
+                            role="menuitem"
                         >
-                            <Heart className="w-4 h-4 text-muted-foreground" />
+                            <Heart className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                             Favorite Team
                         </Link>
                         <Link
                             href="/profile#friends"
                             onClick={() => setIsOpen(false)}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground hover:bg-primary/10 transition-colors"
+                            role="menuitem"
                         >
-                            <Users className="w-4 h-4 text-muted-foreground" />
+                            <Users className="w-4 h-4 text-muted-foreground" aria-hidden="true" />
                             Friends
                         </Link>
                     </div>
@@ -167,8 +173,9 @@ export default function UserMenu() {
                         <button
                             onClick={handleSignOut}
                             className="flex items-center gap-3 px-4 py-2.5 text-sm text-destructive hover:bg-destructive/10 transition-colors w-full"
+                            role="menuitem"
                         >
-                            <LogOut className="w-4 h-4" />
+                            <LogOut className="w-4 h-4" aria-hidden="true" />
                             Log Out
                         </button>
                     </div>

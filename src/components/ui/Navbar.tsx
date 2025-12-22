@@ -32,7 +32,7 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-card-border">
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-card-border" role="navigation" aria-label="Main navigation">
                 <div className="container-custom h-16 flex items-center justify-between">
                     {/* Logo */}
                     <Link href="/" className="text-2xl font-display font-medium tracking-tight uppercase">
@@ -68,6 +68,9 @@ export default function Navbar() {
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
+                                aria-expanded={showMinigames}
+                                aria-haspopup="true"
+                                aria-label="Minigames menu"
                             >
                                 <Gamepad className="w-4 h-4" />
                                 Minigames
@@ -126,6 +129,9 @@ export default function Navbar() {
                         <button
                             className="md:hidden p-2 text-muted-foreground hover:text-foreground"
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                            aria-expanded={isMobileMenuOpen}
+                            aria-controls="mobile-menu"
+                            aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
                         >
                             {isMobileMenuOpen ? (
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-x"><path d="M18 6 6 18" /><path d="m6 6 18 12" /></svg>
@@ -138,7 +144,7 @@ export default function Navbar() {
 
                 {/* Mobile Menu */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden border-t border-card-border bg-background fixed inset-x-0 top-16 bottom-0 overflow-y-auto z-40">
+                    <div id="mobile-menu" className="md:hidden border-t border-card-border bg-background fixed inset-x-0 top-16 bottom-0 overflow-y-auto z-40" role="menu" aria-label="Mobile navigation">
                         <div className="container-custom py-4 space-y-4 pb-20">
                             <div className="sm:hidden mb-4">
                                 <SearchBarWithSuggestions />

@@ -267,7 +267,7 @@ export default function SearchBarWithSuggestions() {
 
     return (
         <div ref={containerRef} className="relative hidden md:block">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSubmit} role="search">
                 <input
                     ref={inputRef}
                     type="text"
@@ -276,22 +276,28 @@ export default function SearchBarWithSuggestions() {
                     onFocus={() => setFocused(true)}
                     placeholder="Search teams, players, tournaments..."
                     className="bg-secondary/50 border border-card-border rounded-lg py-2 pl-4 pr-10 text-sm text-foreground focus:outline-none focus:border-primary/50 w-80 transition-all placeholder:text-muted-foreground"
+                    role="combobox"
+                    aria-expanded={showDropdown}
+                    aria-controls="search-results"
+                    aria-autocomplete="list"
+                    aria-label="Search teams, players, tournaments"
                 />
                 <button
                     type="submit"
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                    aria-label="Submit search"
                 >
                     {loading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
                     ) : (
-                        <Search className="w-4 h-4" />
+                        <Search className="w-4 h-4" aria-hidden="true" />
                     )}
                 </button>
             </form>
 
             {/* Dropdown */}
             {showDropdown && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-background border border-card-border rounded-xl shadow-xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto">
+                <div id="search-results" className="absolute top-full left-0 right-0 mt-2 bg-background border border-card-border rounded-xl shadow-xl overflow-hidden z-50 max-h-[70vh] overflow-y-auto" role="listbox" aria-label="Search results">
                     {/* Live Events Section (shown when no query) */}
                     {query.length === 0 && suggestions.liveEvents.length > 0 && (
                         <div className="p-2">

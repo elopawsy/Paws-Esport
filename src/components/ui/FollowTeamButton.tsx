@@ -101,13 +101,15 @@ export default function FollowTeamButton({ teamId, teamName, teamAcronym, teamIm
                     ? "bg-primary/10 text-primary border border-primary/30 hover:bg-primary/20"
                     : "bg-primary hover:bg-primary-hover text-primary-foreground"
                 }`}
+            aria-pressed={isFollowing}
+            aria-label={isFollowing ? `Stop following ${teamName}` : `Follow ${teamName}`}
         >
             {isToggling ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
             ) : isFollowing ? (
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4" aria-hidden="true" />
             ) : (
-                <Heart className="w-4 h-4" />
+                <Heart className="w-4 h-4" aria-hidden="true" />
             )}
             {isFollowing ? "Following" : "Follow"}
         </button>

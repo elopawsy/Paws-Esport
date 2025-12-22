@@ -78,8 +78,13 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          {/* Skip to main content link for keyboard users */}
+          <a href="#main-content" className="skip-to-content">
+            Skip to main content
+          </a>
+          
           <Navbar />
-          <main className="pt-16 min-h-screen pb-10 flex flex-col">
+          <main id="main-content" className="pt-16 min-h-screen pb-10 flex flex-col" tabIndex={-1}>
             <div className="flex-1">{children}</div>
           </main>
           <Footer />

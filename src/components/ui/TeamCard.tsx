@@ -12,7 +12,10 @@ export default function TeamCard({ team }: TeamCardProps) {
     const teamUrl = team.slug ? `/teams/${team.slug}` : `/teams/${team.id}`;
 
     return (
-        <Link href={teamUrl}>
+        <Link 
+            href={teamUrl}
+            aria-label={`View ${team.name} team details`}
+        >
             <div className="group h-full bg-card border border-card-border p-6 hover:border-primary/50 hover:bg-secondary/80 transition-all duration-200 flex flex-col items-center justify-between rounded-md relative overflow-hidden">
 
                 {/* Subtle colored glow on hover */}
@@ -23,7 +26,7 @@ export default function TeamCard({ team }: TeamCardProps) {
                     {team.image_url ? (
                         <img
                             src={team.image_url}
-                            alt={team.name}
+                            alt={`${team.name} logo`}
                             className="w-full h-full object-contain drop-shadow-md"
                             loading="lazy"
                         />

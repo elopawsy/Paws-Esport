@@ -48,12 +48,14 @@ export default function PlayerCard({
           ${isDraggable ? "cursor-grab active:cursor-grabbing" : ""}
           ${isDragging ? "opacity-50 ring-2 ring-primary" : ""}
         `}
+                role={isDraggable ? "option" : undefined}
+                aria-label={`${player.name}${isDraggable ? ', drag to transfer' : ''}`}
             >
                 {/* Player Image */}
                 <div className="relative w-8 h-8 rounded-full overflow-hidden bg-background flex-shrink-0 border border-card-border">
                     <Image
                         src={imageUrl}
-                        alt={player.name}
+                        alt={`${player.name} player photo`}
                         fill
                         sizes="32px"
                         className="object-cover object-top"
@@ -88,12 +90,14 @@ export default function PlayerCard({
         ${isDragging ? "opacity-50 ring-2 ring-primary" : ""}
         hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5
       `}
+            role={isDraggable ? "option" : undefined}
+            aria-label={`${player.name}, ${player.role || 'player'}${isDraggable ? ', drag to transfer' : ''}`}
         >
             {/* Player Image */}
             <div className="relative w-20 h-20 mb-4 rounded-full overflow-hidden bg-background border-2 border-card-border group-hover:border-primary transition-colors duration-300">
                 <Image
                     src={imageUrl}
-                    alt={player.name}
+                    alt={`${player.name} player photo`}
                     fill
                     sizes="80px"
                     className="object-cover object-top"

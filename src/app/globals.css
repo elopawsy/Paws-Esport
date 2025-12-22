@@ -41,6 +41,9 @@
   /* Red 500 */
   --color-destructive-foreground: #ffffff;
 
+  /* Focus Ring - Accessibility */
+  --color-focus-ring: #22c55e;
+
   --radius-sm: 4px;
   --radius-md: 8px;
   --radius-lg: 12px;
@@ -92,6 +95,27 @@
     letter-spacing: 0.02em;
     text-transform: uppercase;
   }
+
+  /* Accessibility: Focus Visible Ring */
+  :focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+  }
+
+  /* Remove default focus for mouse users */
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  /* Better link focus */
+  a:focus-visible {
+    border-radius: var(--radius-sm);
+  }
+
+  /* Button focus */
+  button:focus-visible {
+    border-radius: var(--radius-md);
+  }
 }
 
 /* Utilities */
@@ -119,4 +143,75 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
+}
+
+/* ===== ACCESSIBILITY UTILITIES ===== */
+
+/* Skip to main content link */
+.skip-to-content {
+  position: absolute;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  z-index: 9999;
+  transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 1rem;
+}
+
+/* Screen reader only (visually hidden but accessible) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Screen reader only, but becomes visible on focus */
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-within {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-card-border: #ffffff;
+  }
+  
+  button,
+  a {
+    border: 2px solid currentColor !important;
+  }
 }

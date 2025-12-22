@@ -42,7 +42,7 @@ const TeamDisplay = memo(function TeamDisplay({
         <div className={`flex items-center gap-2 ${compact ? "" : "flex-1"}`}>
             <div className={`${compact ? "w-6 h-6" : "w-8 h-8"} flex items-center justify-center flex-shrink-0`}>
                 {opponent.image_url ? (
-                    <img src={opponent.image_url} alt="" className="w-full h-full object-contain" />
+                    <img src={opponent.image_url} alt={`${opponent.name} logo`} className="w-full h-full object-contain" />
                 ) : (
                     <span className={`${compact ? "text-[10px]" : "text-xs"} font-bold text-muted`}>
                         {opponent.acronym || opponent.name.charAt(0)}
@@ -86,14 +86,25 @@ const MatchCard = memo(function MatchCard({ match, compact = false }: Props) {
     // Prefer slug for cleaner URLs, fallback to id
     const matchUrl = match.slug ? `/match/${match.slug}` : `/match/${match.id}`;
 
+    // Generate accessible label for the match
+    const matchLabel = `${team1?.name || 'TBD'} versus ${team2?.name || 'TBD'}${isLive ? ', currently live' : isFinished ? `, final score ${score1} to ${score2}` : ''}, ${match.league?.name || ''}`;
+
     return (
-        <Link href={matchUrl} className={`block bg-card border border-card-border rounded-md overflow-hidden hover:border-primary/30 transition-colors group ${compact ? "p-3" : "p-4"}`}>
+        <Link 
+            href={matchUrl} 
+            className={`block bg-card border border-card-border rounded-md overflow-hidden hover:border-primary/30 transition-colors group ${compact ? "p-3" : "p-4"}`}
+            aria-label={matchLabel}
+        >
             {/* Header */}
             <div className={`flex items-center justify-between ${compact ? "mb-2" : "mb-3"}`}>
                 <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${statusColor}`} />
+                    <span className={`w-2 h-2 rounded-full ${statusColor}`} aria-hidden="true" />
                     <span className={`${compact ? "text-[10px]" : "text-xs"} text-muted uppercase tracking-wider font-medium`}>
                         {isLive ? "LIVE" : isFinished ? "Finished" : isCanceled ? "Canceled" : formatTime(match.scheduled_at)}
+                    </span>
+                    {/* Screen reader announcement for match status */}
+                    <span className="sr-only">
+                        Match status: {isLive ? "Currently live" : isFinished ? "Match finished" : isCanceled ? "Match canceled" : `Scheduled for ${match.scheduled_at}`}
                     </span>
                 </div>
                 <span className={`${compact ? "text-[8px]" : "text-[10px]"} px-1.5 py-0.5 rounded ${match.tier === "Tier 1"

@@ -108,11 +108,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
+                aria-hidden="true"
             />
 
             {/* Modal */}
@@ -121,18 +122,23 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
+                    aria-label="Close authentication modal"
                 >
-                    <X className="w-5 h-5" />
+                    <X className="w-5 h-5" aria-hidden="true" />
                 </button>
 
                 {/* Header with tabs */}
-                <div className="flex border-b border-card-border">
+                <div className="flex border-b border-card-border" role="tablist" aria-label="Authentication options">
                     <button
                         onClick={() => handleTabChange("login")}
                         className={`flex-1 py-4 text-sm font-medium tracking-wide transition-colors ${activeTab === "login"
                             ? "text-primary border-b-2 border-primary"
                             : "text-muted-foreground hover:text-foreground"
                             }`}
+                        role="tab"
+                        aria-selected={activeTab === "login"}
+                        aria-controls="auth-form"
+                        id="login-tab"
                     >
                         Login
                     </button>
@@ -142,6 +148,10 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             ? "text-primary border-b-2 border-primary"
                             : "text-muted-foreground hover:text-foreground"
                             }`}
+                        role="tab"
+                        aria-selected={activeTab === "register"}
+                        aria-controls="auth-form"
+                        id="register-tab"
                     >
                         Register
                     </button>
@@ -151,10 +161,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 <form
                     onSubmit={activeTab === "login" ? handleLogin : handleRegister}
                     className="p-6 space-y-4"
+                    id="auth-form"
+                    role="tabpanel"
+                    aria-labelledby={activeTab === "login" ? "login-tab" : "register-tab"}
                 >
+                    <h2 id="auth-modal-title" className="sr-only">
+                        {activeTab === "login" ? "Login to your account" : "Create a new account"}
+                    </h2>
+                    
                     {/* Error message */}
                     {error && (
-                        <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm px-4 py-3 rounded-md">
+                        <div className="bg-destructive/10 border border-destructive/20 text-destructive text-sm px-4 py-3 rounded-md" role="alert" aria-live="polite">
                             {error}
                         </div>
                     )}
@@ -166,7 +183,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                 Username (optional)
                             </label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                                 <input
                                     id="name"
                                     type="text"
@@ -185,7 +202,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             Email
                         </label>
                         <div className="relative">
-                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                             <input
                                 id="email"
                                 type="email"
@@ -204,7 +221,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             Password
                         </label>
                         <div className="relative">
-                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                             <input
                                 id="password"
                                 type="password"
@@ -237,7 +254,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                 Confirm Password
                             </label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
                                 <input
                                     id="confirmPassword"
                                     type="password"

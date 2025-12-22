@@ -156,11 +156,12 @@ export default function BetModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center" role="dialog" aria-modal="true" aria-labelledby="bet-modal-title">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                 onClick={onClose}
+                aria-hidden="true"
             />
 
             {/* Modal */}
@@ -169,20 +170,21 @@ export default function BetModal({
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors z-10"
+                    aria-label="Close bet modal"
                 >
-                    <X className="w-5 h-5" />
+                    <X className="w-5 h-5" aria-hidden="true" />
                 </button>
 
                 {/* Header */}
                 <div className="px-6 py-4 border-b border-card-border">
-                    <h2 className="text-lg font-bold font-display uppercase">Place a Bet</h2>
+                    <h2 id="bet-modal-title" className="text-lg font-bold font-display uppercase">Place a Bet</h2>
                     <p className="text-sm text-muted-foreground truncate">{matchName}</p>
                 </div>
 
                 {success ? (
-                    <div className="p-8 text-center">
+                    <div className="p-8 text-center" role="alert" aria-live="polite">
                         <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/20 flex items-center justify-center">
-                            <TrendingUp className="w-8 h-8 text-primary" />
+                            <TrendingUp className="w-8 h-8 text-primary" aria-hidden="true" />
                         </div>
                         <h3 className="text-xl font-bold mb-2">Bet Placed!</h3>
                         <p className="text-muted-foreground">
@@ -320,8 +322,8 @@ export default function BetModal({
 
                                 {/* Error message */}
                                 {error && (
-                                    <div className="flex items-center gap-2 px-4 py-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-md">
-                                        <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                    <div className="flex items-center gap-2 px-4 py-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-md" role="alert" aria-live="polite">
+                                        <AlertCircle className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
                                         {error}
                                     </div>
                                 )}
