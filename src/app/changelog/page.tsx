@@ -19,6 +19,30 @@ interface ChangelogEntry {
 
 const changelog: ChangelogEntry[] = [
     {
+        version: "1.3.0",
+        date: "December 26, 2025",
+        title: "Minigames & Tier List Update",
+        type: "feature",
+        changes: [
+            {
+                category: "new",
+                items: [
+                    "Tier List - Create and share your team tier lists",
+                    "Drag & drop interface for ranking teams",
+                    "Export tier list as image",
+                    "Per-game tier list with local save",
+                ],
+            },
+            {
+                category: "improved",
+                items: [
+                    "Navigation restructured - Simulator and Tier List grouped under Minigames",
+                    "Minigames dropdown now shows descriptions",
+                ],
+            },
+        ],
+    },
+    {
         version: "1.2.0",
         date: "December 22, 2025",
         title: "Accessibility & Focus Update",

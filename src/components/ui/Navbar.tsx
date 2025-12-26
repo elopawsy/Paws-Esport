@@ -21,11 +21,12 @@ export default function Navbar() {
         { href: "/tournaments", label: "Tournaments" },
         { href: "/calendar", label: "Calendar" },
         { href: "/leaderboard", label: "Leaderboard" },
-        { href: "/simulator", label: "Simulator" },
     ];
 
     const minigames = [
         { href: "/games/wordle", label: "Esportsle", description: "Guess the pro player" },
+        { href: "/simulator", label: "Simulator", description: "Build your dream roster" },
+        { href: "/games/tierlist", label: "Tier List", description: "Rank your favorite teams" },
     ];
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,7 +65,7 @@ export default function Navbar() {
                             onMouseLeave={() => setShowMinigames(false)}
                         >
                             <button
-                                className={`flex items-center gap-1 text-sm font-medium tracking-wide transition-colors ${pathname.startsWith("/games")
+                                className={`flex items-center gap-1 text-sm font-medium tracking-wide transition-colors ${pathname.startsWith("/games") || pathname.startsWith("/simulator")
                                     ? "text-primary"
                                     : "text-muted-foreground hover:text-foreground"
                                     }`}
