@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
 import { AuthModule } from './infrastructure/auth/auth.module';
+import { ConvexModule } from './infrastructure/convex/convex.module';
 import { PandaScoreModule } from './infrastructure/pandascore/pandascore.module';
 import { PrismaModule } from './infrastructure/prisma/prisma.module';
 import { HealthModule } from './modules/health/health.module';
@@ -14,6 +15,7 @@ import { VideoGameModule } from './modules/video-game/video-game.module';
     PrismaModule,
     AuthModule,
     PandaScoreModule,
+    ConvexModule,
     HealthModule,
     VideoGameModule,
     MeModule,

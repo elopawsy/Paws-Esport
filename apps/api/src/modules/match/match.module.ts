@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 
+import { LiveMatchDebugController } from './live-debug.controller';
 import { MatchController } from './match.controller';
 import { MatchRepository } from './match.repository';
 import { MatchService } from './match.service';
 
 @Module({
-  controllers: [MatchController],
+  controllers: [MatchController, LiveMatchDebugController],
   providers: [MatchService, MatchRepository],
   exports: [MatchService],
 })

@@ -1,0 +1,23 @@
+{
+  "name": "@paws/convex",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./_generated/*": "./convex/_generated/*"
+  },
+  "scripts": {
+    "deploy": "convex deploy",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "convex": "^1.16.0"
+  },
+  "devDependencies": {
+    "@paws/tsconfig": "workspace:*",
+    "dotenv": "^17.2.3",
+    "typescript": "~5.7.2"
+  }
+}

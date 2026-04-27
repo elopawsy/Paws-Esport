@@ -1,0 +1,12 @@
+{
+  "extends": "@paws/tsconfig/library.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "moduleResolution": "Bundler",
+    "module": "ESNext",
+    "jsx": "preserve"
+  },
+  "include": ["src/**/*", "convex/**/*"],
+  "exclude": ["convex/_generated"]
+}

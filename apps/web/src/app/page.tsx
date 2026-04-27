@@ -10,6 +10,7 @@ import AvailableBetsSection from "@/components/home/AvailableBetsSection";
 import GameSelector from "@/components/home/GameSelector";
 import { functional } from "@paws/api-sdk";
 import { getServerConnection } from "@/lib/api";
+import LiveScoreWidget from "@/components/match/LiveScoreWidget";
 
 interface Tournament {
   id: number;
@@ -301,6 +302,17 @@ export default async function HomePage({ searchParams }: HomePageProps) {
             </div>
           </div>
         </div>
+      </section>
+
+      {/* Realtime live score (Convex) — temporary demo wired to the API's /debug/live-matches endpoint */}
+      <section className="mb-8">
+        <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border-subtle">
+          <span className="inline-block w-[3px] h-4 bg-primary" aria-hidden="true" />
+          <h3 className="text-sm font-display font-semibold uppercase tracking-[0.12em] text-foreground">
+            Realtime score (demo)
+          </h3>
+        </div>
+        <LiveScoreWidget matchId={9999999} />
       </section>
 
       {/* Game Selector */}
