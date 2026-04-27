@@ -22,6 +22,7 @@
     "@nestjs/swagger": "^8.1.0",
     "@paws/db": "workspace:*",
     "@prisma/client": "^7.2.0",
+    "better-auth": "^1.4.7",
     "dotenv": "^17.2.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",

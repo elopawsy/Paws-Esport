@@ -1,9 +1,11 @@
 import core from '@nestia/core';
 import { Controller } from '@nestjs/common';
 
+import { Public } from '../../infrastructure/auth/public.decorator';
 import type { VideoGame } from './video-game.types';
 import { VideoGameService } from './video-game.service';
 
+@Public()
 @Controller('video-games')
 export class VideoGameController {
   constructor(private readonly service: VideoGameService) {}
