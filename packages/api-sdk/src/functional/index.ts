@@ -11,6 +11,8 @@ import type { MeProfile } from "../../../../apps/api/src/modules/me/me.types";
 
 export * as health from "./health";
 export * as video_games from "./video_games";
+export * as tournaments from "./tournaments";
+export * as matches from "./matches";
 
 /**
  * Return the currently authenticated user's profile.
