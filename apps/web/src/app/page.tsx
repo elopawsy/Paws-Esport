@@ -46,56 +46,54 @@ const TIER_COLORS: Record<string, string> = {
 
 function TournamentCard({ tournament }: { tournament: Tournament }) {
   const tierClass = tournament.tier
-    ? TIER_COLORS[tournament.tier.toLowerCase()] || "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700"
-    : "from-gray-700/20 to-gray-800/20 text-gray-400 border-gray-700";
+    ? TIER_COLORS[tournament.tier.toLowerCase()] || "text-muted border-border-subtle"
+    : "text-muted border-border-subtle";
 
   const tournamentUrl = tournament.slug ? `/tournaments/${tournament.slug}` : `/tournaments/${tournament.id}`;
 
   return (
     <Link
       href={tournamentUrl}
-      className="block group relative bg-card h-full rounded-xl overflow-hidden border border-card-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5"
+      className="block group relative bg-surface h-full overflow-hidden border border-border-subtle hover:border-border-strong hover:bg-surface-2 transition-colors"
     >
-      <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/20 pointer-events-none" />
-
-      <div className="p-5 flex flex-col h-full relative z-10">
-        <div className="flex items-start gap-4 mb-4">
-          <div className="relative w-12 h-12 flex-shrink-0 bg-secondary/50 rounded-lg p-2 border border-card-border group-hover:border-primary/30 transition-colors">
+      <div className="p-4 flex flex-col h-full">
+        <div className="flex items-start gap-3 mb-3">
+          <div className="relative w-10 h-10 flex-shrink-0 bg-surface-2 p-1.5 border border-border-subtle">
             {tournament.league?.image_url ? (
               <Image
                 src={tournament.league.image_url}
                 alt={tournament.league.name}
                 fill
-                sizes="48px"
-                className="object-contain p-1"
+                sizes="40px"
+                className="object-contain p-0.5"
               />
             ) : (
               <Trophy className="w-full h-full text-muted-foreground" />
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold font-display text-lg leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-3">
+            <h3 className="font-semibold font-display text-sm leading-snug text-foreground group-hover:text-primary transition-colors line-clamp-3 uppercase tracking-[0.02em]">
               {getTournamentDisplayName(tournament)}
             </h3>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap mb-4">
+        <div className="flex items-center gap-1.5 flex-wrap mb-3">
           {tournament.tier && (
-            <span className={`px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded border bg-gradient-to-r ${tierClass}`}>
+            <span className={`px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider border ${tierClass}`}>
               {tournament.tier}-Tier
             </span>
           )}
           {tournament.prizepool && (
-            <div className="flex items-center gap-1 px-2.5 py-0.5 text-[10px] bg-green-500/10 text-green-400 border border-green-500/20 rounded font-medium">
+            <div className="inline-flex items-center gap-1 px-1.5 py-0.5 text-[10px] text-primary border border-primary/40 font-semibold tabular">
               <Coins className="w-3 h-3" />
               {tournament.prizepool}
             </div>
           )}
         </div>
 
-        <div className="mt-auto pt-4 border-t border-card-border flex items-center text-xs text-muted-foreground font-medium">
-          <Calendar className="w-3.5 h-3.5 mr-2 text-primary" />
+        <div className="mt-auto pt-3 border-t border-border-subtle flex items-center text-[11px] text-muted font-medium tabular uppercase tracking-wider">
+          <Calendar className="w-3 h-3 mr-1.5 text-primary" />
           {tournament.begin_at && (
             <span>
               {new Date(tournament.begin_at).toLocaleDateString("en-US", {
@@ -104,7 +102,7 @@ function TournamentCard({ tournament }: { tournament: Tournament }) {
               })}
             </span>
           )}
-          {tournament.begin_at && tournament.end_at && <span className="mx-1">→</span>}
+          {tournament.begin_at && tournament.end_at && <span className="mx-1.5 text-border-strong">·</span>}
           {tournament.end_at && (
             <span>
               {new Date(tournament.end_at).toLocaleDateString("en-US", {
@@ -131,19 +129,18 @@ function TournamentSection({
   if (tournaments.length === 0) return null;
 
   return (
-    <div className="mb-12">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-primary/10 rounded-lg">
-          <Icon className="w-5 h-5 text-primary" />
-        </div>
-        <h3 className="text-xl font-display font-bold uppercase tracking-wide text-foreground">
+    <div className="mb-10">
+      <div className="flex items-center gap-2 mb-4 pb-2 border-b border-border-subtle">
+        <span className="inline-block w-[3px] h-4 bg-primary" aria-hidden="true" />
+        <Icon className="w-4 h-4 text-primary" />
+        <h3 className="text-sm font-display font-semibold uppercase tracking-[0.12em] text-foreground">
           {title}
         </h3>
-        <span className="ml-auto px-3 py-0.5 text-xs font-medium bg-secondary text-muted-foreground rounded-full border border-card-border">
-          {tournaments.length}
+        <span className="ml-auto text-[11px] tabular text-muted uppercase tracking-wider">
+          {tournaments.length} total
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
         {tournaments.slice(0, 8).map((tournament) => (
           <TournamentCard key={tournament.id} tournament={tournament} />
         ))}
@@ -154,11 +151,11 @@ function TournamentSection({
 
 function TournamentsSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
       {[...Array(8)].map((_, i) => (
         <div
           key={i}
-          className="h-[280px] bg-card border border-card-border animate-pulse rounded-xl"
+          className="h-[180px] bg-surface border border-border-subtle animate-pulse"
         />
       ))}
     </div>
@@ -181,8 +178,8 @@ function TournamentsContent({ tournaments, gameName }: TournamentsContentProps) 
       <TournamentSection title="Recently Finished" tournaments={past} icon={Trophy} />
 
       {hasNoTournaments && (
-        <div className="py-32 text-center border border-dashed border-card-border rounded-xl">
-          <p className="text-muted-foreground text-sm uppercase tracking-widest">
+        <div className="py-24 text-center border border-dashed border-border-subtle">
+          <p className="text-muted text-xs uppercase tracking-[0.2em]">
             No tournaments found for {gameName}
           </p>
         </div>
@@ -214,50 +211,60 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   }
 
   return (
-    <div className="container-custom py-12">
-      {/* Hero Section */}
-      <section className="mb-16 relative overflow-hidden rounded-3xl bg-secondary/30 border border-card-border p-8 md:p-16">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 -mb-10 -ml-10 w-64 h-64 bg-primary/10 rounded-full blur-3xl" />
+    <div className="container-custom py-8">
+      {/* Hero — Esports Charts–style: dense, minimal, no glow */}
+      <section className="mb-10 border border-border-subtle bg-surface">
+        <div className="grid grid-cols-1 md:grid-cols-3">
+          <div className="md:col-span-2 p-6 md:p-10 border-b md:border-b-0 md:border-r border-border-subtle">
+            <div className="inline-flex items-center gap-2 mb-5 text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">
+              <span className="status-dot-live" aria-hidden="true" />
+              Live Updates
+            </div>
 
-        <div className="relative z-10 max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-widest mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            Live Updates
+            <h1 className="text-4xl md:text-5xl font-display font-semibold mb-4 leading-[0.95] text-foreground tracking-[0.02em]">
+              <span className="text-primary">Professional</span> Esports Data
+            </h1>
+
+            <p className="text-sm md:text-base text-muted max-w-xl mb-6 leading-relaxed">
+              Live tournaments, transfer markets, and match results across CS2, Valorant, LoL and more.
+            </p>
+
+            <div className="flex gap-2 flex-wrap">
+              <Link
+                href="/simulator"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground font-semibold text-[12px] uppercase tracking-[0.12em] hover:bg-primary-hover transition-colors group"
+              >
+                Transfer Simulator
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </Link>
+              <Link
+                href="/tournaments"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-transparent border border-border-strong text-foreground font-semibold text-[12px] uppercase tracking-[0.12em] hover:border-primary hover:text-primary transition-colors"
+              >
+                All Tournaments
+              </Link>
+            </div>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-display font-bold mb-6 tracking-tight text-foreground leading-[0.9]">
-            PROFESSIONAL <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-emerald-400">ESPORTS HUB</span>
-          </h1>
-
-          <p className="text-lg md:text-xl text-muted-foreground max-w-xl mb-10 font-light leading-relaxed">
-            Track live tournaments, transfer news, and match results for CS2, Valorant, LoL, and more in real-time.
-          </p>
-
-          <div className="flex gap-4 flex-wrap">
-            <Link
-              href="/simulator"
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-primary text-primary-foreground font-bold text-sm uppercase tracking-widest hover:bg-primary-hover transition-all rounded-lg shadow-lg shadow-primary/20 group"
-            >
-              Transfer Simulator
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="/tournaments"
-              className="inline-flex items-center gap-2 px-6 py-3.5 bg-card border border-card-border text-foreground font-bold text-sm uppercase tracking-widest hover:border-primary/50 transition-all rounded-lg"
-            >
-              All Tournaments
-            </Link>
+          <div className="p-6 md:p-10 flex flex-col justify-center gap-5">
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted mb-1">Live Tournaments</p>
+              <p className="text-3xl font-display font-semibold text-foreground tabular">{tournaments.running.length}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted mb-1">Upcoming</p>
+              <p className="text-3xl font-display font-semibold text-foreground tabular">{tournaments.upcoming.length}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted mb-1">Recently Finished</p>
+              <p className="text-3xl font-display font-semibold text-foreground tabular">{tournaments.past.length}</p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Game Selector - Client Component */}
-      <Suspense fallback={<div className="h-16 animate-pulse bg-secondary/30 rounded-lg mb-12" />}>
+      {/* Game Selector */}
+      <Suspense fallback={<div className="h-12 animate-pulse bg-surface border border-border-subtle mb-8" />}>
         <GameSelector currentGame={selectedGame} />
       </Suspense>
 
@@ -269,20 +276,21 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
       {/* Tournaments Section */}
       <section>
-        <div className="flex items-center justify-between mb-8 border-b border-card-border pb-6">
-          <h2 className="text-3xl font-display font-bold uppercase tracking-tight text-foreground">
+        <div className="flex items-end justify-between mb-6 pb-3 border-b border-border-subtle">
+          <h2 className="text-lg font-display font-semibold uppercase tracking-[0.08em] text-foreground inline-flex items-center gap-2">
+            <span className="inline-block w-[3px] h-5 bg-primary" aria-hidden="true" />
             {VIDEO_GAMES[selectedGame]?.name} Tournaments
           </h2>
         </div>
 
         {/* Error State */}
         {error && (
-          <div className="py-20 text-center bg-destructive/5 rounded-xl border border-destructive/20">
-            <AlertCircle className="w-10 h-10 text-destructive mx-auto mb-4" />
-            <p className="text-destructive font-mono text-sm uppercase mb-4">
+          <div className="py-16 text-center border border-destructive/30 bg-destructive/5">
+            <AlertCircle className="w-8 h-8 text-destructive mx-auto mb-3" />
+            <p className="text-destructive font-mono text-xs uppercase mb-2">
               Error: {error}
             </p>
-            <p className="text-muted-foreground text-sm mb-6">
+            <p className="text-muted text-xs">
               Please check your API key configuration.
             </p>
           </div>
@@ -290,9 +298,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
 
         {/* Tournaments Content */}
         {!error && (
-          <TournamentsContent 
-            tournaments={tournaments} 
-            gameName={VIDEO_GAMES[selectedGame]?.name || "this game"} 
+          <TournamentsContent
+            tournaments={tournaments}
+            gameName={VIDEO_GAMES[selectedGame]?.name || "this game"}
           />
         )}
       </section>

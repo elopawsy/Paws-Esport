@@ -845,7 +845,7 @@ export default function SimulatorPage() {
                     onDragStart={handleDragStart}
                     onDragEnd={handleDragEnd}
                 >
-                    <header className="sticky top-16 z-40 bg-background/80 backdrop-blur-md border-y border-card-border py-4 shadow-sm">
+                    <header className="sticky top-14 z-40 bg-background/80 backdrop-blur-md border-y border-card-border py-4 shadow-sm">
                         <div className="container-custom flex items-center gap-6">
                             <div className="flex-1 flex items-center gap-4">
                                 <div className="relative group flex-1 max-w-md">

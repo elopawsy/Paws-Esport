@@ -3,9 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import SearchBarWithSuggestions from "./SearchBarWithSuggestions";
-import { ChevronDown, Gamepad, LogIn, User, Heart, Users, LogOut, Coins, Settings } from "lucide-react";
+import { ChevronDown, Gamepad, LogIn, User, Heart, Users, LogOut, Coins } from "lucide-react";
 import { AuthModal, UserMenu } from "@/components/auth";
 import { NotificationCenter } from "@/components/notifications";
 import { useSession, signOut } from "@/lib/auth-client";
@@ -33,24 +32,25 @@ export default function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-card-border" role="navigation" aria-label="Main navigation">
-                <div className="container-custom h-16 flex items-center justify-between">
+            <nav className="fixed top-0 left-0 right-0 z-50 bg-background/85 backdrop-blur-md border-b border-border-subtle" role="navigation" aria-label="Main navigation">
+                <div className="container-custom h-14 flex items-center justify-between">
                     {/* Logo */}
-                    <Link href="/" className="text-2xl font-display font-medium tracking-tight uppercase">
-                        <span className="text-primary font-bold">Paws</span>Esport
+                    <Link href="/" className="text-xl font-display font-semibold tracking-[0.04em] uppercase">
+                        <span className="text-primary">Paws</span>
+                        <span className="text-foreground">Esport</span>
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center gap-8">
+                    <div className="hidden md:flex items-center gap-1 h-full">
                         {links.map((link) => {
                             const isActive = pathname === link.href;
                             return (
                                 <Link
                                     key={link.href}
                                     href={link.href}
-                                    className={`text-sm font-medium tracking-wide transition-colors ${isActive
-                                        ? "text-primary"
-                                        : "text-muted-foreground hover:text-foreground"
+                                    className={`relative h-full inline-flex items-center px-3 text-[13px] font-medium tracking-wide uppercase transition-colors ${isActive
+                                        ? "text-foreground after:absolute after:left-2 after:right-2 after:bottom-0 after:h-[2px] after:bg-primary"
+                                        : "text-muted hover:text-foreground"
                                         }`}
                                 >
                                     {link.label}
@@ -65,30 +65,30 @@ export default function Navbar() {
                             onMouseLeave={() => setShowMinigames(false)}
                         >
                             <button
-                                className={`flex items-center gap-1 text-sm font-medium tracking-wide transition-colors ${pathname.startsWith("/games") || pathname.startsWith("/simulator")
-                                    ? "text-primary"
-                                    : "text-muted-foreground hover:text-foreground"
+                                className={`relative h-full inline-flex items-center gap-1 px-3 text-[13px] font-medium tracking-wide uppercase transition-colors ${pathname.startsWith("/games") || pathname.startsWith("/simulator")
+                                    ? "text-foreground after:absolute after:left-2 after:right-2 after:bottom-0 after:h-[2px] after:bg-primary"
+                                    : "text-muted hover:text-foreground"
                                     }`}
                                 aria-expanded={showMinigames}
                                 aria-haspopup="true"
                                 aria-label="Minigames menu"
                             >
-                                <Gamepad className="w-4 h-4" />
+                                <Gamepad className="w-3.5 h-3.5" />
                                 Minigames
                                 <ChevronDown className="w-3 h-3" />
                             </button>
 
                             {showMinigames && (
-                                <div className="absolute top-full left-0 pt-2">
-                                    <div className="bg-card border border-card-border rounded-lg shadow-xl overflow-hidden min-w-[200px]">
+                                <div className="absolute top-full left-0 pt-1">
+                                    <div className="bg-surface border border-border-subtle rounded-md shadow-xl overflow-hidden min-w-[220px]">
                                         {minigames.map((game) => (
                                             <Link
                                                 key={game.href}
                                                 href={game.href}
-                                                className="block px-4 py-3 hover:bg-primary/10 transition-colors"
+                                                className="block px-4 py-2.5 hover:bg-surface-2 border-l-2 border-transparent hover:border-primary transition-colors"
                                             >
-                                                <span className="block font-medium text-foreground">{game.label}</span>
-                                                <span className="block text-xs text-muted-foreground">{game.description}</span>
+                                                <span className="block text-sm font-medium text-foreground">{game.label}</span>
+                                                <span className="block text-xs text-muted">{game.description}</span>
                                             </Link>
                                         ))}
                                     </div>
@@ -116,9 +116,9 @@ export default function Navbar() {
                             ) : (
                                 <button
                                     onClick={() => setShowAuthModal(true)}
-                                    className="hidden sm:flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-primary-foreground text-sm font-medium rounded-md transition-colors"
+                                    className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-primary hover:bg-primary-hover text-primary-foreground text-[13px] font-semibold uppercase tracking-wide rounded-sm transition-colors"
                                 >
-                                    <LogIn className="w-4 h-4" />
+                                    <LogIn className="w-3.5 h-3.5" />
                                     <span className="hidden sm:inline">Login</span>
                                 </button>
                             )
@@ -145,7 +145,7 @@ export default function Navbar() {
 
                 {/* Mobile Menu */}
                 {isMobileMenuOpen && (
-                    <div id="mobile-menu" className="md:hidden border-t border-card-border bg-background fixed inset-x-0 top-16 bottom-0 overflow-y-auto z-40" role="menu" aria-label="Mobile navigation">
+                    <div id="mobile-menu" className="md:hidden border-t border-border-subtle bg-background fixed inset-x-0 top-14 bottom-0 overflow-y-auto z-40" role="menu" aria-label="Mobile navigation">
                         <div className="container-custom py-4 space-y-4 pb-20">
                             <div className="sm:hidden mb-4">
                                 <SearchBarWithSuggestions />
@@ -231,12 +231,7 @@ export default function Navbar() {
                         </div>
 
                         {/* Mobile Footer Actions */}
-                        <div className="pt-2 border-t border-card-border">
-                            <div className="flex items-center justify-between px-4 py-3 rounded-lg hover:bg-secondary/50 transition-colors">
-                                <span className="text-sm font-medium text-foreground">Theme</span>
-                                <ThemeToggle />
-                            </div>
-
+                        <div className="pt-2 border-t border-border-subtle">
                             {session?.user && (
                                 <button
                                     onClick={async () => {

@@ -259,7 +259,7 @@ export default function TournamentsClient({ initialData }: { initialData?: Tourn
             </div>
 
             {/* Game Selector Sticky */}
-            <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-sm border-y border-card-border shadow-sm">
+            <div className="sticky top-14 z-40 bg-background/95 backdrop-blur-sm border-y border-card-border shadow-sm">
                 <div className="container-custom py-3">
                     <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0 lg:flex-wrap scrollbar-hide -mx-4 px-4 lg:mx-0 lg:px-0">
                         {Object.entries(VIDEO_GAMES).map(([slug, game]) => (

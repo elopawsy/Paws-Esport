@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 import Link from "next/link";
-import CountryFlag from "./CountryFlag";
 
 import type { Match, MatchOpponent } from "@/types";
 
@@ -31,7 +30,7 @@ const TeamDisplay = memo(function TeamDisplay({
     opponent,
     score,
     isWinner,
-    compact
+    compact,
 }: {
     opponent: MatchOpponent["opponent"];
     score?: number;
@@ -39,8 +38,8 @@ const TeamDisplay = memo(function TeamDisplay({
     compact?: boolean;
 }) {
     return (
-        <div className={`flex items-center gap-2 ${compact ? "" : "flex-1"}`}>
-            <div className={`${compact ? "w-6 h-6" : "w-8 h-8"} flex items-center justify-center flex-shrink-0`}>
+        <div className="flex items-center gap-2">
+            <div className={`${compact ? "w-5 h-5" : "w-7 h-7"} flex items-center justify-center flex-shrink-0`}>
                 {opponent.image_url ? (
                     <img src={opponent.image_url} alt={`${opponent.name} logo`} className="w-full h-full object-contain" />
                 ) : (
@@ -53,7 +52,7 @@ const TeamDisplay = memo(function TeamDisplay({
                 {opponent.acronym || opponent.name}
             </span>
             {score !== undefined && (
-                <span className={`ml-auto ${compact ? "text-sm" : "text-lg"} font-bold ${isWinner ? "text-primary" : "text-muted"}`}>
+                <span className={`ml-auto tabular ${compact ? "text-sm" : "text-base"} font-semibold ${isWinner ? "text-primary" : "text-muted"}`}>
                     {score}
                 </span>
             )}
@@ -69,71 +68,57 @@ const MatchCard = memo(function MatchCard({ match, compact = false }: Props) {
 
     const isFinished = match.status === "finished";
     const isLive = match.status === "running";
+    const isCanceled = match.status === "canceled";
 
     const winner1 = isFinished && score1 !== undefined && score2 !== undefined && score1 > score2;
     const winner2 = isFinished && score1 !== undefined && score2 !== undefined && score2 > score1;
 
-    const isCanceled = match.status === "canceled";
-
-    const statusColor = isLive
-        ? "bg-red-500 animate-pulse"
-        : isFinished
-            ? "bg-muted"
-            : isCanceled
-                ? "bg-red-900/50"
-                : "bg-primary";
-
-    // Prefer slug for cleaner URLs, fallback to id
     const matchUrl = match.slug ? `/match/${match.slug}` : `/match/${match.id}`;
-
-    // Generate accessible label for the match
-    const matchLabel = `${team1?.name || 'TBD'} versus ${team2?.name || 'TBD'}${isLive ? ', currently live' : isFinished ? `, final score ${score1} to ${score2}` : ''}, ${match.league?.name || ''}`;
+    const matchLabel = `${team1?.name || "TBD"} versus ${team2?.name || "TBD"}${isLive ? ", currently live" : isFinished ? `, final score ${score1} to ${score2}` : ""}, ${match.league?.name || ""}`;
 
     return (
-        <Link 
-            href={matchUrl} 
-            className={`block bg-card border border-card-border rounded-md overflow-hidden hover:border-primary/30 transition-colors group ${compact ? "p-3" : "p-4"}`}
+        <Link
+            href={matchUrl}
+            className={`block bg-surface border border-border-subtle hover:border-border-strong hover:bg-surface-2 transition-colors group ${compact ? "p-2.5" : "p-3.5"}`}
             aria-label={matchLabel}
         >
             {/* Header */}
-            <div className={`flex items-center justify-between ${compact ? "mb-2" : "mb-3"}`}>
-                <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${statusColor}`} aria-hidden="true" />
-                    <span className={`${compact ? "text-[10px]" : "text-xs"} text-muted uppercase tracking-wider font-medium`}>
-                        {isLive ? "LIVE" : isFinished ? "Finished" : isCanceled ? "Canceled" : formatTime(match.scheduled_at)}
+            <div className={`flex items-center justify-between ${compact ? "mb-2" : "mb-2.5"}`}>
+                <div className="flex items-center gap-1.5">
+                    {isLive ? (
+                        <span className="status-dot-live" aria-hidden="true" />
+                    ) : (
+                        <span
+                            className={`inline-block w-1.5 h-1.5 rounded-full ${isFinished ? "bg-muted-foreground" : isCanceled ? "bg-destructive/60" : "bg-primary"}`}
+                            aria-hidden="true"
+                        />
+                    )}
+                    <span className={`${compact ? "text-[10px]" : "text-[11px]"} text-muted uppercase tracking-[0.1em] font-medium`}>
+                        {isLive ? "Live" : isFinished ? "Final" : isCanceled ? "Canceled" : formatTime(match.scheduled_at)}
                     </span>
-                    {/* Screen reader announcement for match status */}
                     <span className="sr-only">
                         Match status: {isLive ? "Currently live" : isFinished ? "Match finished" : isCanceled ? "Match canceled" : `Scheduled for ${match.scheduled_at}`}
                     </span>
                 </div>
-                <span className={`${compact ? "text-[8px]" : "text-[10px]"} px-1.5 py-0.5 rounded ${match.tier === "Tier 1"
-                    ? "bg-primary/20 text-primary"
-                    : match.tier === "Tier 2"
-                        ? "bg-yellow-500/20 text-yellow-400"
-                        : "bg-white/10 text-muted"
-                    } uppercase tracking-wider font-bold`}>
-                    {match.tier}
-                </span>
+                {match.tier && (
+                    <span className={`${compact ? "text-[9px]" : "text-[10px]"} px-1.5 py-0.5 uppercase tracking-wider font-semibold ${match.tier === "Tier 1"
+                        ? "text-primary border border-primary/40"
+                        : match.tier === "Tier 2"
+                            ? "text-warning border border-warning/40"
+                            : "text-muted border border-border-subtle"
+                        }`}>
+                        {match.tier}
+                    </span>
+                )}
             </div>
 
             {/* Teams */}
-            <div className={`space-y-2 ${compact ? "" : "mb-3"}`}>
+            <div className="space-y-1.5">
                 {team1 && (
-                    <TeamDisplay
-                        opponent={team1}
-                        score={score1}
-                        isWinner={winner1}
-                        compact={compact}
-                    />
+                    <TeamDisplay opponent={team1} score={score1} isWinner={winner1} compact={compact} />
                 )}
                 {team2 && (
-                    <TeamDisplay
-                        opponent={team2}
-                        score={score2}
-                        isWinner={winner2}
-                        compact={compact}
-                    />
+                    <TeamDisplay opponent={team2} score={score2} isWinner={winner2} compact={compact} />
                 )}
                 {(!team1 || !team2) && (
                     <p className="text-xs text-muted italic">TBD</p>
@@ -142,10 +127,10 @@ const MatchCard = memo(function MatchCard({ match, compact = false }: Props) {
 
             {/* Footer */}
             {!compact && match.league && (
-                <div className="pt-2 border-t border-card-border">
-                    <p className="text-[10px] text-muted truncate uppercase tracking-wide">
+                <div className="mt-3 pt-2 border-t border-border-subtle">
+                    <p className="text-[10px] text-muted truncate uppercase tracking-wider">
                         {match.league.name}
-                        {match.serie?.full_name && ` • ${match.serie.full_name}`}
+                        {match.serie?.full_name && ` · ${match.serie.full_name}`}
                     </p>
                 </div>
             )}

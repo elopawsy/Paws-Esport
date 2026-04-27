@@ -3,151 +3,134 @@
 @theme {
   --font-sans: var(--font-inter), sans-serif;
   --font-display: var(--font-oswald), sans-serif;
+  --font-mono: ui-monospace, "JetBrains Mono", "SF Mono", Menlo, monospace;
 
-  /* HSL Values for better theme switching if needed, but hex is fine for simple setup */
+  /* ===== Surfaces ===== */
+  --color-background: #0a0e0c;
+  --color-foreground: #e8edea;
+  --color-surface: #111714;
+  --color-surface-2: #1a211d;
 
-  --color-background: #09090b;
-  /* Zinc 950 - Deep Dark */
-  --color-foreground: #f4f4f5;
-  /* Zinc 100 - Soft White */
+  /* ===== Borders ===== */
+  --color-border-subtle: #1f2925;
+  --color-border-strong: #2c3a34;
 
-  /* Primary - Vibrant Green */
+  /* ===== Card aliases (kept for compat with existing components) ===== */
+  --color-card: #111714;
+  --color-card-foreground: #e8edea;
+  --color-card-border: #1f2925;
+
+  /* ===== Text ===== */
+  --color-muted: #8b978f;
+  --color-muted-foreground: #5a645e;
+
+  /* ===== Accent (green) ===== */
   --color-primary: #22c55e;
-  /* Green 500 - Vibrant */
-  --color-primary-foreground: #ffffff;
+  --color-primary-foreground: #06140b;
   --color-primary-hover: #16a34a;
-  /* Green 600 */
+  --color-primary-soft: rgba(34, 197, 94, 0.12);
 
-  /* Secondary / Card */
-  --color-card: #18181b;
-  /* Zinc 900 */
-  --color-card-foreground: #f4f4f5;
-  --color-card-border: #27272a;
-  /* Zinc 800 */
-
-  /* Muted */
-  --color-muted: #a1a1aa;
-  /* Zinc 400 */
-  --color-muted-foreground: #71717a;
-  /* Zinc 500 */
-
-  /* Accents */
-  --color-accent: #27272a;
-  /* Zinc 800 */
-  --color-accent-foreground: #ffffff;
-
-  /* Destructive */
+  /* ===== State ===== */
+  --color-accent: #1a211d;
+  --color-accent-foreground: #e8edea;
   --color-destructive: #ef4444;
-  /* Red 500 */
   --color-destructive-foreground: #ffffff;
+  --color-warning: #f59e0b;
+  --color-live: #ef4444;
 
-  /* Focus Ring - Accessibility */
   --color-focus-ring: #22c55e;
 
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
+  /* ===== Radii — keep small for the data look ===== */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
 }
 
 @layer base {
   :root {
-    /* Light Mode Overrides */
-    --background: 255 255 255;
-    --foreground: 9 9 11;
-    --logo-filter: none;
-    /* Black logos in light mode */
+    --logo-filter: brightness(0) invert(1);
   }
 
-  [data-theme="dark"] {
-    --logo-filter: brightness(0) invert(1);
-    /* White logos in dark mode */
+  /* Optional light mode (kept but unused by default) */
+  [data-theme="light"] body {
+    --color-background: #ffffff;
+    --color-foreground: #0a0e0c;
+    --color-surface: #f6f7f6;
+    --color-surface-2: #eceeed;
+    --color-card: #f6f7f6;
+    --color-card-foreground: #0a0e0c;
+    --color-card-border: #d8dcd9;
+    --color-border-subtle: #d8dcd9;
+    --color-border-strong: #b7bdba;
+    --color-muted: #5a645e;
+    --color-muted-foreground: #7c8782;
+    --logo-filter: none;
   }
 }
 
-/* Base styles */
 @layer base {
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    transition: background-color 0.3s ease, color 0.3s ease;
+    font-feature-settings: "ss01", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Light Mode Support via data-theme or class */
-  [data-theme="light"] body {
-    --color-background: #ffffff;
-    --color-foreground: #09090b;
-    --color-card: #f4f4f5;
-    /* Zinc 100 */
-    --color-card-border: #e4e4e7;
-    /* Zinc 200 */
-    --color-muted: #71717a;
-    /* Zinc 500 */
-  }
-
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
+    font-weight: 600;
   }
 
-  /* Accessibility: Focus Visible Ring */
+  /* Tabular numbers everywhere — useful for scores, peak viewers, dates */
+  table, .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-focus-ring);
     outline-offset: 2px;
   }
-
-  /* Remove default focus for mouse users */
-  :focus:not(:focus-visible) {
-    outline: none;
-  }
-
-  /* Better link focus */
-  a:focus-visible {
-    border-radius: var(--radius-sm);
-  }
-
-  /* Button focus */
-  button:focus-visible {
-    border-radius: var(--radius-md);
-  }
+  :focus:not(:focus-visible) { outline: none; }
+  a:focus-visible { border-radius: var(--radius-sm); }
+  button:focus-visible { border-radius: var(--radius-md); }
 }
 
-/* Utilities */
 @utility container-custom {
-  max-width: 1400px;
+  max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
+/* Live status dot with subtle pulse */
+@utility status-dot-live {
+  display: inline-block;
   width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--color-live);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6);
+  animation: paws-pulse 1.6s ease-out infinite;
+}
+@keyframes paws-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.6); }
+  70%  { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-card-border);
-  border-radius: 3px;
+  background: var(--color-border-subtle);
+  border-radius: 4px;
 }
+::-webkit-scrollbar-thumb:hover { background: var(--color-border-strong); }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-primary);
-}
-
-/* ===== ACCESSIBILITY UTILITIES ===== */
-
-/* Skip to main content link */
 .skip-to-content {
   position: absolute;
   top: -100px;
@@ -161,42 +144,29 @@
   z-index: 9999;
   transition: top 0.2s ease;
 }
+.skip-to-content:focus { top: 1rem; }
 
-.skip-to-content:focus {
-  top: 1rem;
-}
-
-/* Screen reader only (visually hidden but accessible) */
 .sr-only {
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
   overflow: hidden;
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
 }
-
-/* Screen reader only, but becomes visible on focus */
 .sr-only-focusable:focus,
 .sr-only-focusable:focus-within {
   position: static;
-  width: auto;
-  height: auto;
-  padding: inherit;
-  margin: inherit;
+  width: auto; height: auto;
+  padding: inherit; margin: inherit;
   overflow: visible;
   clip: auto;
   white-space: normal;
 }
 
-/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -204,14 +174,7 @@
   }
 }
 
-/* High contrast mode support */
 @media (prefers-contrast: high) {
-  :root {
-    --color-card-border: #ffffff;
-  }
-  
-  button,
-  a {
-    border: 2px solid currentColor !important;
-  }
+  :root { --color-border-subtle: #ffffff; }
+  button, a { border: 2px solid currentColor !important; }
 }

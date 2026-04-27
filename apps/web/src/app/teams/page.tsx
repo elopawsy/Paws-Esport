@@ -37,7 +37,7 @@ export default function TeamsPage() {
     return (
         <div className="min-h-screen bg-background">
             {/* Header */}
-            <div className="bg-card/30 border-b border-card-border backdrop-blur-sm sticky top-16 z-40">
+            <div className="bg-card/30 border-b border-card-border backdrop-blur-sm sticky top-14 z-40">
                 <div className="container-custom py-6">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                         <div>

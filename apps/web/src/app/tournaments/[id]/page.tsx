@@ -128,7 +128,7 @@ export default function TournamentDetailPage({ params }: { params: Promise<{ id:
 
     return (
         <div className="min-h-screen bg-background">
-            <div className="bg-card/30 border-b border-card-border sticky top-16 z-30 backdrop-blur-sm">
+            <div className="bg-card/30 border-b border-card-border sticky top-14 z-30 backdrop-blur-sm">
                 <div className="container-custom py-6">
                     <Breadcrumbs
                         items={[

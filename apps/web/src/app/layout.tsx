@@ -76,7 +76,8 @@ export default function RootLayout({
         <ThemeProvider
           attribute="data-theme"
           defaultTheme="dark"
-          enableSystem
+          forcedTheme="dark"
+          enableSystem={false}
           disableTransitionOnChange
         >
           {/* Skip to main content link for keyboard users */}
@@ -85,7 +86,7 @@ export default function RootLayout({
           </a>
           
           <Navbar />
-          <main id="main-content" className="pt-16 min-h-screen pb-10 flex flex-col" tabIndex={-1}>
+          <main id="main-content" className="pt-14 min-h-screen pb-10 flex flex-col" tabIndex={-1}>
             <div className="flex-1">{children}</div>
           </main>
           <Footer />
