@@ -49,6 +49,12 @@ export interface MatchStream {
   embedUrl: string | null;
 }
 
+export interface ListMatchesQuery {
+  game?: 'cs-2' | 'valorant' | 'lol';
+  status?: MatchStatus;
+  limit?: number;
+}
+
 export interface Match {
   id: number;
   slug: string | null;

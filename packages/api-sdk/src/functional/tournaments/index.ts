@@ -7,8 +7,8 @@
 import type { IConnection } from "@nestia/fetcher";
 import { PlainFetcher } from "@nestia/fetcher/lib/PlainFetcher";
 
-import type { ListTournamentsQuery } from "../../../../../apps/api/src/modules/tournament/tournament.controller";
 import type {
+  ListTournamentsQuery,
   TournamentBuckets,
   Tournament,
 } from "../../../../../apps/api/src/modules/tournament/tournament.types";

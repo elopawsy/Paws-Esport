@@ -7,7 +7,7 @@
 import type { IConnection } from "@nestia/fetcher";
 import { PlainFetcher } from "@nestia/fetcher/lib/PlainFetcher";
 
-import type { HealthStatus } from "../../../../../apps/api/src/modules/health/health.controller";
+import type { HealthStatus } from "../../../../../apps/api/src/modules/health/health.types";
 
 /**
  * @controller HealthController.check

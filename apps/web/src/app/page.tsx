@@ -8,7 +8,8 @@ import { getTournamentDisplayName } from "@/lib/tournament-utils";
 import TrackedTeamsMatches from "@/components/home/TrackedTeamsMatches";
 import AvailableBetsSection from "@/components/home/AvailableBetsSection";
 import GameSelector from "@/components/home/GameSelector";
-import { TournamentService } from "@/services";
+import { functional } from "@paws/api-sdk";
+import { getServerConnection } from "@/lib/api";
 
 interface Tournament {
   id: number;
@@ -34,6 +35,39 @@ interface TournamentsData {
   running: Tournament[];
   upcoming: Tournament[];
   past: Tournament[];
+}
+
+/**
+ * Re-shape the API DTO (camelCase) into the legacy snake_case the
+ * existing UI components expect. Once every page consumes the SDK we
+ * can drop the adapter and update components to read camelCase.
+ */
+function adaptTournament(t: {
+  id: number;
+  slug: string;
+  name: string;
+  tier: string | null;
+  beginAt: string | null;
+  endAt: string | null;
+  prizepool: string | null;
+  league: { id: number; name: string; imageUrl: string | null } | null;
+  serie: { id: number; name: string | null; fullName: string | null } | null;
+}): Tournament {
+  return {
+    id: t.id,
+    slug: t.slug,
+    name: t.name,
+    tier: t.tier,
+    begin_at: t.beginAt,
+    end_at: t.endAt,
+    prizepool: t.prizepool,
+    league: t.league
+      ? { id: t.league.id, name: t.league.name, image_url: t.league.imageUrl }
+      : null,
+    serie: t.serie
+      ? { id: t.serie.id, name: t.serie.name, full_name: t.serie.fullName }
+      : null,
+  };
 }
 
 const TIER_COLORS: Record<string, string> = {
@@ -204,7 +238,13 @@ export default async function HomePage({ searchParams }: HomePageProps) {
   let error: string | null = null;
 
   try {
-    tournaments = await TournamentService.getAllTournaments(selectedGame);
+    const connection = await getServerConnection();
+    const buckets = await functional.tournaments.list(connection, { game: selectedGame });
+    tournaments = {
+      running: buckets.running.map(adaptTournament),
+      upcoming: buckets.upcoming.map(adaptTournament),
+      past: buckets.past.map(adaptTournament),
+    };
   } catch (e) {
     console.error("Error fetching tournaments:", e);
     error = e instanceof Error ? e.message : "Unknown error";

@@ -2,9 +2,12 @@ import core from '@nestia/core';
 import { Controller } from '@nestjs/common';
 
 import { Public } from '../../infrastructure/auth/public.decorator';
-import type { VideoGameSlug } from '../../infrastructure/pandascore/pandascore.types';
 import { TournamentService } from './tournament.service';
-import type { Tournament, TournamentBuckets } from './tournament.types';
+import type {
+  ListTournamentsQuery,
+  Tournament,
+  TournamentBuckets,
+} from './tournament.types';
 
 @Public()
 @Controller('tournaments')
@@ -29,8 +32,4 @@ export class TournamentController {
     const numeric = Number(idOrSlug);
     return this.service.getByIdOrSlug(Number.isFinite(numeric) ? numeric : idOrSlug);
   }
-}
-
-interface ListTournamentsQuery {
-  game?: VideoGameSlug;
 }

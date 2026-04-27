@@ -36,3 +36,7 @@ export interface TournamentBuckets {
   upcoming: Tournament[];
   past: Tournament[];
 }
+
+export interface ListTournamentsQuery {
+  game?: 'cs-2' | 'valorant' | 'lol';
+}

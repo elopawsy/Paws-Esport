@@ -2,15 +2,8 @@ import core from '@nestia/core';
 import { Controller } from '@nestjs/common';
 
 import { Public } from '../../infrastructure/auth/public.decorator';
-import type { VideoGameSlug } from '../../infrastructure/pandascore/pandascore.types';
 import { MatchService } from './match.service';
-import type { Match, MatchStatus } from './match.types';
-
-interface ListMatchesQuery {
-  game?: VideoGameSlug;
-  status?: MatchStatus;
-  limit?: number;
-}
+import type { ListMatchesQuery, Match } from './match.types';
 
 @Public()
 @Controller('matches')

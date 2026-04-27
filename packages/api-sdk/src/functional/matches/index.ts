@@ -7,8 +7,10 @@
 import type { IConnection } from "@nestia/fetcher";
 import { PlainFetcher } from "@nestia/fetcher/lib/PlainFetcher";
 
-import type { ListMatchesQuery } from "../../../../../apps/api/src/modules/match/match.controller";
-import type { Match } from "../../../../../apps/api/src/modules/match/match.types";
+import type {
+  ListMatchesQuery,
+  Match,
+} from "../../../../../apps/api/src/modules/match/match.types";
 
 /**
  * List matches for a given video game and status.
