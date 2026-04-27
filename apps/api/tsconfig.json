@@ -1,0 +1,16 @@
+{
+  "extends": "@paws/tsconfig/nestjs.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "plugins": [
+      { "transform": "typia/lib/transform" },
+      { "transform": "@nestia/core/lib/transform" }
+    ]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

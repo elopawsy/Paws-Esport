@@ -3,6 +3,7 @@
   "globalDependencies": [".env"],
   "globalEnv": [
     "NODE_ENV",
+    "API_PORT",
     "DATABASE_URL",
     "DIRECT_DATABASE_URL",
     "BETTER_AUTH_URL",
@@ -24,6 +25,12 @@
     "lint": {},
     "typecheck": {
       "dependsOn": ["^build"]
+    },
+    "swagger": {
+      "outputs": ["dist/swagger.json", "src/swagger.json"]
+    },
+    "sdk": {
+      "outputs": ["src/index.ts", "src/**/*.ts"]
     },
     "clean": {
       "cache": false
