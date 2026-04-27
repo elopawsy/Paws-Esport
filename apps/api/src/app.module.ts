@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 
 import { AuthModule } from './infrastructure/auth/auth.module';
 import { ConvexModule } from './infrastructure/convex/convex.module';
@@ -12,6 +13,7 @@ import { VideoGameModule } from './modules/video-game/video-game.module';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     PrismaModule,
     AuthModule,
     PandaScoreModule,
