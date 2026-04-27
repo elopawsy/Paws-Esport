@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { Github, Twitter } from "lucide-react";
 
+import TrpcStatusBadge from "@/components/demo/TrpcStatusBadge";
+
 export default function Footer() {
     return (
         <footer className="border-t border-border-subtle bg-surface mt-auto" role="contentinfo">
@@ -27,6 +29,7 @@ export default function Footer() {
                         <Link href="#" className="hover:text-primary transition-colors">
                             Terms
                         </Link>
+                        <TrpcStatusBadge />
                     </nav>
 
                     <div className="flex items-center gap-1" role="group" aria-label="Social media links">

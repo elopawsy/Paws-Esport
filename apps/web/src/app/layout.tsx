@@ -6,6 +6,7 @@ import Footer from "@/components/ui/Footer";
 import CookieBanner from "@/components/compliance/CookieBanner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ConvexClientProvider } from "@/components/convex-provider";
+import { TrpcProvider } from "@/components/trpc-provider";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -81,19 +82,21 @@ export default function RootLayout({
           enableSystem={false}
           disableTransitionOnChange
         >
-          <ConvexClientProvider>
-            {/* Skip to main content link for keyboard users */}
-            <a href="#main-content" className="skip-to-content">
-              Skip to main content
-            </a>
+          <TrpcProvider>
+            <ConvexClientProvider>
+              {/* Skip to main content link for keyboard users */}
+              <a href="#main-content" className="skip-to-content">
+                Skip to main content
+              </a>
 
-            <Navbar />
-            <main id="main-content" className="pt-14 min-h-screen pb-10 flex flex-col" tabIndex={-1}>
-              <div className="flex-1">{children}</div>
-            </main>
-            <Footer />
-            <CookieBanner />
-          </ConvexClientProvider>
+              <Navbar />
+              <main id="main-content" className="pt-14 min-h-screen pb-10 flex flex-col" tabIndex={-1}>
+                <div className="flex-1">{children}</div>
+              </main>
+              <Footer />
+              <CookieBanner />
+            </ConvexClientProvider>
+          </TrpcProvider>
         </ThemeProvider>
       </body>
     </html>

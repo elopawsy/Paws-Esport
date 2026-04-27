@@ -117,9 +117,24 @@ importers:
       '@paws/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@paws/trpc':
+        specifier: workspace:*
+        version: link:../../packages/trpc
       '@prisma/client':
         specifier: ^7.2.0
         version: 7.8.0(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.7.2))(typescript@5.7.2)
+      '@tanstack/react-query':
+        specifier: ^5.62.7
+        version: 5.100.5(react@18.3.1)
+      '@trpc/client':
+        specifier: ^11.0.0
+        version: 11.16.0(@trpc/server@11.16.0(typescript@5.7.2))(typescript@5.7.2)
+      '@trpc/react-query':
+        specifier: ^11.0.0
+        version: 11.16.0(@tanstack/react-query@5.100.5(react@18.3.1))(@trpc/client@11.16.0(@trpc/server@11.16.0(typescript@5.7.2))(typescript@5.7.2))(@trpc/server@11.16.0(typescript@5.7.2))(react@18.3.1)(typescript@5.7.2)
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.16.0(typescript@5.7.2)
       better-auth:
         specifier: ^1.4.7
         version: 1.6.9(@prisma/client@7.8.0(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.7.2))(typescript@5.7.2))(mysql2@3.15.3)(next@15.5.15(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(prisma@7.8.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(typescript@5.7.2))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -253,6 +268,19 @@ importers:
       eslint:
         specifier: ^9
         version: 9.39.4(jiti@2.6.1)
+
+  packages/trpc:
+    dependencies:
+      '@trpc/server':
+        specifier: ^11.0.0
+        version: 11.16.0(typescript@5.7.2)
+    devDependencies:
+      '@paws/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.2
 
   packages/tsconfig: {}
 
@@ -1369,12 +1397,42 @@ packages:
   '@tailwindcss/postcss@4.2.4':
     resolution: {integrity: sha512-wgAVj6nUWAolAu8YFvzT2cTBIElWHkjZwFYovF+xsqKsW2ADxM/X2opxj5NsF/qVccAOjRNe8X2IdPzMsWyHTg==}
 
+  '@tanstack/query-core@5.100.5':
+    resolution: {integrity: sha512-t20KrhKkf0HXzqQkPbJ5erhFesup68BAbwFgYmTrS7bxMF7O5MdmL8jUkik4thsG7Hg00fblz30h6yF1d5TxGg==}
+
+  '@tanstack/react-query@5.100.5':
+    resolution: {integrity: sha512-aNwj1mi2v2bQ9IxkyR1grLOUkv3BYWoykHy9KDyLNbjC3tsahbOHJibK+Wjtr1wRhG59/AvJhiJG5OlthaCgJA==}
+    peerDependencies:
+      react: ^18 || ^19
+
   '@tokenizer/inflate@0.2.7':
     resolution: {integrity: sha512-MADQgmZT1eKjp06jpI2yozxaU9uVs4GzzgSL+uEq7bVcJ9V1ZXQkeGNql1fsSI0gMy1vhvNTNbUqrx+pZfJVmg==}
     engines: {node: '>=18'}
 
   '@tokenizer/token@0.3.0':
     resolution: {integrity: sha512-OvjF+z51L3ov0OyAU0duzsYuvO01PH7x4t6DJx+guahgTnBHkhJdG7soQeTSFLWN3efnHyibZ4Z8l2EuWwJN3A==}
+
+  '@trpc/client@11.16.0':
+    resolution: {integrity: sha512-TxIzm7OoK3baKZ0XCbuMUbI3GhgjcbKHIc4nWVKaRpCRnbSh0T31BT6fTPYwtnA/Nur8pBCGqC2B4J5hEPiPFQ==}
+    hasBin: true
+    peerDependencies:
+      '@trpc/server': 11.16.0
+      typescript: '>=5.7.2'
+
+  '@trpc/react-query@11.16.0':
+    resolution: {integrity: sha512-ah6ULOu4k7lCEFAEoEgqg14YPVu1lnCVVYcz8TP7avPPKwtcB0CbFKYve3ElRP+V5DoBT75Q+G66bRdR+rQ5fg==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.80.3
+      '@trpc/client': 11.16.0
+      '@trpc/server': 11.16.0
+      react: '>=18.2.0'
+      typescript: '>=5.7.2'
+
+  '@trpc/server@11.16.0':
+    resolution: {integrity: sha512-XgGuUMddrUTd04+za/WE5GFuZ1/YU9XQG0t3VL5WOIu2JspkOlq6k4RYEiqS6HSJt+S0RXaPdIoE2anIP/BBRQ==}
+    hasBin: true
+    peerDependencies:
+      typescript: '>=5.7.2'
 
   '@tsconfig/node10@1.0.12':
     resolution: {integrity: sha512-UCYBaeFvM11aU2y3YPZ//O5Rhj+xKyzy7mvcIoAjASbigy8mHMryP5cK7dgjlz2hWxh1g5pLw084E0a/wlUSFQ==}
@@ -5325,6 +5383,13 @@ snapshots:
       postcss: 8.5.12
       tailwindcss: 4.2.4
 
+  '@tanstack/query-core@5.100.5': {}
+
+  '@tanstack/react-query@5.100.5(react@18.3.1)':
+    dependencies:
+      '@tanstack/query-core': 5.100.5
+      react: 18.3.1
+
   '@tokenizer/inflate@0.2.7':
     dependencies:
       debug: 4.4.3
@@ -5334,6 +5399,23 @@ snapshots:
       - supports-color
 
   '@tokenizer/token@0.3.0': {}
+
+  '@trpc/client@11.16.0(@trpc/server@11.16.0(typescript@5.7.2))(typescript@5.7.2)':
+    dependencies:
+      '@trpc/server': 11.16.0(typescript@5.7.2)
+      typescript: 5.7.2
+
+  '@trpc/react-query@11.16.0(@tanstack/react-query@5.100.5(react@18.3.1))(@trpc/client@11.16.0(@trpc/server@11.16.0(typescript@5.7.2))(typescript@5.7.2))(@trpc/server@11.16.0(typescript@5.7.2))(react@18.3.1)(typescript@5.7.2)':
+    dependencies:
+      '@tanstack/react-query': 5.100.5(react@18.3.1)
+      '@trpc/client': 11.16.0(@trpc/server@11.16.0(typescript@5.7.2))(typescript@5.7.2)
+      '@trpc/server': 11.16.0(typescript@5.7.2)
+      react: 18.3.1
+      typescript: 5.7.2
+
+  '@trpc/server@11.16.0(typescript@5.7.2)':
+    dependencies:
+      typescript: 5.7.2
 
   '@tsconfig/node10@1.0.12': {}
 
