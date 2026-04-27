@@ -1,0 +1,23 @@
+{
+  "extends": "@paws/tsconfig/nextjs.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": [
+    "node_modules",
+    "test_raw_fetch.ts",
+    "debug_bracket.ts",
+    "test_bracket_logic.ts",
+    "fetch-logos.mjs"
+  ]
+}

@@ -1,45 +1,20 @@
 {
-  "name": "cs-transfer-simulator",
+  "name": "paws-esport",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.28.2",
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
-    "lint": "eslint",
-    "postinstall": "prisma generate"
-  },
-  "dependencies": {
-    "@api/developers-pandascore": "file:.api/apis/developers-pandascore",
-    "@dnd-kit/core": "^6.3.1",
-    "@dnd-kit/sortable": "^10.0.0",
-    "@dnd-kit/utilities": "^3.2.2",
-    "@prisma/client": "^7.2.0",
-    "better-auth": "^1.4.7",
-    "clsx": "^2.1.1",
-    "dotenv": "^17.2.3",
-    "es5-ext": "^0.10.64",
-    "graphql": "^16.12.0",
-    "graphql-yoga": "^5.18.0",
-    "html2canvas": "^1.4.1",
-    "lucide-react": "^0.561.0",
-    "modern-screenshot": "^4.6.7",
-    "next": "^15.5.9",
-    "next-themes": "^0.4.6",
-    "prisma": "^7.2.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "resend": "^6.6.0",
-    "tailwind-merge": "^3.4.0"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "clean": "turbo run clean && rm -rf node_modules"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "^15.5.9",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

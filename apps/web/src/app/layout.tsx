@@ -18,6 +18,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://pawsesport.com"),
   title: {
     default: "PawsEsport | Transfer Market & Match Tracker",
     template: "%s | PawsEsport",

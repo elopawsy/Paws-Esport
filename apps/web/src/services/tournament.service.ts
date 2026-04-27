@@ -78,10 +78,12 @@ export async function getUpcomingTournaments(videogame: VideoGameSlug = 'cs-2'):
 
   try {
     // Fetch upcoming by sorting by begin_at (ascending)
+    const nowStr = new Date().toISOString();
+    // Use a range from now to a far future date to get upcoming tournaments
     const response = await apiClient.getTournaments(videogame, {
       'page[size]': 50,
       sort: 'begin_at',
-      'range[begin_at]': `${new Date().toISOString()},`
+      'range[begin_at]': `${nowStr},2099-12-31T23:59:59Z`
     });
 
     const now = new Date();
