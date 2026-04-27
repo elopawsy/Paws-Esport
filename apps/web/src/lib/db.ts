@@ -7,7 +7,7 @@
  * Prisma 7.x with "client" engine requires accelerateUrl to be passed.
  */
 
-import { PrismaClient } from '@/generated/prisma';
+import { PrismaClient } from '@paws/db';
 
 // Create a function to get the Prisma client lazily
 function createPrismaClient() {

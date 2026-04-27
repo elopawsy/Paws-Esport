@@ -7,7 +7,7 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin } from "better-auth/plugins";
-import { PrismaClient } from "@/generated/prisma";
+import { PrismaClient } from "@paws/db";
 import { sendEmail } from "./resend";
 import { verificationEmailTemplate, passwordResetEmailTemplate } from "./email-templates";
 

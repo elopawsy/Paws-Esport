@@ -1,3 +1,8 @@
+import path from 'node:path';
+import { config as loadEnv } from 'dotenv';
+
+loadEnv({ path: path.resolve(__dirname, '../../.env') });
+
 import { NestFactory } from '@nestjs/core';
 import type { INestiaConfig } from '@nestia/sdk';
 

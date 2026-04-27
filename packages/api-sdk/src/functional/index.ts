@@ -5,3 +5,4 @@
  */
 //================================================================
 export * as health from "./health";
+export * as video_games from "./video_games";
