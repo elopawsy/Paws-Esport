@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p apps/web)",
+      "Bash(mv src *)",
+      "Bash(mv next.config.ts prisma.config.ts postcss.config.mjs eslint.config.mjs next-env.d.ts apps/web/)",
+      "Bash(mv vercel.json apps/web/)",
+      "Bash(rm -f pnpm-lock.yaml)",
+      "Bash(pnpm install *)",
+      "Bash(pnpm config *)",
+      "Bash(pnpm dev *)",
+      "Bash(ln -sf ../../.env .env)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm swagger *)",
+      "Bash(pnpm sdk *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(pnpm --filter @paws/web dev)",
+      "Bash(curl -sS -o /dev/null -w \"Home HTTP %{http_code}\\\\n\" http://localhost:3000/)",
+      "Bash(curl -sS -o /dev/null -w \"Matches HTTP %{http_code}\\\\n\" \"http://localhost:3000/api/matches?per_page=1\")",
+      "Bash(pnpm --filter @paws/web typecheck)"
+    ]
+  }
+}

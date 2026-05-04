@@ -25,7 +25,7 @@ export default defineSchema({
       acronym: v.union(v.string(), v.null()),
       score: v.number(),
     }),
-    teamB: v.object({
+    teamB: v.object({x  
       id: v.number(),
       name: v.string(),
       acronym: v.union(v.string(), v.null()),
